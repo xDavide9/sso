@@ -8,10 +8,14 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-// tests running against sso_user table in public schema using h2 autoconfigured in memory database
-
+/**
+ * Tests running against sso_user table in public schema using h2 autoconfigured in memory database
+ * @since 0.0.1-SNAPSHOT
+ * @author xdavide9
+ * @see UserRepository
+ */
 @DataJpaTest
-public class UserRepositoryTest {
+class UserRepositoryTest {
 
     @Autowired
     private UserRepository underTest;
