@@ -23,8 +23,10 @@ import java.util.UUID;
 public class User implements UserDetails {
     @Id
     private UUID uuid;
+    @Column(nullable = false, unique = true)
+    private String username, email;
     @Column(nullable = false)
-    private String username, password, email;
+    private String password;
     @Enumerated(EnumType.STRING)
     private Role role;
     private boolean accountNonExpired, accountNonLocked, credentialsNonExpired, enabled;
