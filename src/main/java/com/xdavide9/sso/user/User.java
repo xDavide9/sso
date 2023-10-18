@@ -11,6 +11,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * This class is a User model, entity and custom implementation of {@link UserDetails} at the same time.
+ * You can only create objects of this class using the builder pattern; do NOT use the no args constructor required by JPA.
+ * @author xdavide9
+ * @since 0.0.1-SNAPSHOT
+ */
+
 @Entity
 @Table(name = "sso_user")
 public class User implements UserDetails {
