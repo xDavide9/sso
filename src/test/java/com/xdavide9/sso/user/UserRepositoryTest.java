@@ -1,5 +1,6 @@
 package com.xdavide9.sso.user;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -19,24 +20,50 @@ class UserRepositoryTest {
 
     @Autowired
     private UserRepository underTest;
+    private UUID uuid;
+    private String username, email;
+    private User user;
+
+    @BeforeEach
+    void setUp() {
+        uuid = UUID.randomUUID();
+        username = "xdavide9";
+        email = "davide@xdavide9.com";
+        user = User.builder()
+                .uuid(uuid)
+                .username(username)
+                .password("123")
+                .email(email)
+                .build();
+    }
 
     @Test
     void itShouldSaveUser() {
         // given
-        UUID uuid = UUID.randomUUID();
-        String username = "davide";
-        String password = "123";
-        String email = "davide@xdavide9.com";
-        User user = User.builder()
-                .uuid(uuid)
-                .username(username)
-                .password(password)
-                .email(email)
-                .build();
         // when
         underTest.save(user);
         // then
         assertThat(underTest.findById(uuid)).isPresent()
+                .hasValueSatisfying(u -> assertThat(u).isEqualTo(user));
+    }
+
+    @Test
+    void itShouldFindByUsername() {
+        // given
+        // when
+        underTest.save(user);
+        // then
+        assertThat(underTest.findByUsername(username)).isPresent()
+                .hasValueSatisfying(u -> assertThat(u).isEqualTo(user));
+    }
+
+    @Test
+    void itShouldFindByEmail() {
+        // given
+        // when
+        underTest.save(user);
+        // then
+        assertThat(underTest.findByEmail(email)).isPresent()
                 .hasValueSatisfying(u -> assertThat(u).isEqualTo(user));
     }
 }

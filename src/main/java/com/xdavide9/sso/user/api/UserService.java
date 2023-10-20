@@ -49,4 +49,34 @@ public class UserService {
                         new IllegalArgumentException(String.format("User with uuid [%s] not found.", uuid))
                 );
     }
+
+    /**
+     * @author xdavide9
+     * @since 0.0.1-SNAPSHOT
+     * @see UserController#getUserByUsername(String)
+     * @param username of the user in question
+     * @return the user in question
+     */
+    public User getUserByUsername(String username) {
+        return userRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(String.format("User with username [%s] not found.", username))
+                );
+    }
+
+    /**
+     * @author xdavide9
+     * @since 0.0.1-SNAPSHOT
+     * @see UserController#getUserByEmail(String)
+     * @param email of the user in question
+     * @return the user in question
+     */
+    public User getUserByEmail(String email) {
+        return userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(String.format("User with email [%s] not found.", email))
+                );
+    }
 }

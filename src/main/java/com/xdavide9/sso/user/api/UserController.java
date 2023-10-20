@@ -52,4 +52,28 @@ public class UserController {
         return userService.getUserByUuid(uuid);
     }
 
+    /**
+     * @see UserService#getUserByUsername(String)
+     * @author xdavide9
+     * @since 0.0.1-SNAPSHOT
+     * @param username of the user in question
+     * @return the user in question
+     */
+    @GetMapping("/username/{username}")
+    public User getUserByUsername(@PathVariable String username) {
+        return userService.getUserByUsername(username);
+    }
+
+    /**
+     * @see UserService#getUserByEmail(String)
+     * @author xdavide9
+     * @since 0.0.1-SNAPSHOT
+     * @param email of the user in question
+     * @return the user in question
+     */
+    @GetMapping("/email/{email}")
+    public User getUserByEmail(@PathVariable String email) {
+        return userService.getUserByEmail(email);
+    }
+
 }
