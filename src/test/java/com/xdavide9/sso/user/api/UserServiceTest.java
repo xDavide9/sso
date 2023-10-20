@@ -23,18 +23,11 @@ class UserServiceTest {
     @Mock
     private UserRepository repository;
 
-
     @BeforeEach
     void setUp() {
         underTest = new UserService(repository);
     }
 
-    /**
-     * happy path
-     * @author xdavide9
-     * @since 0.0.1-SNAPSHOT
-     * @see UserService#getUsers()
-     */
     @Test
     void itShouldGetUsers() {
         // given
@@ -45,12 +38,6 @@ class UserServiceTest {
         verifyNoMoreInteractions(repository);
     }
 
-    /**
-     * happy path
-     * @author xdavide9
-     * @since 0.0.1-SNAPSHOT
-     * @see UserService#getUserByUuid(UUID)
-     */
     @Test
     void itShouldGetUserByUuid() {
         // given
@@ -67,14 +54,9 @@ class UserServiceTest {
         // then
         assertThat(userOptional).isPresent()
                 .hasValueSatisfying(u -> assertThat(u).isEqualTo(returnedUser));
+        verifyNoMoreInteractions(repository);
     }
 
-    /**
-     * should throw custom exception
-     * @author xdavide9
-     * @since 0.0.1-SNAPSHOT
-     * @see UserService#getUserByUuid(UUID)
-     */
     @Test
     void itShouldNotGetUserByUuidAndThrow() {
         // given
@@ -84,7 +66,7 @@ class UserServiceTest {
         // then
         assertThatThrownBy(() -> underTest.getUserByUuid(uuid))
                 .isInstanceOf(IllegalArgumentException.class);
-
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -103,22 +85,19 @@ class UserServiceTest {
         // then
         assertThat(userOptional).isPresent()
                 .hasValueSatisfying(u -> assertThat(u).isEqualTo(returnedUser));
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
     void itShouldNotGetUserByUsernameAndThrow() {
         // given
         String username = "david";
-        User user = User.builder()
-                .username(username)
-                .password("123")
-                .email("david@xdavide9.com")
-                .build();
         given(repository.findByUsername(username)).willReturn(Optional.empty());
         // when
         // then
         assertThatThrownBy(() -> underTest.getUserByUsername(username))
                 .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -137,22 +116,18 @@ class UserServiceTest {
         // then
         assertThat(userOptional).isPresent()
                 .hasValueSatisfying(u -> assertThat(u).isEqualTo(returnedUser));
+        verifyNoMoreInteractions(repository);
     }
 
     @Test
     void itShouldNotGetUserByEmailAndThrow() {
         // given
         String email = "david@xdavide9.com";
-        User user = User.builder()
-                .username("david")
-                .password("123")
-                .email(email)
-                .build();
         given(repository.findByEmail(email)).willReturn(Optional.empty());
         // when
         // then
         assertThatThrownBy(() -> underTest.getUserByEmail(email))
                 .isInstanceOf(IllegalArgumentException.class);
-
+        verifyNoMoreInteractions(repository);
     }
 }

@@ -6,11 +6,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-/**
- * This class only tests the Builder pattern implemented in {@link User}
- * @author xdavide9
- * @since 0.0.1-SNAPSHOT
- */
 class UserTest {
 
     @Test
