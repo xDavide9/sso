@@ -8,6 +8,7 @@ package com.xdavide9.sso.user;
  */
 public enum Role {
     USER,
+    OPERATOR,
     ADMIN
 
     // TODO implement custom permissions associated with role

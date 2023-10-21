@@ -18,14 +18,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
-    private UserService underTest;
+class OperatorServiceTest {
+    private OperatorService underTest;
     @Mock
     private UserRepository repository;
 
     @BeforeEach
     void setUp() {
-        underTest = new UserService(repository);
+        underTest = new OperatorService(repository);
     }
 
     @Test
