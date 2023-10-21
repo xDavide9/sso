@@ -116,8 +116,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // TODO implement custom permissions associated with role
-        return List.of(new SimpleGrantedAuthority(String.format("ROLE_%s", role)));
+        return role.getAuthorities();
     }
 
     @Override
