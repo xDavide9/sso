@@ -1,5 +1,6 @@
 package com.xdavide9.sso.user.api;
 
+import com.xdavide9.sso.exception.UserNotFoundException;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class OperatorService {
         return userRepository
                 .findById(uuid)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(String.format("User with uuid [%s] not found.", uuid))
+                        new UserNotFoundException(String.format("User with uuid [%s] not found.", uuid))
                 );
     }
 
@@ -61,7 +62,7 @@ public class OperatorService {
         return userRepository
                 .findByUsername(username)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(String.format("User with username [%s] not found.", username))
+                        new UserNotFoundException(String.format("User with username [%s] not found.", username))
                 );
     }
 
@@ -76,7 +77,7 @@ public class OperatorService {
         return userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(String.format("User with email [%s] not found.", email))
+                        new UserNotFoundException(String.format("User with email [%s] not found.", email))
                 );
     }
 }

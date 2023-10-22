@@ -1,5 +1,6 @@
 package com.xdavide9.sso.user.api;
 
+import com.xdavide9.sso.exception.UserNotFoundException;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +66,8 @@ class OperatorServiceTest {
         // when
         // then
         assertThatThrownBy(() -> underTest.getUserByUuid(uuid))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining(String.format("User with uuid [%s] not found.", uuid));
         verifyNoMoreInteractions(repository);
     }
 
@@ -96,7 +98,8 @@ class OperatorServiceTest {
         // when
         // then
         assertThatThrownBy(() -> underTest.getUserByUsername(username))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining(String.format("User with username [%s] not found.", username));
         verifyNoMoreInteractions(repository);
     }
 
@@ -127,7 +130,8 @@ class OperatorServiceTest {
         // when
         // then
         assertThatThrownBy(() -> underTest.getUserByEmail(email))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining(String.format("User with email [%s] not found.", email));
         verifyNoMoreInteractions(repository);
     }
 }
