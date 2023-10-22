@@ -1,11 +1,8 @@
 package com.xdavide9.sso.user;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-
-import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -16,50 +13,46 @@ class UserRepositoryTest {
 
     @Autowired
     private UserRepository underTest;
-    private UUID uuid;
-    private String username, email;
-    private User user;
-
-    @BeforeEach
-    void setUp() {
-        uuid = UUID.randomUUID();
-        username = "xdavide9";
-        email = "davide@xdavide9.com";
-        user = User.builder()
-                .uuid(uuid)
-                .username(username)
-                .password("123")
-                .email(email)
-                .build();
-    }
 
     @Test
     void itShouldSaveUser() {
         // given
+        User user = new User();
+        user.setUsername("xdavide9");
+        user.setPassword("password");
+        user.setEmail("valid@email.com");
         // when
         underTest.save(user);
         // then
-        assertThat(underTest.findById(uuid)).isPresent()
+        assertThat(underTest.findById(user.getUuid())).isPresent()
                 .hasValueSatisfying(u -> assertThat(u).isEqualTo(user));
     }
 
     @Test
     void itShouldFindByUsername() {
         // given
+        User user = new User();
+        user.setUsername("xdavide9");
+        user.setPassword("password");
+        user.setEmail("valid@email.com");
         // when
         underTest.save(user);
         // then
-        assertThat(underTest.findByUsername(username)).isPresent()
+        assertThat(underTest.findByUsername("xdavide9")).isPresent()
                 .hasValueSatisfying(u -> assertThat(u).isEqualTo(user));
     }
 
     @Test
     void itShouldFindByEmail() {
         // given
+        User user = new User();
+        user.setUsername("xdavide9");
+        user.setPassword("password");
+        user.setEmail("valid@email.com");
         // when
         underTest.save(user);
         // then
-        assertThat(underTest.findByEmail(email)).isPresent()
+        assertThat(underTest.findByEmail("valid@email.com")).isPresent()
                 .hasValueSatisfying(u -> assertThat(u).isEqualTo(user));
     }
 }

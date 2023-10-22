@@ -1,77 +1,90 @@
 package com.xdavide9.sso.user;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.UUID;
+import java.util.Set;
+import java.util.stream.Stream;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static jakarta.validation.Validation.buildDefaultValidatorFactory;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class UserTest {
 
-    @Test
-    void itShouldBuildProvidingCustomValuesForAllFields() {
-        // given
-        UUID uuid = UUID.randomUUID();
-        String username = "Davide";
-        String password = "123";
-        String email = "davide@xdavide9.com";
-        Role role = Role.ADMIN;
-        boolean accountNonExpired = true;
-        boolean accountNonLocked = false;
-        boolean credentialsNonExpired = true;
-        boolean enabled = true;
-        // when
-        User user = User.builder()
-                .uuid(uuid)
-                .username(username)
-                .password(password)
-                .email(email)
-                .role(role)
-                .accountNonExpired(accountNonExpired)
-                .accountNonLocked(accountNonLocked)
-                .credentialsNonExpired(credentialsNonExpired)
-                .enabled(enabled)
-                .build();
-        // then
-        assertThat(user.getUuid()).isEqualTo(uuid);
-        assertThat(user.getUsername()).isEqualTo(username);
-        assertThat(user.getPassword()).isEqualTo(password);
-        assertThat(user.getEmail()).isEqualTo(email);
-        assertThat(user.getRole()).isEqualTo(role);
-        assertThat(user.isAccountNonExpired()).isEqualTo(accountNonExpired);
-        assertThat(user.isAccountNonLocked()).isEqualTo(accountNonLocked);
-        assertThat(user.isCredentialsNonExpired()).isEqualTo(credentialsNonExpired);
-        assertThat(user.isEnabled()).isEqualTo(enabled);
-        System.out.println(user);
+    private Validator validator;
+    private User user;
+
+    @BeforeEach
+    void setUp() {
+        validator = buildDefaultValidatorFactory().getValidator();
+        user = new User();
     }
 
     @Test
-    void itShouldBuildWithDefaults() {
-        // can't test for the uuid as it is always randomly generated
+    void itShouldCreateValidUser() {
         // given
-        String username = "Davide";
-        String password = "123";
-        String email = "davide@xdavide9.com";
-        Role role = Role.USER;
-        boolean accountNonExpired = true;
-        boolean accountNonLocked = true;
-        boolean credentialsNonExpired = true;
-        boolean enabled = true;
         // when
-        User user = User.builder()
-                .username(username)
-                .password(password)
-                .email(email)
-                .build();
+        user.setUsername("username");
+        user.setPassword("password");
+        user.setEmail("email@xdavide9.com");
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
         // then
-        assertThat(user.getUsername()).isEqualTo(username);
-        assertThat(user.getPassword()).isEqualTo(password);
-        assertThat(user.getEmail()).isEqualTo(email);
-        assertThat(user.getRole()).isEqualTo(role);
-        assertThat(user.isAccountNonExpired()).isEqualTo(accountNonExpired);
-        assertThat(user.isAccountNonLocked()).isEqualTo(accountNonLocked);
-        assertThat(user.isCredentialsNonExpired()).isEqualTo(credentialsNonExpired);
-        assertThat(user.isEnabled()).isEqualTo(enabled);
-        System.out.println(user);
+        assertThat(violations).isEmpty();
     }
+
+    static Stream<Arguments> userFieldsProvider() {
+        return Stream.of(
+                Arguments.of(
+                        null, "password", "email@email.com",
+                        Role.USER, "Username cannot be blank nor null"
+                ),
+                Arguments.of(
+                        "", "password", "email@email.com",
+                        Role.USER, "Username cannot be blank nor null"
+                ),
+                Arguments.of(
+                        "username", null, "email@email.com",
+                        Role.USER, "Password cannot be blank nor null"
+                ),
+                Arguments.of(
+                        "username", "", "email@email.com",
+                        Role.USER, "Password cannot be blank nor null"
+                ),
+                Arguments.of(
+                        "username", "password", "emailemail.com",
+                        Role.USER, "Invalid email format"
+                ),
+                Arguments.of(
+                        "username", "password", "email@email.com",
+                        null, "Role cannot be null"
+                )
+        );
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("userFieldsProvider")
+    void itShouldNotCreateUser(String username,
+                               String password,
+                               String email,
+                               Role role,
+                               String errorMessage) {
+        // given
+        // when
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setEmail(email);
+        user.setRole(role);
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        // then
+        assertThat(violations).isNotEmpty();
+        ConstraintViolation<User> violation = violations.iterator().next();
+        assertThat(violation.getMessage().contains(errorMessage)).isTrue();
+    }
+
 }

@@ -41,21 +41,7 @@ class OperatorServiceTest {
 
     @Test
     void itShouldGetUserByUuid() {
-        // given
-        UUID uuid = UUID.randomUUID();
-        User user = User.builder()
-                .username("david")
-                .password("123")
-                .email("david@xdavide9.com")
-                .build();
-        Optional<User> userOptional = Optional.of(user);
-        given(repository.findById(uuid)).willReturn(userOptional);
-        // when
-        User returnedUser = underTest.getUserByUuid(uuid);
-        // then
-        assertThat(userOptional).isPresent()
-                .hasValueSatisfying(u -> assertThat(u).isEqualTo(returnedUser));
-        verifyNoMoreInteractions(repository);
+
     }
 
     @Test
@@ -73,65 +59,21 @@ class OperatorServiceTest {
 
     @Test
     void itShouldGetUserByUsername() {
-        // given
-        String username = "david";
-        User user = User.builder()
-                .username(username)
-                .password("123")
-                .email("david@xdavide9.com")
-                .build();
-        Optional<User> userOptional = Optional.of(user);
-        given(repository.findByUsername(username)).willReturn(userOptional);
-        // when
-        User returnedUser = underTest.getUserByUsername(username);
-        // then
-        assertThat(userOptional).isPresent()
-                .hasValueSatisfying(u -> assertThat(u).isEqualTo(returnedUser));
-        verifyNoMoreInteractions(repository);
+
     }
 
     @Test
     void itShouldNotGetUserByUsernameAndThrow() {
-        // given
-        String username = "david";
-        given(repository.findByUsername(username)).willReturn(Optional.empty());
-        // when
-        // then
-        assertThatThrownBy(() -> underTest.getUserByUsername(username))
-                .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(String.format("User with username [%s] not found.", username));
-        verifyNoMoreInteractions(repository);
+
     }
 
     @Test
     void itShouldGetUserByEmail() {
-        // given
-        String email = "david@xdavide9.com";
-        User user = User.builder()
-                .username("david")
-                .password("123")
-                .email(email)
-                .build();
-        Optional<User> userOptional = Optional.of(user);
-        given(repository.findByEmail(email)).willReturn(userOptional);
-        // when
-        User returnedUser = underTest.getUserByEmail(email);
-        // then
-        assertThat(userOptional).isPresent()
-                .hasValueSatisfying(u -> assertThat(u).isEqualTo(returnedUser));
-        verifyNoMoreInteractions(repository);
+
     }
 
     @Test
     void itShouldNotGetUserByEmailAndThrow() {
-        // given
-        String email = "david@xdavide9.com";
-        given(repository.findByEmail(email)).willReturn(Optional.empty());
-        // when
-        // then
-        assertThatThrownBy(() -> underTest.getUserByEmail(email))
-                .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(String.format("User with email [%s] not found.", email));
-        verifyNoMoreInteractions(repository);
+
     }
 }

@@ -1,19 +1,23 @@
 package com.xdavide9.sso.user;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
  * This class is a User model, entity and custom implementation of {@link UserDetails} at the same time.
- * You can only create objects of this class using the builder pattern; do NOT use the no args constructor required by JPA.
+ * Object creation is done using the JavaBeans pattern. The fields username, email and password must be provided
+ * and cannot be null nor blank. Every other field has a default value that may be overridden (with valid values).
+ * The uuid is cannot be changed.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
@@ -22,94 +26,30 @@ import java.util.UUID;
 @Table(name = "sso_user")
 public class User implements UserDetails {
     @Id
-    private UUID uuid;
+    private final UUID uuid = UUID.randomUUID();
     @Column(nullable = false, unique = true)
-    private String username, email;
+    @NotBlank(message = "Username cannot be blank nor null")
+    private String username;
+    @Column(nullable = false, unique = true)
+    @Email(message = "Invalid email format")
+    private String email;
     @Column(nullable = false)
+    @NotBlank(message = "Password cannot be blank nor null")
+    @JsonIgnore
     private String password;
+    private String phoneNumber;
     @Enumerated(EnumType.STRING)
-    private Role role;
-    private boolean accountNonExpired, accountNonLocked, credentialsNonExpired, enabled;
+    @NotNull(message = "Role cannot be null")
+    private Role role = Role.USER;
+    private boolean accountNonExpired = true,
+            accountNonLocked = true,
+            credentialsNonExpired = true,
+            enabled = true;
 
     public User() {
     }
 
-    private User(Builder builder) {
-        this.uuid = builder.uuid;
-        this.username = builder.username;
-        this.password = builder.password;
-        this.email = builder.email;
-        this.role = builder.role;
-        this.accountNonExpired = builder.isAccountNonExpired;
-        this.accountNonLocked = builder.isAccountNonLocked;
-        this.credentialsNonExpired = builder.isCredentialsNonExpired;
-        this.enabled = builder.isEnabled;
-    }
-
-    public static class Builder {
-
-        private UUID uuid = UUID.randomUUID();
-        private String username, password, email;
-        private Role role = Role.USER;
-        private boolean isAccountNonExpired = true,
-                isAccountNonLocked = true,
-                isCredentialsNonExpired = true,
-                isEnabled = true;
-
-        public Builder uuid(UUID uuid) {
-            this.uuid = uuid;
-            return this;
-        }
-
-        public Builder username(String username) {
-            this.username = username;
-            return this;
-        }
-
-        public Builder password(String password) {
-            this.password = password;
-            return this;
-        }
-
-        public Builder email(String email) {
-            this.email = email;
-            return this;
-        }
-
-        public Builder role(Role role) {
-            this.role = role;
-            return this;
-        }
-
-        public Builder accountNonExpired(boolean isAccountNonExpired) {
-            this.isAccountNonExpired = isAccountNonExpired;
-            return this;
-        }
-
-        public Builder accountNonLocked(boolean isAccountNonLocked) {
-            this.isAccountNonLocked = isAccountNonLocked;
-            return this;
-        }
-
-        public Builder credentialsNonExpired(boolean isCredentialsNonExpired) {
-            this.isCredentialsNonExpired = isCredentialsNonExpired;
-            return this;
-        }
-
-        public Builder enabled(boolean isEnabled) {
-            this.isEnabled = isEnabled;
-            return this;
-        }
-
-        public User build() {
-            return new User(this);
-        }
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
+    // GETTERS
     public UUID getUuid() {
         return uuid;
     }
@@ -131,6 +71,10 @@ public class User implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
     public Role getRole() {
@@ -157,6 +101,8 @@ public class User implements UserDetails {
         return enabled;
     }
 
+    // SETTERS
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -167,6 +113,10 @@ public class User implements UserDetails {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public void setRole(Role role) {
@@ -189,17 +139,19 @@ public class User implements UserDetails {
         this.enabled = enabled;
     }
 
+    // EQUALS, HASHCODE, TOSTRING
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return accountNonExpired == user.accountNonExpired && accountNonLocked == user.accountNonLocked && credentialsNonExpired == user.credentialsNonExpired && enabled == user.enabled && Objects.equals(uuid, user.uuid) && Objects.equals(username, user.username) && Objects.equals(password, user.password) && Objects.equals(email, user.email) && role == user.role;
+        return Objects.equals(uuid, user.uuid);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(uuid, username, password, email, role, accountNonExpired, accountNonLocked, credentialsNonExpired, enabled);
+        return Objects.hash(uuid);
     }
 
     @Override
@@ -207,8 +159,8 @@ public class User implements UserDetails {
         return "User{" +
                 "uuid=" + uuid +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
                 ", role=" + role +
                 ", accountNonExpired=" + accountNonExpired +
                 ", accountNonLocked=" + accountNonLocked +
