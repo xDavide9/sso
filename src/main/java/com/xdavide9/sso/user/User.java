@@ -33,10 +33,12 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     @Email(message = "Invalid email format")
     private String email;
+    // TODO implement a password encrypter
     @Column(nullable = false)
     @NotBlank(message = "Password cannot be blank nor null")
     @JsonIgnore
     private String password;
+    // TODO implement a phone number validator
     private String phoneNumber;
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Role cannot be null")

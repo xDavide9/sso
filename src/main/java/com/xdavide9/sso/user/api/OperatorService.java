@@ -43,7 +43,6 @@ public class OperatorService {
      * @return the user in question
      */
     public User getUserByUuid(UUID uuid) {
-        // TODO implement custom exceptions and exception handling
         return userRepository
                 .findById(uuid)
                 .orElseThrow(() ->
