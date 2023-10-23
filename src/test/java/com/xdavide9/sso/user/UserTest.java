@@ -56,6 +56,14 @@ class UserTest {
                         Role.USER, "Password cannot be blank nor null"
                 ),
                 Arguments.of(
+                        "username", "password", null,
+                        Role.USER, "Email cannot be blank nor null"
+                ),
+                Arguments.of(
+                        "username", "password", "",
+                        Role.USER, "Email cannot be blank nor null"
+                ),
+                Arguments.of(
                         "username", "password", "emailemail.com",
                         Role.USER, "Invalid email format"
                 ),

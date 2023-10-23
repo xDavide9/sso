@@ -8,7 +8,7 @@ import java.util.UUID;
 
 /**
  * This repository connects to a PostgreSQL database named "sso" where there is a
- * "sso_user" table within the public schema. It makes use of the {@link User} model.
+ * "sso_user" table within the public schema. It makes use of the {@link User} entity.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */

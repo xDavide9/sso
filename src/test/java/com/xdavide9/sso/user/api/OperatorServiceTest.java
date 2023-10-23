@@ -41,7 +41,14 @@ class OperatorServiceTest {
 
     @Test
     void itShouldGetUserByUuid() {
-
+        // given
+        User user = new User();
+        UUID uuid = user.getUuid();
+        given(repository.findById(uuid)).willReturn(Optional.of(user));
+        // when
+        User retunedUser = underTest.getUserByUuid(uuid);
+        // then
+        assertThat(retunedUser).isEqualTo(user);
     }
 
     @Test
@@ -59,21 +66,55 @@ class OperatorServiceTest {
 
     @Test
     void itShouldGetUserByUsername() {
-
+        // given
+        String username = "username";
+        User user = new User();
+        user.setUsername(username);
+        given(repository.findByUsername(username)).willReturn(Optional.of(user));
+        // when
+        User returnedUser = underTest.getUserByUsername(username);
+        // then
+        assertThat(returnedUser).isEqualTo(user);
     }
 
     @Test
     void itShouldNotGetUserByUsernameAndThrow() {
-
+        // given
+        String username = "username";
+        User user = new User();
+        user.setUsername(username);
+        given(repository.findByUsername(username)).willReturn(Optional.empty());
+        // when
+        // then
+        assertThatThrownBy(() -> underTest.getUserByUsername(username))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining(String.format(String.format("User with username [%s] not found.", username)));
     }
 
     @Test
     void itShouldGetUserByEmail() {
-
+        // given
+        String email = "email@xdavide9.com";
+        User user = new User();
+        user.setEmail(email);
+        given(repository.findByEmail(email)).willReturn(Optional.of(user));
+        // when
+        User returnedUser = underTest.getUserByEmail(email);
+        // then
+        assertThat(returnedUser).isEqualTo(user);
     }
 
     @Test
     void itShouldNotGetUserByEmailAndThrow() {
-
+        // given
+        String email = "email@xdavide9.com";
+        User user = new User();
+        user.setEmail(email);
+        given(repository.findByEmail(email)).willReturn(Optional.empty());
+        // when
+        // then
+        assertThatThrownBy(() -> underTest.getUserByEmail(email))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining(String.format("User with email [%s] not found.", email));
     }
 }

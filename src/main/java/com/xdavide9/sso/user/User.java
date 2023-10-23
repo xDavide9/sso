@@ -17,7 +17,7 @@ import java.util.UUID;
  * This class is a User model, entity and custom implementation of {@link UserDetails} at the same time.
  * Object creation is done using the JavaBeans pattern. The fields username, email and password must be provided
  * and cannot be null nor blank. Every other field has a default value that may be overridden (with valid values).
- * The uuid is cannot be changed.
+ * The uuid cannot be changed.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
@@ -32,6 +32,7 @@ public class User implements UserDetails {
     private String username;
     @Column(nullable = false, unique = true)
     @Email(message = "Invalid email format")
+    @NotBlank(message = "Email cannot be blank nor null")
     private String email;
     // TODO implement a password encrypter
     @Column(nullable = false)
@@ -121,6 +122,7 @@ public class User implements UserDetails {
         this.phoneNumber = phoneNumber;
     }
 
+    // TODO protect this method invocation
     public void setRole(Role role) {
         this.role = role;
     }
