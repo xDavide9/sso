@@ -30,11 +30,12 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     @NotBlank(message = "Username cannot be blank nor null")
     private String username;
+
+    // TODO create email authenticator that sends a verification email
     @Column(nullable = false, unique = true)
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email cannot be blank nor null")
     private String email;
-    // TODO implement a password encrypter
     @Column(nullable = false)
     @NotBlank(message = "Password cannot be blank nor null")
     @JsonIgnore
@@ -45,9 +46,9 @@ public class User implements UserDetails {
     @NotNull(message = "Role cannot be null")
     private Role role = Role.USER;
     private boolean accountNonExpired = true,
-            accountNonLocked = true,
-            credentialsNonExpired = true,
-            enabled = true;
+            accountNonLocked = true,    // TODO set to false to prevent spamming login attempts
+            credentialsNonExpired = true,   // TODO set to false to require a password change
+            enabled = true; // TODO set to false to time out someone
 
     public User() {
     }
@@ -122,7 +123,6 @@ public class User implements UserDetails {
         this.phoneNumber = phoneNumber;
     }
 
-    // TODO protect this method invocation
     public void setRole(Role role) {
         this.role = role;
     }

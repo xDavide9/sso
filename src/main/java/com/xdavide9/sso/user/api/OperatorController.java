@@ -3,6 +3,7 @@ package com.xdavide9.sso.user.api;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.Role;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,20 +15,21 @@ import java.util.UUID;
 // TODO implement security configuration for these endpoints
 
 /**
- * This controller exposes endpoints to let operators manage {@link User}s.
+ * This controller exposes endpoints to let operators manage {@link User}s
+ * under the url /api/vX/operator/users where X is the current version of the application.
  * Requires the OPERATOR {@link Role} within the system.
  * Delegates business logic to {@link OperatorService}.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
 @RestController
-@RequestMapping("/api/v0.0.1-SNAPSHOT/users")
+@RequestMapping("/api/v0.0.1-SNAPSHOT/operator/users")
 public class OperatorController {
-    private final OperatorService userService;
+    private final OperatorService operatorService;
 
     @Autowired
-    public OperatorController(OperatorService userService) {
-        this.userService = userService;
+    public OperatorController(OperatorService operatorService) {
+        this.operatorService = operatorService;
     }
 
     /**
@@ -37,8 +39,9 @@ public class OperatorController {
      * @since 0.0.1-SNAPSHOT
      */
     @GetMapping
+    @PreAuthorize("hasAuthority('OPERATOR_GET')")
     public List<User> getUsers() {
-        return userService.getUsers();
+        return operatorService.getUsers();
     }
 
     /**
@@ -49,8 +52,9 @@ public class OperatorController {
      * @return the user in question
      */
     @GetMapping("/uuid/{uuid}")
+    @PreAuthorize("hasAuthority('OPERATOR_GET')")
     public User getUserByUuid(@PathVariable UUID uuid) {
-        return userService.getUserByUuid(uuid);
+        return operatorService.getUserByUuid(uuid);
     }
 
     /**
@@ -61,8 +65,9 @@ public class OperatorController {
      * @return the user in question
      */
     @GetMapping("/username/{username}")
+    @PreAuthorize("hasAuthority('OPERATOR_GET')")
     public User getUserByUsername(@PathVariable String username) {
-        return userService.getUserByUsername(username);
+        return operatorService.getUserByUsername(username);
     }
 
     /**
@@ -73,8 +78,11 @@ public class OperatorController {
      * @return the user in question
      */
     @GetMapping("/email/{email}")
+    @PreAuthorize("hasAuthority('OPERATOR_GET')")
     public User getUserByEmail(@PathVariable String email) {
-        return userService.getUserByEmail(email);
+        return operatorService.getUserByEmail(email);
     }
+
+    // TODO add requests of type Put (e.g time out with the "enabled" field)
 
 }
