@@ -7,7 +7,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 
- // Tests running against sso_user table in public schema using h2 autoconfigured in memory database
+ // unit tests running against sso_user table in public schema using h2 autoconfigured in memory database for UserRepository
 @DataJpaTest
 class UserRepositoryTest {
 

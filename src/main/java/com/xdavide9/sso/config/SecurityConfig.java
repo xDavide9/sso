@@ -1,5 +1,6 @@
 package com.xdavide9.sso.config;
 
+import com.xdavide9.sso.properties.App;
 import com.xdavide9.sso.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -22,17 +23,18 @@ import static java.lang.String.format;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    // TODO inject this version from application.properties that injects it from pom.xml
-    private final String version = "0.0.1-SNAPSHOT";
+    private final App app;
     private final UserRepository repository;
 
     @Autowired
-    public SecurityConfig(UserRepository repository) {
+    public SecurityConfig(UserRepository repository, App app) {
         this.repository = repository;
+        this.app = app;
     }
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        String version = app.getVersion();
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize

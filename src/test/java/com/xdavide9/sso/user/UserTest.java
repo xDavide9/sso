@@ -14,6 +14,8 @@ import java.util.stream.Stream;
 import static jakarta.validation.Validation.buildDefaultValidatorFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
+// tests user fields validation using hibernate validator
+
 class UserTest {
 
     private Validator validator;

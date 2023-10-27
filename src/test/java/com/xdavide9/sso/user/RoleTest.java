@@ -10,6 +10,8 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// tests if authorities are correctly created by the role of a user
+
 class RoleTest {
 
     static Stream<Arguments> roleAuthorityProvider() {
