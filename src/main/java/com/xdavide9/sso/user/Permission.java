@@ -12,11 +12,39 @@ package com.xdavide9.sso.user;
  */
 public enum Permission {
 
+    /**
+     * permission
+     * @since 0.0.1-SNAPSHOT
+     */
     ADMIN_GET,
+    /**
+     * permission
+     * @since 0.0.1-SNAPSHOT
+     */
     ADMIN_PUT,
+    /**
+     * permission
+     * @since 0.0.1-SNAPSHOT
+     */
     ADMIN_DELETE,
+    /**
+     * permission
+     * @since 0.0.1-SNAPSHOT
+     */
     OPERATOR_GET,
+    /**
+     * permission
+     * @since 0.0.1-SNAPSHOT
+     */
     OPERATOR_PUT,
+    /**
+     * permission
+     * @since 0.0.1-SNAPSHOT
+     */
     USER_GET,
-    USER_PUT;
+    /**
+     * permission
+     * @since 0.0.1-SNAPSHOT
+     */
+    USER_PUT
 }

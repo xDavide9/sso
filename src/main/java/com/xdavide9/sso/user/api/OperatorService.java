@@ -17,8 +17,17 @@ import java.util.UUID;
  */
 @Service
 public class OperatorService {
+    /**
+     * repository
+     * @since 0.0.1-SNAPSHOT
+     * @see UserRepository
+     */
     private final UserRepository userRepository;
 
+    /**
+     * constructor
+     * @param userRepository userRepository
+     */
     @Autowired
     public OperatorService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -26,7 +35,7 @@ public class OperatorService {
 
 
     /**
-     * @author xdavide9
+     * service method
      * @since 0.0.1-SNAPSHOT
      * @return all users in database
      * @see OperatorController#getUsers()
@@ -36,7 +45,7 @@ public class OperatorService {
     }
 
     /**
-     * @author xdavide9
+     * service method
      * @since 0.0.1-SNAPSHOT
      * @see OperatorController#getUserByUuid(UUID)
      * @param uuid of the user in question
@@ -51,7 +60,7 @@ public class OperatorService {
     }
 
     /**
-     * @author xdavide9
+     * service method
      * @since 0.0.1-SNAPSHOT
      * @see OperatorController#getUserByUsername(String)
      * @param username of the user in question
@@ -66,7 +75,7 @@ public class OperatorService {
     }
 
     /**
-     * @author xdavide9
+     * service method
      * @since 0.0.1-SNAPSHOT
      * @see OperatorController#getUserByEmail(String)
      * @param email of the user in question

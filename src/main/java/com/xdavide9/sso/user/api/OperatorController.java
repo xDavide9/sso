@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
-// TODO implement security configuration for these endpoints
-
 /**
  * This controller exposes endpoints to let operators manage {@link User}s
  * under the url /api/vX/operator/users where X is the current version of the application.
@@ -23,19 +21,29 @@ import java.util.UUID;
  * @since 0.0.1-SNAPSHOT
  */
 @RestController
-@RequestMapping("/api/v0.0.1-SNAPSHOT/operator/users")
+@RequestMapping("/api/v0.0.1-SNAPSHOT/operator/users")  // api/version/role/users
 public class OperatorController {
+    /**
+     * operatorService
+     * @since 0.0.1-SNAPSHOT
+     * @see OperatorService
+     */
     private final OperatorService operatorService;
 
+    /**
+     * constructor
+     * @param operatorService operatorService
+     * @since 0.0.1-SNAPSHOT
+     */
     @Autowired
     public OperatorController(OperatorService operatorService) {
         this.operatorService = operatorService;
     }
 
     /**
+     * Http get method
      * @return all users saved in database
      * @see OperatorService#getUsers()
-     * @author xdavide9
      * @since 0.0.1-SNAPSHOT
      */
     @GetMapping
@@ -45,8 +53,8 @@ public class OperatorController {
     }
 
     /**
+     * Http get method
      * @see OperatorService#getUserByUuid(UUID)
-     * @author xdavide9
      * @since 0.0.1-SNAPSHOT
      * @param uuid of the user in question
      * @return the user in question
@@ -58,8 +66,8 @@ public class OperatorController {
     }
 
     /**
+     * Http get method
      * @see OperatorService#getUserByUsername(String)
-     * @author xdavide9
      * @since 0.0.1-SNAPSHOT
      * @param username of the user in question
      * @return the user in question
@@ -71,8 +79,8 @@ public class OperatorController {
     }
 
     /**
+     * Http get method
      * @see OperatorService#getUserByEmail(String)
-     * @author xdavide9
      * @since 0.0.1-SNAPSHOT
      * @param email of the user in question
      * @return the user in question

@@ -22,16 +22,28 @@ import static com.xdavide9.sso.user.Permission.*;
  * @since 0.0.1-SNAPSHOT
  */
 public enum Role {
+    /**
+     * role
+     * @since 0.0.1-SNAPSHOT
+     */
     USER(Set.of(
             USER_GET,
             USER_PUT
     )),
+    /**
+     * role
+     * @since 0.0.1-SNAPSHOT
+     */
     OPERATOR(Set.of(
             USER_GET,
             USER_PUT,
             OPERATOR_GET,
             OPERATOR_PUT
     )),
+    /**
+     * role
+     * @since 0.0.1-SNAPSHOT
+     */
     ADMIN(Set.of(
             USER_GET,
             USER_PUT,
@@ -42,18 +54,37 @@ public enum Role {
             ADMIN_DELETE
     ));
 
+    /**
+     * permissions
+     * @since 0.0.1-SNAPSHOT
+     */
     private final Set<Permission> permissions;
 
+    /**
+     * constructor for a role based on permissions
+     * @param permissions permissions
+     * @since 0.0.1-SNAPSHOT
+     */
     Role(Set<Permission> permissions) {
         this.permissions = permissions;
     }
 
+    /**
+     * getter
+     * @return permissions
+     * @since 0.0.1-SNAPSHOT
+     */
     public Set<Permission> getPermissions() {
         return permissions;
     }
 
+    /**
+     * constructs authorities from permissions associated with role
+     * @since 0.0.1-SNAPSHOT
+     * @return list of authorities for each role
+     */
     public List<SimpleGrantedAuthority> getAuthorities() {
-        List<SimpleGrantedAuthority> authorities = permissions
+        List<SimpleGrantedAuthority> authorities = getPermissions()
                 .stream()
                 .map(permission -> new SimpleGrantedAuthority(permission.name()))
                 .collect(Collectors.toList());
