@@ -1,6 +1,6 @@
 package com.xdavide9.sso.config;
 
-import com.xdavide9.sso.properties.App;
+import com.xdavide9.sso.properties.AppProperties;
 import com.xdavide9.sso.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -28,19 +28,19 @@ import static java.lang.String.format;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final App app;
+    private final AppProperties appProperties;
     private final UserRepository repository;
 
     /**
      * constructor
      * @param repository user repository
-     * @param app application.properties' properties with prefix app
+     * @param appProperties application.properties' properties with prefix app
      * @since 0.0.1-SNAPSHOT
      */
     @Autowired
-    public SecurityConfig(UserRepository repository, App app) {
+    public SecurityConfig(UserRepository repository, AppProperties appProperties) {
         this.repository = repository;
-        this.app = app;
+        this.appProperties = appProperties;
     }
 
     /**
@@ -54,7 +54,7 @@ public class SecurityConfig {
      */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        String version = app.getVersion();
+        String version = appProperties.getVersion();
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize

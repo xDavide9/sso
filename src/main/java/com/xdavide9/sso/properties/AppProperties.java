@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConfigurationProperties(prefix = "app")
-public class App {
+public class AppProperties {
     /**
      * application name
      * @since 0.0.1-SNAPSHOT
@@ -35,8 +35,6 @@ public class App {
      * @since 0.0.1-SNAPSHOT
      */
     private String jdk;
-
-    private App() {}
 
     /**
      * getter

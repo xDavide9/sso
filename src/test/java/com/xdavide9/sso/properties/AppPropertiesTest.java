@@ -11,10 +11,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 // TODO later add secret key to this test (not yet implemented)
 
 @SpringBootTest(classes = {})
-class AppTest {
+class AppPropertiesTest {
 
     @Autowired
-    private App underTest;
+    private AppProperties underTest;
     @Test
     void itShouldInjectProperties() {
         // given
