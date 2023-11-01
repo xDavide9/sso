@@ -6,17 +6,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-// integration test to see if properties are correctly injected in App POJO
+// integration test to see if app properties are correctly injected in AppProperties POJO
 
-// TODO later add secret key to this test (not yet implemented)
-
-@SpringBootTest(classes = {})
+@SpringBootTest()
 class AppPropertiesTest {
 
     @Autowired
     private AppProperties underTest;
     @Test
-    void itShouldInjectProperties() {
+    void itShouldInjectAppProperties() {
         // given
         String name = "sso";
         String version = "0.0.1-SNAPSHOT";
