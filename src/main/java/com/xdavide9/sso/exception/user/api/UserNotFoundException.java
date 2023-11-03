@@ -1,4 +1,4 @@
-package com.xdavide9.sso.exception;
+package com.xdavide9.sso.exception.user.api;
 
 /**
  * This class is a custom runtime exception that is thrown when a user is not found.

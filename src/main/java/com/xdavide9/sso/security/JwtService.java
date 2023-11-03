@@ -1,6 +1,6 @@
 package com.xdavide9.sso.security;
 
-import com.xdavide9.sso.exception.JwtSubjectMissMatch;
+import com.xdavide9.sso.exception.jwt.JwtSubjectMissMatchException;
 import com.xdavide9.sso.properties.JwtProperties;
 import com.xdavide9.sso.user.User;
 import io.jsonwebtoken.Claims;
@@ -147,7 +147,7 @@ public class JwtService {
 
     /**
      * This method returns true if the subject in the token is the same User passed to it. Otherwise it throws a
-     * {@link JwtSubjectMissMatch}
+     * {@link JwtSubjectMissMatchException}
      * @param token token
      * @param user user
      * @return boolean
@@ -155,7 +155,7 @@ public class JwtService {
      */
     public boolean isTokenSubjectMatching(String token, User user) {
         if (!(extractUsername(token).equals(user.getUsername()))) {
-            throw new JwtSubjectMissMatch();
+            throw new JwtSubjectMissMatchException();
         }
         return true;
     }

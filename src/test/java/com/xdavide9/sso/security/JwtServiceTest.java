@@ -1,6 +1,6 @@
 package com.xdavide9.sso.security;
 
-import com.xdavide9.sso.exception.JwtSubjectMissMatch;
+import com.xdavide9.sso.exception.jwt.JwtSubjectMissMatchException;
 import com.xdavide9.sso.properties.JwtProperties;
 import com.xdavide9.sso.user.User;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -101,6 +101,6 @@ class JwtServiceTest {
         // then
         // if the token is not expired but the user it not the same
         assertThatThrownBy(() -> underTest.isTokenSubjectMatching(token, new User()))
-                .isInstanceOf(JwtSubjectMissMatch.class);
+                .isInstanceOf(JwtSubjectMissMatchException.class);
     }
 }

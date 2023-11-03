@@ -1,4 +1,4 @@
-package com.xdavide9.sso.exception;
+package com.xdavide9.sso.exception.jwt;
 
 
 /**
@@ -10,12 +10,12 @@ package com.xdavide9.sso.exception;
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
-public class JwtSubjectMissMatch extends RuntimeException {
+public class JwtSubjectMissMatchException extends RuntimeException {
     /**
      * empty constructor
      * @since 0.0.1-SNAPSHOT
      */
-    public JwtSubjectMissMatch() {
+    public JwtSubjectMissMatchException() {
     }
 
     /**
@@ -23,7 +23,7 @@ public class JwtSubjectMissMatch extends RuntimeException {
      * @param message message
      * @since 0.0.1-SNAPSHOT
      */
-    public JwtSubjectMissMatch(String message) {
+    public JwtSubjectMissMatchException(String message) {
         super(message);
     }
 
@@ -33,7 +33,7 @@ public class JwtSubjectMissMatch extends RuntimeException {
      * @param cause cause
      * @since 0.0.1-SNAPSHOT
      */
-    public JwtSubjectMissMatch(String message, Throwable cause) {
+    public JwtSubjectMissMatchException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -42,7 +42,7 @@ public class JwtSubjectMissMatch extends RuntimeException {
      * @param cause cause
      * @since 0.0.1-SNAPSHOT
      */
-    public JwtSubjectMissMatch(Throwable cause) {
+    public JwtSubjectMissMatchException(Throwable cause) {
         super(cause);
     }
 
@@ -54,7 +54,7 @@ public class JwtSubjectMissMatch extends RuntimeException {
      * @param writableStackTrace writableStackTrace
      * @since 0.0.1-SNAPSHOT
      */
-    public JwtSubjectMissMatch(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public JwtSubjectMissMatchException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

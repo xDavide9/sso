@@ -1,6 +1,6 @@
 package com.xdavide9.sso.user.api;
 
-import com.xdavide9.sso.exception.UserNotFoundException;
+import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
