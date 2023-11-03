@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 0.0.1-SNAPSHOT
  */
 @RestController
-@RequestMapping("/api/v0.0.1-SNAPSHOT/user/users")  // api/version/role/users
+@RequestMapping("/api/v${app.version}/user/users")  // api/version/role/users
 public class UserController {
 
     /**

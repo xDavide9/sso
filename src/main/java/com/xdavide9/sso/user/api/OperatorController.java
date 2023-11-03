@@ -21,7 +21,7 @@ import java.util.UUID;
  * @since 0.0.1-SNAPSHOT
  */
 @RestController
-@RequestMapping("/api/v0.0.1-SNAPSHOT/operator/users")  // api/version/role/users
+@RequestMapping("/api/v${app.version}/operator/users")  // api/version/role/users
 public class OperatorController {
     /**
      * operatorService

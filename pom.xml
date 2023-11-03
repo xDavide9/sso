@@ -10,6 +10,7 @@
     </parent>
     <groupId>com.xdavide9</groupId>
     <artifactId>sso</artifactId>
+<!--    Changing the version here will change it also in every api path-->
     <version>0.0.1-SNAPSHOT</version>
     <name>sso</name>
     <description>sso</description>
