@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 // TODO implement security configuration for these endpoints
+// TODO validate user paylods sent in post methods with hibernate validation that has already been tested
+// TODO implement GET methods that use the jwt token subject to get information about the currently logged in user to retrieve personal information
 
 /**
  * This controller exposes endpoints for {@link User}s to manage their personal information.

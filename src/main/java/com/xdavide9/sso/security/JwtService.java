@@ -1,5 +1,6 @@
 package com.xdavide9.sso.security;
 
+import com.xdavide9.sso.exception.JwtSubjectMissMatch;
 import com.xdavide9.sso.properties.JwtProperties;
 import com.xdavide9.sso.user.User;
 import io.jsonwebtoken.Claims;
@@ -15,8 +16,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
-// TODO test this class
 
 /**
  * This service provides various methods to work with jwt tokens.
@@ -132,32 +131,51 @@ public class JwtService {
 
     // token validation
 
+    // TODO handle SignatureException by rotating security key
+
     /**
-     * This method checks if a token is still valid if it is not expired and the username (subject) is the same
-     * in the token is the same as the one in the UserDetails implementation
+     * This method checks if a token is valid by combining the results of isTokenSubjectMatching and isTokenExpired.
+     * If any of the two is false it returns false, if both are true it returns true
      * @param token token
      * @param user user
      * @return boolean
      * @since 0.0.1-SNAPSHOT
      */
     public boolean isTokenValid(String token, User user) {
-        return !isTokenExpired(token) &&
-                extractUsername(token).equals(user.getUsername());
+        return !isTokenExpired(token) && isTokenSubjectMatching(token, user);
     }
 
     /**
+     * This method returns true if the subject in the token is the same User passed to it. Otherwise it throws a
+     * {@link JwtSubjectMissMatch}
+     * @param token token
+     * @param user user
+     * @return boolean
+     * @since 0.0.1-SNAPSHOT
+     */
+    public boolean isTokenSubjectMatching(String token, User user) {
+        if (!(extractUsername(token).equals(user.getUsername()))) {
+            throw new JwtSubjectMissMatch();
+        }
+        return true;
+    }
+
+    // TODO handle expired exception by redirecting to login again
+
+    /**
      * This method checks if a token is expired by comparing current system time
-     * to expiration
+     * to expiration. It returns true if the token is not expired and throws a
+     * {@link io.jsonwebtoken.ExpiredJwtException} exception if the token is expired (by {@link Jwts} parser)
      * @see JwtProperties
      * @param token token
      * @return boolean
      * @since 0.0.1-SNAPSHOT
      */
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date(System.currentTimeMillis()));
+    public boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 
-    // sign in key in hmac-sha265 / h256 (minimum requirement)
+    // sign in key in hmac-sha265 / hs256 (minimum requirement)
 
     // TODO change key and store it properly
 

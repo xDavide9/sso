@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 // TODO implement security configuration for these endpoints
+// TODO implement admin only functionality including destructive operation like delete
 
 /**
  * This controller exposes endpoints to let admins manage {@link User}s and Operators.
