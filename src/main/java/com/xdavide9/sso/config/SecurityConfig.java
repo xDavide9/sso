@@ -1,6 +1,7 @@
 package com.xdavide9.sso.config;
 
 import com.xdavide9.sso.properties.AppProperties;
+import com.xdavide9.sso.security.JwtAuthenticationFilter;
 import com.xdavide9.sso.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -10,11 +11,13 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static java.lang.String.format;
 /**
@@ -30,17 +33,20 @@ public class SecurityConfig {
 
     private final AppProperties appProperties;
     private final UserRepository repository;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * constructor
      * @param repository user repository
      * @param appProperties application.properties' properties with prefix app
+     * @param jwtAuthenticationFilter jwtAuthenticationFilter
      * @since 0.0.1-SNAPSHOT
      */
     @Autowired
-    public SecurityConfig(UserRepository repository, AppProperties appProperties) {
+    public SecurityConfig(UserRepository repository, AppProperties appProperties, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.repository = repository;
         this.appProperties = appProperties;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     /**
@@ -65,7 +71,15 @@ public class SecurityConfig {
                                         format("/api/v%s/operator/users/email/**", version)
                                 )
                                 .hasAuthority("OPERATOR_GET")
-                        ).build();
+                                .requestMatchers("/signup", "/login")   // TODO create this endpoints
+                                .permitAll()
+                        )
+                .sessionManagement(configurer ->
+                        configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authenticationProvider(daoAuthenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     /**
