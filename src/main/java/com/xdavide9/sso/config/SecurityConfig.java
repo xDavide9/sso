@@ -92,9 +92,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // TODO provide a custom query that finds either by username or email
-
-
     /**
      * provides a {@link DaoAuthenticationProvider} implementation
      * with set passwordEncoder and userDetailsService

@@ -30,4 +30,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      */
     Optional<User> findByEmail(String email);
 
+    /**
+     * finds either by username or email
+     * @param s1 username or email
+     * @param s2 email (if s1 is username), username (if s1 is email)
+     * @return Optional of User with matching username or email
+     * @since 0.0.1-SNAPSHOT
+     */
+    Optional<User> findByUsernameOrEmail(String s1, String s2);
+
 }
