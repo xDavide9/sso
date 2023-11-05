@@ -44,6 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * constructor
+     * @since 0.0.1-SNAPSHOT
      * @param jwtService jwtService
      * @param userDetailsService userDetailsService
      */
@@ -54,7 +55,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * The actual filter implementation that processes the filters
+     * The actual filter implementation that processes the tokens
+     * sent within http requests.
+     * @since 0.0.1-SNAPSHOT
      * @param request client request
      * @param response server response
      * @param filterChain filterChain
@@ -94,6 +97,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Wrapping security context holder for testability (a static utility cannot be mocked)
+     * @since 0.0.1-SNAPSHOT
+     * @return securityContext
+     */
     protected SecurityContext securityContext() {
         return SecurityContextHolder.getContext();
     }

@@ -32,7 +32,7 @@ import static java.lang.String.format;
 public class SecurityConfig {
 
     private final AppProperties appProperties;
-    private final UserRepository repository;
+    private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
@@ -43,8 +43,8 @@ public class SecurityConfig {
      * @since 0.0.1-SNAPSHOT
      */
     @Autowired
-    public SecurityConfig(UserRepository repository, AppProperties appProperties, JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.repository = repository;
+    public SecurityConfig(UserDetailsService userDetailsService, AppProperties appProperties, JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.userDetailsService = userDetailsService;
         this.appProperties = appProperties;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
@@ -94,17 +94,6 @@ public class SecurityConfig {
 
     // TODO provide a custom query that finds either by username or email
 
-    /**
-     * provides a custom userDetailsService
-     * which uses {@link UserRepository} to return {@link com.xdavide9.sso.user.User} entities
-     * @return custom userDetailsService
-     * @since 0.0.1-SNAPSHOT
-     */
-    @Bean
-    UserDetailsService userDetailsService() {
-        return username -> repository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User with username [%s] not found."));
-    }
 
     /**
      * provides a {@link DaoAuthenticationProvider} implementation
@@ -117,7 +106,7 @@ public class SecurityConfig {
     DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setPasswordEncoder(passwordEncoder());
-        provider.setUserDetailsService(userDetailsService());
+        provider.setUserDetailsService(userDetailsService);
         return provider;
     }
 }

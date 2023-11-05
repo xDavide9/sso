@@ -9,6 +9,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -106,11 +107,11 @@ public class JwtService {
      */
     public String generateToken(
             Map<String, Object> extraClaims,
-            User user
+            UserDetails userDetails
     ) {
         return Jwts.builder()
                 .setClaims(extraClaims)
-                .setSubject(user.getUsername())
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
@@ -125,8 +126,8 @@ public class JwtService {
      * @return the token
      * @since 0.0.1-SNAPSHOT
      */
-    public String generateToken(User user) {
-        return generateToken(new HashMap<>(), user);
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
     }
 
     // token validation
@@ -141,8 +142,8 @@ public class JwtService {
      * @return boolean
      * @since 0.0.1-SNAPSHOT
      */
-    public boolean isTokenValid(String token, User user) {
-        return !isTokenExpired(token) && isTokenSubjectMatching(token, user);
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        return !isTokenExpired(token) && isTokenSubjectMatching(token, userDetails);
     }
 
     /**
@@ -153,8 +154,8 @@ public class JwtService {
      * @return boolean
      * @since 0.0.1-SNAPSHOT
      */
-    public boolean isTokenSubjectMatching(String token, User user) {
-        if (!(extractUsername(token).equals(user.getUsername()))) {
+    public boolean isTokenSubjectMatching(String token, UserDetails userDetails) {
+        if (!(extractUsername(token).equals(userDetails.getUsername()))) {
             throw new JwtSubjectMissMatchException();
         }
         return true;
