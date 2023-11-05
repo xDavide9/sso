@@ -49,6 +49,8 @@ public class User implements UserDetails {
     @NotBlank(message = "Email cannot be blank nor null")
     private String email;
 
+    // TODO implement stronger password validation
+
     /**
      * It is used to authenticate
      * @since 0.0.1-SNAPSHOT
