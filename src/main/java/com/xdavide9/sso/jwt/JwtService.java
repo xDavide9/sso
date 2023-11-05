@@ -1,4 +1,4 @@
-package com.xdavide9.sso.security;
+package com.xdavide9.sso.jwt;
 
 import com.xdavide9.sso.exception.jwt.JwtSubjectMissMatchException;
 import com.xdavide9.sso.properties.JwtProperties;
