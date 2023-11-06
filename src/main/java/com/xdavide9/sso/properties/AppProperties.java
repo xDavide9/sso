@@ -37,6 +37,12 @@ public class AppProperties {
     private String jdk;
 
     /**
+     * empty constructor
+     * @since 0.0.1-SNAPSHOT
+     */
+    public AppProperties() {}
+
+    /**
      * getter
      * @since 0.0.1-SNAPSHOT
      * @return name

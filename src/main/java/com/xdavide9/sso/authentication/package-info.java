@@ -6,3 +6,4 @@
  * @since 0.0.1-SNAPSHOT
  * @author xdavide9
  */
+package com.xdavide9.sso.authentication;

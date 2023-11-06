@@ -25,6 +25,12 @@ public class JwtProperties {
     private long expiration;
 
     /**
+     * empty constructor
+     * @since 0.0.1-SNAPSHOT
+     */
+    public JwtProperties() {}
+
+    /**
      * getter
      * @return secret key
      * @since 0.0.1-SNAPSHOT

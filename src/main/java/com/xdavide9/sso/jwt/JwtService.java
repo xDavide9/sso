@@ -101,7 +101,7 @@ public class JwtService {
      * expiration and signInKey. It also allows to set extra claims.
      * @see JwtProperties
      * @param extraClaims extraClaims to be added
-     * @param user user
+     * @param userDetails userDetails
      * @return the token
      * @since 0.0.1-SNAPSHOT
      */
@@ -122,7 +122,7 @@ public class JwtService {
      * This method issues a token with set subject (username of {@link User}),
      * expiration and signInKey.
      * @see JwtProperties
-     * @param user user
+     * @param userDetails userDetails
      * @return the token
      * @since 0.0.1-SNAPSHOT
      */
@@ -138,7 +138,7 @@ public class JwtService {
      * This method checks if a token is valid by combining the results of isTokenSubjectMatching and isTokenExpired.
      * If any of the two is false it returns false, if both are true it returns true
      * @param token token
-     * @param user user
+     * @param userDetails userDetails
      * @return boolean
      * @since 0.0.1-SNAPSHOT
      */
@@ -150,7 +150,7 @@ public class JwtService {
      * This method returns true if the subject in the token is the same User passed to it. Otherwise it throws a
      * {@link JwtSubjectMissMatchException}
      * @param token token
-     * @param user user
+     * @param userDetails userDetails
      * @return boolean
      * @since 0.0.1-SNAPSHOT
      */

@@ -1,10 +1,11 @@
 package com.xdavide9.sso.exception.user;
 
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /**
  * Custom exception that extends directly {@link UsernameNotFoundException} which is meant
- * to be thrown only in a {@link org.springframework.security.core.userdetails.UserDetailsService} implementation
+ * to be thrown only in a {@link UserDetailsService} implementation
  * when a user by username or email is not found
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
