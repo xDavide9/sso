@@ -1,8 +1,10 @@
-package com.xdavide9.sso.registration.api;
+package com.xdavide9.sso.authentication.api;
 
-import com.xdavide9.sso.registration.SignupRequest;
-import com.xdavide9.sso.registration.LoginRequest;
-import com.xdavide9.sso.registration.AuthenticationResponse;
+import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.api.UserController;
+import com.xdavide9.sso.authentication.SignupRequest;
+import com.xdavide9.sso.authentication.LoginRequest;
+import com.xdavide9.sso.authentication.AuthenticationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
  * and allow users to receive jwt tokens to authenticate across the application.
  * The /signup endpoint is meant for users that need to register for the firs time to the application.
  * Therefore, they will need to provide a username, email and password which are the required fields
- * by the {@link com.xdavide9.sso.user.User}. Additional fields may be set later in appropriate account management
- * section exposed by {@link com.xdavide9.sso.user.api.UserController}.
+ * by the {@link User}. Additional fields may be set later in appropriate account management
+ * section exposed by {@link UserController}.
  * It delegates business logic to {@link AuthenticationService}.
  * @since 0.0.1-SNAPSHOT
  * @author xdavide9

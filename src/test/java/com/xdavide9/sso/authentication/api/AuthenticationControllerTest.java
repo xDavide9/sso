@@ -1,4 +1,4 @@
-package com.xdavide9.sso.registration.api;
+package com.xdavide9.sso.authentication.api;
 
 // see OperatorControllerTest
 

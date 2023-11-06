@@ -1,10 +1,10 @@
-package com.xdavide9.sso.registration.api;
+package com.xdavide9.sso.authentication.api;
 
 import com.xdavide9.sso.jwt.JwtService;
-import com.xdavide9.sso.registration.LoginRequest;
+import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.user.UserRepository;
-import com.xdavide9.sso.registration.SignupRequest;
-import com.xdavide9.sso.registration.AuthenticationResponse;
+import com.xdavide9.sso.authentication.SignupRequest;
+import com.xdavide9.sso.authentication.AuthenticationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

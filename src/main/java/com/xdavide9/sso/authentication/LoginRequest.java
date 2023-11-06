@@ -1,4 +1,4 @@
-package com.xdavide9.sso.registration;
+package com.xdavide9.sso.authentication;
 
 public class LoginRequest {
 
