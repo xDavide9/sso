@@ -1,4 +1,4 @@
-package com.xdavide9.sso.exception.user;
+package com.xdavide9.sso.exception.authentication;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,14 +10,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
-public class UsernameNorEmailNotFound extends UsernameNotFoundException {
+public class UsernameNorEmailNotFoundException extends UsernameNotFoundException {
 
     /**
      * super constructor
      * @since 0.0.1-SNAPSHOT
      * @param msg message
      */
-    public UsernameNorEmailNotFound(String msg) {
+    public UsernameNorEmailNotFoundException(String msg) {
         super(msg);
     }
 
@@ -27,7 +27,7 @@ public class UsernameNorEmailNotFound extends UsernameNotFoundException {
      * @param msg message
      * @param cause cause
      */
-    public UsernameNorEmailNotFound(String msg, Throwable cause) {
+    public UsernameNorEmailNotFoundException(String msg, Throwable cause) {
         super(msg, cause);
     }
 }

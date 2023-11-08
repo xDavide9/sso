@@ -1,8 +1,13 @@
 package com.xdavide9.sso.user;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -55,4 +60,29 @@ class UserRepositoryTest {
         assertThat(underTest.findByEmail("valid@email.com")).isPresent()
                 .hasValueSatisfying(u -> assertThat(u).isEqualTo(user));
     }
-}
+
+     @Test
+     void itShouldFindByUsernameOrEmail() {
+         // given
+         String username = "username";
+         String email = "valid@email.com";
+         User user = new User();
+         user.setUsername(username);
+         user.setEmail("differentValidEmail@email.com");
+         user.setPassword("password");
+         underTest.save(user);
+         // when
+         // Only the username matches, the email is different
+         boolean exists = underTest.existsByUsernameOrEmail(username, email);
+         // then
+         // but the query should work
+         assertThat(exists).isTrue();
+         assertThat(underTest.findByUsernameOrEmail(username, email))
+                 .isPresent()
+                 .hasValueSatisfying(u -> {
+                     assertThat(u.getUsername()).isEqualTo(username);
+                     assertThat(u.getEmail()).isEqualTo("differentValidEmail@email.com");
+                     assertThat(u.getPassword()).isEqualTo("password");
+                 });
+     }
+ }

@@ -1,11 +1,15 @@
-package com.xdavide9.sso.user;
+package com.xdavide9.sso.authentication;
 
-import com.xdavide9.sso.exception.user.UsernameNorEmailNotFound;
+import com.xdavide9.sso.exception.authentication.UsernameNorEmailNotFoundException;
+import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import static java.lang.String.format;
 
 /**
  * This class provides a custom userDetailsService implementation
@@ -32,9 +36,19 @@ public class RepositoryUserDetailsService implements UserDetailsService {
         this.repository = repository;
     }
 
+    /**
+     * This method uses a custom query to find either by username or email from the database.
+     * It throws a {@link UsernameNorEmailNotFoundException}.
+     * @since 0.0.1-SNAPSHOT
+     * @param input this variable holds either the email or username depending on which one the user input in the form
+     * @return UserDetails
+     * @throws UsernameNotFoundException usernameNotFoundException
+     */
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return repository.findByUsernameOrEmail(username, username)
-                .orElseThrow(() -> new UsernameNorEmailNotFound("User with username or email [%s] not found."));
+    public UserDetails loadUserByUsername(String input) {
+        return repository.findByUsernameOrEmail(input, input)
+                .orElseThrow(() -> new UsernameNorEmailNotFoundException(
+                        format("User with username or email [%s] not found.", input)
+                ));
     }
 }
