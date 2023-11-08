@@ -71,12 +71,9 @@ class UserRepositoryTest {
          user.setEmail("differentValidEmail@email.com");
          user.setPassword("password");
          underTest.save(user);
-         // when
-         // Only the username matches, the email is different
-         boolean exists = underTest.existsByUsernameOrEmail(username, email);
-         // then
-         // but the query should work
-         assertThat(exists).isTrue();
+         // when & then
+         assertThat(underTest.existsByEmail("differentValidEmail@email.com")).isTrue();
+         assertThat(underTest.existsByUsername(username)).isTrue();
          assertThat(underTest.findByUsernameOrEmail(username, email))
                  .isPresent()
                  .hasValueSatisfying(u -> {

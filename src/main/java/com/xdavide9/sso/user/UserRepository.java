@@ -40,12 +40,17 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUsernameOrEmail(String s1, String s2);
 
     /**
-     * returns true if user exists either by username or email
-     * @param s1 username or email
-     * @param s2 email (if s1 is username), username (if s1 is email)
-     * @return boolean
-     * @since 0.0.1-SNAPSHOT
+     * returns true if a user with passed username exists in the database and false otherwise
+     * @param username username
+     * @return true or false
      */
-    boolean existsByUsernameOrEmail(String s1, String s2);
+    boolean existsByUsername(String username);
+
+    /**
+     * returns true if a user with passed email exists in the database and false otherwise
+     * @param email email
+     * @return true or false
+     */
+    boolean existsByEmail(String email);
 
 }

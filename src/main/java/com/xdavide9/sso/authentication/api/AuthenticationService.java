@@ -1,13 +1,22 @@
 package com.xdavide9.sso.authentication.api;
 
+import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
+import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.authentication.LoginRequest;
+import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.authentication.AuthenticationResponse;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import static jakarta.validation.Validation.buildDefaultValidatorFactory;
+import static java.lang.String.format;
 
 /**
  * This service holds business logic for {@link AuthenticationController}.
@@ -30,18 +39,22 @@ public class AuthenticationService {
      */
     private final UserRepository repository;
 
+
+    private final PasswordEncoder passwordEncoder;
+
     /**
      * constructor
      * @param jwtService jwtService
      * @param repository repository
      */
     @Autowired
-    public AuthenticationService(JwtService jwtService, UserRepository repository) {
+    public AuthenticationService(JwtService jwtService,
+                                 UserRepository repository,
+                                 PasswordEncoder passwordEncoder) {
         this.jwtService = jwtService;
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
     }
-
-    // TODO implement business logic (don't forget to use hibernate validator with tested constrainst in User model), exceptions and update documentation
 
     /**
      * This method holds business logic for the /signup endpoint. It will
@@ -53,10 +66,32 @@ public class AuthenticationService {
      * @return ResponseEntity of AuthenticationResponse
      */
     public ResponseEntity<AuthenticationResponse> signup(SignupRequest request) {
-        // validate user input with hibernate validator
-        // register to database if not present otherwise throw exception
-        // issue token
-        return ResponseEntity.ok(AuthenticationResponse.builder().token("token123").build());
+        String username = request.getUsername();
+        if (repository.existsByUsername(username)) {
+            throw new UsernameTakenException(
+                    format("Username [%s] is already taken", username)
+            );
+        }
+        String email = request.getEmail();
+        if (repository.existsByEmail(email)) {
+            throw new EmailTakenException(
+                    format("Email [%s] is already taken", email)
+            );
+        }
+        String password = passwordEncoder.encode(request.getPassword());
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(password);
+        try (ValidatorFactory factory = buildDefaultValidatorFactory()) {
+            Validator validator = factory.getValidator();
+            validator.validate(user);
+        }
+        String token = jwtService.generateToken(user);
+        AuthenticationResponse response = AuthenticationResponse.builder()
+                .token(token)
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     /**
