@@ -2,6 +2,8 @@ package com.xdavide9.sso.user;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,12 +21,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 class UserTest {
 
     private Validator validator;
+    private ValidatorFactory factory;
     private User user;
 
     @BeforeEach
     void setUp() {
-        validator = buildDefaultValidatorFactory().getValidator();
+        factory = buildDefaultValidatorFactory();
+        validator = factory.getValidator();
         user = new User();
+    }
+
+    @AfterEach
+    void tearDown() {
+        factory.close();
     }
 
     @Test

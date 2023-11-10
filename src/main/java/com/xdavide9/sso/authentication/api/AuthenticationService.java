@@ -1,6 +1,7 @@
 package com.xdavide9.sso.authentication.api;
 
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
+import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.authentication.LoginRequest;
@@ -9,13 +10,11 @@ import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import static jakarta.validation.Validation.buildDefaultValidatorFactory;
 import static java.lang.String.format;
 
 /**
@@ -39,8 +38,17 @@ public class AuthenticationService {
      */
     private final UserRepository repository;
 
-
+    /**
+     * password encoder
+     * @since 0.0.1-SNAPSHOT
+     */
     private final PasswordEncoder passwordEncoder;
+
+    /**
+     * default validator from jakarta api
+     * @since 0.0.1-SNAPSHOT
+     */
+    private final Validator validator;
 
     /**
      * constructor
@@ -50,11 +58,15 @@ public class AuthenticationService {
     @Autowired
     public AuthenticationService(JwtService jwtService,
                                  UserRepository repository,
-                                 PasswordEncoder passwordEncoder) {
+                                 PasswordEncoder passwordEncoder,
+                                 Validator validator) {
         this.jwtService = jwtService;
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
+        this.validator = validator;
     }
+
+    // TODO test signup method
 
     /**
      * This method holds business logic for the /signup endpoint. It will
@@ -66,31 +78,29 @@ public class AuthenticationService {
      * @return ResponseEntity of AuthenticationResponse
      */
     public ResponseEntity<AuthenticationResponse> signup(SignupRequest request) {
-        String username = request.getUsername();
+        // checks
+        String username = request.username();
         if (repository.existsByUsername(username)) {
             throw new UsernameTakenException(
                     format("Username [%s] is already taken", username)
             );
         }
-        String email = request.getEmail();
+        String email = request.email();
         if (repository.existsByEmail(email)) {
             throw new EmailTakenException(
                     format("Email [%s] is already taken", email)
             );
         }
-        String password = passwordEncoder.encode(request.getPassword());
-        User user = new User();
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(password);
-        try (ValidatorFactory factory = buildDefaultValidatorFactory()) {
-            Validator validator = factory.getValidator();
-            validator.validate(user);
-        }
+        String password = request.password();
+        // TODO delegate this feature to a PasswordValidator
+        if (password.length() < 8)
+            throw new PasswordTooShortException("Password must be at least 8 characters long");
+        // process of registration
+        User user = new User(username, email, passwordEncoder.encode(password));
+        validator.validate(user);   // if not valid throws ConstraintViolationException
+        repository.save(user);
         String token = jwtService.generateToken(user);
-        AuthenticationResponse response = AuthenticationResponse.builder()
-                .token(token)
-                .build();
+        AuthenticationResponse response = new AuthenticationResponse(token);
         return ResponseEntity.ok(response);
     }
 
@@ -102,10 +112,11 @@ public class AuthenticationService {
      * If login is successful a token is issued as a response via {@link AuthenticationResponse}
      * @param request login request
      * @return ResponseEntity of AuthenticationResponse
+     * @since 0.0.1-SNAPSHOT
      */
     public ResponseEntity<AuthenticationResponse> login(LoginRequest request) {
         // check credentials against database otherwise throw exception
         // issue token
-        return ResponseEntity.ok(AuthenticationResponse.builder().token("token123").build());
+        return ResponseEntity.ok(new AuthenticationResponse("token123"));
     }
 }

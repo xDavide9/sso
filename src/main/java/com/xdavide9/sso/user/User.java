@@ -15,8 +15,9 @@ import java.util.UUID;
 
 /**
  * This class is a User model, entity and custom implementation of {@link UserDetails} at the same time.
- * Object creation is done using the JavaBeans pattern. The fields username, email and password must be provided
- * and cannot be null nor blank. Every other field has a default value that may be overridden (with valid values).
+ * Object creation is done using the JavaBeans pattern. There is also a constructor that requires username,
+ * email and password because these fields must be provided and cannot be null nor blank.
+ * Every other field has a default value that may be overridden (with valid values).
  * The uuid cannot be changed.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
@@ -49,8 +50,6 @@ public class User implements UserDetails {
     @NotBlank(message = "Email cannot be blank nor null")
     private String email;
 
-    // TODO implement stronger password validation
-
     /**
      * It is used to authenticate
      * @since 0.0.1-SNAPSHOT
@@ -65,6 +64,19 @@ public class User implements UserDetails {
      * @since 0.0.1-SNAPSHOT
      */
     private String phoneNumber;
+
+    /**
+     * constructor used in the signup process because
+     * username, email and password must be provided when trying to register an account
+     * @param username username
+     * @param email email
+     * @param password password
+     */
+    public User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
     /**
      * Defines permissions for the user
      * @see Role
