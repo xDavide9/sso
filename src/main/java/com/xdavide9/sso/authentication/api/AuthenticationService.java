@@ -54,6 +54,8 @@ public class AuthenticationService {
      * constructor
      * @param jwtService jwtService
      * @param repository repository
+     * @param passwordEncoder encoder
+     * @param validator default validator
      */
     @Autowired
     public AuthenticationService(JwtService jwtService,
