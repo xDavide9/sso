@@ -1,6 +1,6 @@
 package com.xdavide9.sso.authentication;
 
-import com.xdavide9.sso.exception.authentication.UsernameNorEmailNotFoundException;
+import com.xdavide9.sso.exception.authentication.SubjectNotFoundException;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -32,11 +32,11 @@ class RepositoryUserDetailsServiceTest {
         user.setUsername("username");
         user.setEmail("valid@email.com");
         user.setPassword("password");
-        String userInput = "username";
-        given(repository.findByUsernameOrEmail(userInput, userInput))
+        String subject = "username";
+        given(repository.findByUsernameOrEmail(subject, subject))
                 .willReturn(Optional.of(user));
         // when
-        User returnedUser = (User) underTest.loadUserByUsername(userInput);
+        User returnedUser = (User) underTest.loadUserByUsername(subject);
         // then
         assertThat(returnedUser).isEqualTo(user);
     }
@@ -48,12 +48,12 @@ class RepositoryUserDetailsServiceTest {
         user.setUsername("username");
         user.setEmail("valid@email.com");
         user.setPassword("password");
-        String input = "username";
-        given(repository.findByUsernameOrEmail(input, input))
+        String subject = "username";
+        given(repository.findByUsernameOrEmail(subject, subject))
                 .willReturn(Optional.empty());
         // when & then
-        assertThatThrownBy(() -> underTest.loadUserByUsername(input))
-                .isInstanceOf(UsernameNorEmailNotFoundException.class)
-                .hasMessageContaining(format("User with username or email [%s] not found.", input));
+        assertThatThrownBy(() -> underTest.loadUserByUsername(subject))
+                .isInstanceOf(SubjectNotFoundException.class)
+                .hasMessageContaining(format("User with subject [%s] not found.", subject));
     }
 }

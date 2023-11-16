@@ -12,6 +12,7 @@ import com.xdavide9.sso.authentication.AuthenticationResponse;
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +51,8 @@ public class AuthenticationService {
      */
     private final Validator validator;
 
+    private final UserDetailsService userDetailsService;
+
     /**
      * constructor
      * @param jwtService jwtService
@@ -61,14 +64,14 @@ public class AuthenticationService {
     public AuthenticationService(JwtService jwtService,
                                  UserRepository repository,
                                  PasswordEncoder passwordEncoder,
-                                 Validator validator) {
+                                 Validator validator,
+                                 UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.validator = validator;
+        this.userDetailsService = userDetailsService;
     }
-
-    // TODO test signup method
 
     /**
      * This method holds business logic for the /signup endpoint. It will
@@ -117,8 +120,11 @@ public class AuthenticationService {
      * @since 0.0.1-SNAPSHOT
      */
     public ResponseEntity<AuthenticationResponse> login(LoginRequest request) {
-        // check credentials against database otherwise throw exception
+        // checks
+        String subject = request.subject();
+        User user = (User) userDetailsService.loadUserByUsername(subject);
         // issue token
-        return ResponseEntity.ok(new AuthenticationResponse("token123"));
+        String token = jwtService.generateToken(user);
+        return ResponseEntity.ok(new AuthenticationResponse(token));
     }
 }

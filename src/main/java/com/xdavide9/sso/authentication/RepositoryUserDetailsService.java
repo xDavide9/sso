@@ -1,6 +1,6 @@
 package com.xdavide9.sso.authentication;
 
-import com.xdavide9.sso.exception.authentication.UsernameNorEmailNotFoundException;
+import com.xdavide9.sso.exception.authentication.SubjectNotFoundException;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,17 +38,17 @@ public class RepositoryUserDetailsService implements UserDetailsService {
 
     /**
      * This method uses a custom query to find either by username or email from the database.
-     * It throws a {@link UsernameNorEmailNotFoundException}.
+     * It throws a {@link SubjectNotFoundException}.
      * @since 0.0.1-SNAPSHOT
-     * @param input this variable holds either the email or username depending on which one the user input in the form
+     * @param subject this variable holds either the email or username depending on which one the user input in the form
      * @return UserDetails
      * @throws UsernameNotFoundException usernameNotFoundException
      */
     @Override
-    public UserDetails loadUserByUsername(String input) {
-        return repository.findByUsernameOrEmail(input, input)
-                .orElseThrow(() -> new UsernameNorEmailNotFoundException(
-                        format("User with username or email [%s] not found.", input)
+    public UserDetails loadUserByUsername(String subject) {
+        return repository.findByUsernameOrEmail(subject, subject)
+                .orElseThrow(() -> new SubjectNotFoundException(
+                        format("User with subject [%s] not found.", subject)
                 ));
     }
 }

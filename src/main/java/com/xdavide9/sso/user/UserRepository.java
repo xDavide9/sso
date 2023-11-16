@@ -31,9 +31,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 
     /**
-     * finds either by username or email
-     * @param s1 username or email
-     * @param s2 email (if s1 is username), username (if s1 is email)
+     * finds either by subject (either username or email);
+     * theoretically both should be passed to method, but the same string is passed
+     * twice because there is no way to know if the user will login by username or email
+     * @param s1 subject
+     * @param s2 subject
      * @return Optional of User with matching username or email
      * @since 0.0.1-SNAPSHOT
      */

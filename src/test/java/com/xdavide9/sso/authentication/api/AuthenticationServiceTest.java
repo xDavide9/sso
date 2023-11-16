@@ -3,6 +3,7 @@ package com.xdavide9.sso.authentication.api;
 // unit test for AuthenticationService
 
 import com.xdavide9.sso.authentication.AuthenticationResponse;
+import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
@@ -17,9 +18,11 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -41,8 +44,13 @@ class AuthenticationServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private Validator validator;
+
+    @Mock
+    private UserDetailsService userDetailsService;
     @Captor
     private ArgumentCaptor<User> captor;
+
+    // signup
 
     @Test
     void itShouldSignUpNewUserCorrectly() {
@@ -128,5 +136,23 @@ class AuthenticationServiceTest {
         verifyNoInteractions(jwtService);
         verifyNoInteractions(validator);
         verifyNoInteractions(passwordEncoder);
+    }
+
+    // login
+
+    @Test
+    void itShouldLoginCorrectly() {
+        // given
+        String subject = "xdavide9@email.com";
+        String password = "encodedPassword";
+        LoginRequest request = new LoginRequest(subject, password);
+        String token = "token123";
+        given(userDetailsService.loadUserByUsername(subject)).willReturn(new User());
+        given(jwtService.generateToken(any(User.class))).willReturn(token);
+        // when
+        ResponseEntity<AuthenticationResponse> response = underTest.login(request);
+        // then
+        verify(jwtService).generateToken(any(User.class));
+        assertThat(Objects.requireNonNull(response.getBody()).token()).isEqualTo(token);
     }
 }

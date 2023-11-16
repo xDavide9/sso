@@ -10,14 +10,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
-public class UsernameNorEmailNotFoundException extends UsernameNotFoundException {
+public class SubjectNotFoundException extends UsernameNotFoundException {
 
     /**
      * super constructor
      * @since 0.0.1-SNAPSHOT
      * @param msg message
      */
-    public UsernameNorEmailNotFoundException(String msg) {
+    public SubjectNotFoundException(String msg) {
         super(msg);
     }
 
@@ -27,7 +27,7 @@ public class UsernameNorEmailNotFoundException extends UsernameNotFoundException
      * @param msg message
      * @param cause cause
      */
-    public UsernameNorEmailNotFoundException(String msg, Throwable cause) {
+    public SubjectNotFoundException(String msg, Throwable cause) {
         super(msg, cause);
     }
 }
