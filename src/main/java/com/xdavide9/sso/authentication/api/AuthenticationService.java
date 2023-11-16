@@ -9,6 +9,7 @@ import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.authentication.AuthenticationResponse;
+import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +60,7 @@ public class AuthenticationService {
      * @param repository repository
      * @param passwordEncoder encoder
      * @param validator default validator
+     * @param userDetailsService instance of {@link RepositoryUserDetailsService}
      */
     @Autowired
     public AuthenticationService(JwtService jwtService,
