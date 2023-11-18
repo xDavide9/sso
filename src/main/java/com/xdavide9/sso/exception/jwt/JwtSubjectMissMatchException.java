@@ -14,51 +14,8 @@ import io.jsonwebtoken.ExpiredJwtException;
  * @since 0.0.1-SNAPSHOT
  */
 public class JwtSubjectMissMatchException extends RuntimeException {
-    /**
-     * empty constructor
-     * @since 0.0.1-SNAPSHOT
-     */
-    public JwtSubjectMissMatchException() {
-    }
-
-    /**
-     * super constructor
-     * @param message message
-     * @since 0.0.1-SNAPSHOT
-     */
     public JwtSubjectMissMatchException(String message) {
         super(message);
-    }
-
-    /**
-     * super constructor
-     * @param message message
-     * @param cause cause
-     * @since 0.0.1-SNAPSHOT
-     */
-    public JwtSubjectMissMatchException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    /**
-     * super constructor
-     * @param cause cause
-     * @since 0.0.1-SNAPSHOT
-     */
-    public JwtSubjectMissMatchException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * super constructor
-     * @param cause cause
-     * @param message message
-     * @param enableSuppression enableSuppression
-     * @param writableStackTrace writableStackTrace
-     * @since 0.0.1-SNAPSHOT
-     */
-    public JwtSubjectMissMatchException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
 

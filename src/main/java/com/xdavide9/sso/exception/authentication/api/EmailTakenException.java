@@ -7,18 +7,6 @@ package com.xdavide9.sso.exception.authentication.api;
  * @author xdavide9
  */
 public class EmailTakenException extends RuntimeException{
-    /**
-     * empty constructor
-     * @since 0.0.1-SNAPSHOT
-     */
-    public EmailTakenException() {
-    }
-
-    /**
-     * super constructor
-     * @param message message
-     * @since 0.0.1-SNAPSHOT
-     */
     public EmailTakenException(String message) {
         super(message);
     }

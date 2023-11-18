@@ -10,6 +10,7 @@ import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
+import com.xdavide9.sso.config.SecurityConfig;
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,21 +28,12 @@ import static java.lang.String.format;
  */
 @Service
 public class AuthenticationService {
-
-    /**
-     * jwtService
-     * @since 0.0.1-SNAPSHOT
-     */
     private final JwtService jwtService;
 
-    /**
-     * user repository
-     * @since 0.0.1-SNAPSHOT
-     */
     private final UserRepository repository;
 
     /**
-     * password encoder
+     * default bcrypt implementation defined in {@link SecurityConfig}
      * @since 0.0.1-SNAPSHOT
      */
     private final PasswordEncoder passwordEncoder;
@@ -52,16 +44,11 @@ public class AuthenticationService {
      */
     private final Validator validator;
 
+    /**
+     * using the {@link RepositoryUserDetailsService} implementation
+     */
     private final UserDetailsService userDetailsService;
 
-    /**
-     * constructor
-     * @param jwtService jwtService
-     * @param repository repository
-     * @param passwordEncoder encoder
-     * @param validator default validator
-     * @param userDetailsService instance of {@link RepositoryUserDetailsService}
-     */
     @Autowired
     public AuthenticationService(JwtService jwtService,
                                  UserRepository repository,
@@ -81,7 +68,7 @@ public class AuthenticationService {
      * in {@link SignupRequest} adhere to specific constraints. These constraints are: uniqueness of username and email
      * provided and a strong enough password. If all the above is met a new account is created in the system and
      * a token is issued as a response via {@link AuthenticationResponse}. Failure is handled by appropriate exceptions.
-     * @param request singup request
+     * @param request signup request containing username, email and password
      * @return ResponseEntity of AuthenticationResponse
      */
     public ResponseEntity<AuthenticationResponse> signup(SignupRequest request) {
@@ -114,10 +101,10 @@ public class AuthenticationService {
     /**
      * This method holds business logic for the /login endpoint. It will
      * try to issue a token if the provided details in {@link LoginRequest} match against
-     * the database queried via {@link UserRepository}. Either a username or email can be provided to login
+     * the database queried via {@link UserRepository}. Either a username or email can be provided to log in
      * and the existence of both is assured by various constraints at different levels in the application.
      * If login is successful a token is issued as a response via {@link AuthenticationResponse}
-     * @param request login request
+     * @param request login request containing the subject and the password
      * @return ResponseEntity of AuthenticationResponse
      * @since 0.0.1-SNAPSHOT
      */

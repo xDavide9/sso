@@ -13,13 +13,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  */
 @ControllerAdvice
 public class UserExceptionsHandler {
-
-    /**
-     * empty constructor
-     * @since 0.0.1-SNAPSHOT
-     */
-    public UserExceptionsHandler() {}
-
     /**
      * Exception Handler
      * @since 0.0.1-SNAPSHOT

@@ -7,17 +7,6 @@ package com.xdavide9.sso.exception.authentication.api;
  * @author xdavide9
  */
 public class UsernameTakenException extends RuntimeException {
-    /**
-     * empty constructor
-     * @since 0.0.1-SNAPSHOT
-     */
-    public UsernameTakenException() {
-    }
-
-    /**
-     * super constructor
-     * @param message message
-     */
     public UsernameTakenException(String message) {
         super(message);
     }

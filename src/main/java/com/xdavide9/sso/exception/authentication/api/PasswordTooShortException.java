@@ -7,14 +7,6 @@ package com.xdavide9.sso.exception.authentication.api;
  * @since 0.0.1-SNAPSHOT
  */
 public class PasswordTooShortException extends RuntimeException{
-
-    /**
-     * empty constructor
-     * @since 0.0.1-SNAPSHOT
-     */
-    public PasswordTooShortException() {
-    }
-
     /**
      * super constructor
      * @since 0.0.1-SNAPSHOT

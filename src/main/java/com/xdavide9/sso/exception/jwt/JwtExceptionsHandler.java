@@ -16,13 +16,6 @@ import org.springframework.web.servlet.view.RedirectView;
  */
 @ControllerAdvice
 public class JwtExceptionsHandler {
-
-    /**
-     * empty constructor
-     * @since 0.0.1-SNAPSHOT
-     */
-    public JwtExceptionsHandler() {}
-
     /**
      * Exception handler
      * @since 0.0.1-SNAPSHOT

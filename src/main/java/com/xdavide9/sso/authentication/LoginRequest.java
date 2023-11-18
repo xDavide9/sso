@@ -12,9 +12,10 @@ import com.xdavide9.sso.authentication.api.AuthenticationController;
  */
 public record LoginRequest(String subject, String password) {
     /**
-     * canonical constructor
-     * @param subject username or email (user input)
-     * @param password password
+     * canonical constructor that checks that neither the subject nor the password is null. If any of the
+     * two happen to be null, the class has been instantiated incorrectly
+     * @param subject username or email sent by the client
+     * @param password password sent by the client
      * @since 0.0.1-SNAPSHOT
      */
     public LoginRequest {

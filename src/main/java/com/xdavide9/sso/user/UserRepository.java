@@ -14,45 +14,20 @@ import java.util.UUID;
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
-    /**
-     * finds by username
-     * @param username username
-     * @return Optional of User with matching username
-     * @since 0.0.1-SNAPSHOT
-     */
     Optional<User> findByUsername(String username);
-
-    /**
-     * finds by Email
-     * @param email email
-     * @return Optional of User with matching email
-     * @since 0.0.1-SNAPSHOT
-     */
     Optional<User> findByEmail(String email);
 
     /**
      * finds either by subject (either username or email);
      * theoretically both should be passed to method, but the same string is passed
-     * twice because there is no way to know if the user will login by username or email
+     * twice because there is no way to know if the user will log in by username or email
      * @param s1 subject
      * @param s2 subject
      * @return Optional of User with matching username or email
      * @since 0.0.1-SNAPSHOT
      */
     Optional<User> findByUsernameOrEmail(String s1, String s2);
-
-    /**
-     * returns true if a user with passed username exists in the database and false otherwise
-     * @param username username
-     * @return true or false
-     */
     boolean existsByUsername(String username);
-
-    /**
-     * returns true if a user with passed email exists in the database and false otherwise
-     * @param email email
-     * @return true or false
-     */
     boolean existsByEmail(String email);
 
 }

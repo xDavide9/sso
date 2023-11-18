@@ -2,6 +2,10 @@ package com.xdavide9.sso.config;
 
 import com.xdavide9.sso.properties.AppProperties;
 import com.xdavide9.sso.jwt.JwtAuthenticationFilter;
+import com.xdavide9.sso.jwt.JwtService;
+import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
+import com.xdavide9.sso.user.Role;
+import com.xdavide9.sso.user.Permission;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,17 +33,23 @@ import static java.lang.String.format;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final AppProperties appProperties;
-    private final UserDetailsService userDetailsService;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     /**
-     * constructor
-     * @param userDetailsService userDetailsService implementation
-     * @param appProperties application.properties' properties with prefix app
-     * @param jwtAuthenticationFilter jwtAuthenticationFilter
+     * bean that contains the value of properties that start with the "app" prefix
      * @since 0.0.1-SNAPSHOT
      */
+    private final AppProperties appProperties;
+    /**
+     * implemented by {@link RepositoryUserDetailsService}
+     * @since 0.0.1-SNAPSHOT
+     */
+    private final UserDetailsService userDetailsService;
+    /**
+     * It is a custom-made filter to handle jwt token.
+     * Operates strictly with {@link JwtService}
+     * @since 0.0.1-SNAPSHOT
+     */
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
     @Autowired
     public SecurityConfig(UserDetailsService userDetailsService, AppProperties appProperties, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
@@ -48,9 +58,15 @@ public class SecurityConfig {
     }
 
     /**
-     * constructs custom security filter chain
-     * where web security matchers are configured as well as other important security
-     * configuration
+     * Heart of the security configuration.
+     * Disables csrf (cross-site-request-forgery) protection as it is not needed
+     * in a completely stateless api that uses jwt token to authenticate.
+     * Protects controller endpoints with the appropriate {@link Permission}s and {@link Role}s
+     * by providing requestMatchers. Note that each method is also protected with method security in its controller.
+     * Two special endpoints that require no authentication are also configured to allow any incoming request (/signup, /login).
+     * The {@link JwtAuthenticationFilter} is added.
+     * Sessions are configured to be completely stateless.
+     * An appropriate {@link DaoAuthenticationProvider} is configured to communicate with the database (below in this class)
      * @since 0.0.1-SNAPSHOT
      * @param http http
      * @return custom security filter chain
@@ -69,7 +85,7 @@ public class SecurityConfig {
                                         format("/api/v%s/operator/users/email/**", version)
                                 )
                                 .hasAuthority("OPERATOR_GET")
-                                .requestMatchers("/signup", "/login")   // TODO create this endpoints
+                                .requestMatchers("/signup", "/login")
                                 .permitAll()
                         )
                 .sessionManagement(configurer ->

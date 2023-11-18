@@ -23,27 +23,9 @@ public class JwtProperties {
      * @since 0.0.1-SNAPSHOT
      */
     private long expiration;
-
-    /**
-     * empty constructor
-     * @since 0.0.1-SNAPSHOT
-     */
-    public JwtProperties() {}
-
-    /**
-     * getter
-     * @return secret key
-     * @since 0.0.1-SNAPSHOT
-     */
     public String getSecretKey() {
         return secretKey;
     }
-
-    /**
-     * getter
-     * @return expiration
-     * @since 0.0.1-SNAPSHOT
-     */
     public long getExpiration() {
         return expiration;
     }

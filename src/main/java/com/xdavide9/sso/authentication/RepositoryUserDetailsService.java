@@ -20,24 +20,15 @@ import static java.lang.String.format;
 @Service
 public class RepositoryUserDetailsService implements UserDetailsService {
 
-    /**
-     * repository
-     * @since 0.0.1-SNAPSHOT
-     */
     private final UserRepository repository;
 
-    /**
-     * constructor
-     * @since 0.0.1-SNAPSHOT
-     * @param repository user repository
-     */
     @Autowired
     public RepositoryUserDetailsService(UserRepository repository) {
         this.repository = repository;
     }
 
     /**
-     * This method uses a custom query to find either by username or email from the database.
+     * This method uses a custom query to find either by username or email (subject) from the database.
      * It throws a {@link SubjectNotFoundException}.
      * @since 0.0.1-SNAPSHOT
      * @param subject this variable holds either the email or username depending on which one the user input in the form

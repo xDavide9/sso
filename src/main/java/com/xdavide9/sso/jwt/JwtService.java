@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+
+import static java.lang.String.format;
 
 /**
  * This service provides various methods to work with jwt tokens.
@@ -28,17 +31,12 @@ import java.util.function.Function;
 public class JwtService {
 
     /**
-     * This object contains fundamental properties to work with jwt tokens
+     * This bean contains fundamental properties to work with jwt tokens
      * such as secret key and expiration time.
      * @since 0.0.1-SNAPSHOT
      */
     private final JwtProperties jwtProperties;
 
-    /**
-     * constructor
-     * @param jwtProperties jwtProperties
-     * @since 0.0.1-SNAPSHOT
-     */
     @Autowired
     public JwtService(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
@@ -47,7 +45,7 @@ public class JwtService {
     // extract claims
 
     /**
-     * This method extracts all claims (like json fields) from a token
+     * This method extracts all claims (json fields) from a token
      * @param token token
      * @return claims as a Claims object
      * @since 0.0.1-SNAPSHOT
@@ -66,7 +64,7 @@ public class JwtService {
      * @param token token
      * @param claimsResolver Function that specifies which token
      * @return Generic T type of the token returned by Function
-     * @param <T> type of the token to be returned
+     * @param <T> type of the claim to be returned
      * @since 0.0.1-SNAPSHOT
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -77,7 +75,7 @@ public class JwtService {
     /**
      * This method uses extractClaim to extract the username (subject in the context of jwt) from token
      * @param token token
-     * @return username
+     * @return username contained in the token
      * @since 0.0.1-SNAPSHOT
      */
     public String extractUsername(String token) {
@@ -87,7 +85,7 @@ public class JwtService {
     /**
      * This method uses extractClaim to extract the expiration time from token
      * @param token token
-     * @return expiration
+     * @return expiration contained in the token
      * @since 0.0.1-SNAPSHOT
      */
     public Date extractExpiration(String token) {
@@ -120,7 +118,7 @@ public class JwtService {
 
     /**
      * This method issues a token with set subject (username of {@link User}),
-     * expiration and signInKey.
+     * expiration and signInKey without any extra claim.
      * @see JwtProperties
      * @param userDetails userDetails
      * @return the token
@@ -147,7 +145,7 @@ public class JwtService {
     }
 
     /**
-     * This method returns true if the subject in the token is the same User passed to it. Otherwise it throws a
+     * This method returns true if the subject in the token is the same User passed to it. Otherwise, it throws a
      * {@link JwtSubjectMissMatchException}
      * @param token token
      * @param userDetails userDetails
@@ -156,7 +154,7 @@ public class JwtService {
      */
     public boolean isTokenSubjectMatching(String token, UserDetails userDetails) {
         if (!(extractUsername(token).equals(userDetails.getUsername()))) {
-            throw new JwtSubjectMissMatchException();
+            throw new JwtSubjectMissMatchException(format("token [%s] is not equal to expected [%s]", token, userDetails.getUsername()));
         }
         return true;
     }
@@ -166,13 +164,13 @@ public class JwtService {
     /**
      * This method checks if a token is expired by comparing current system time
      * to expiration. It returns true if the token is not expired and throws a
-     * {@link io.jsonwebtoken.ExpiredJwtException} exception if the token is expired (by {@link Jwts} parser)
+     * {@link ExpiredJwtException} exception if the token is expired (by {@link Jwts} parser)
      * @see JwtProperties
      * @param token token
      * @return boolean
      * @since 0.0.1-SNAPSHOT
      */
-    public boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) throws ExpiredJwtException {
         return extractExpiration(token).before(new Date());
     }
 
