@@ -1,5 +1,6 @@
 package com.xdavide9.sso.jwt;
 
+import com.xdavide9.sso.exception.jwt.MissingTokenException;
 import com.xdavide9.sso.user.User;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,14 +78,13 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void itShouldRespondWithUnauthorisedIfTheTokenIsMissing() throws Exception {
+    void itShouldRespondWithUnauthorisedIfTheTokenIsMissing() {
         // given
         request.addHeader("Authorization", "invalid token");
-        // when
-        underTest.doFilterInternal(request, response, filterChain);
-        // then
-        assertThat(response.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
-        assertThat(response.getContentAsString()).isEqualTo("Missing Jwt token.");
+        // when & then
+        assertThatThrownBy(() -> underTest.doFilterInternal(request, response, filterChain))
+                .isInstanceOf(MissingTokenException.class)
+                .hasMessageContaining(format("Request [%s] must contain a jwt token", request));
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.xdavide9.sso.jwt;
 
+import com.xdavide9.sso.exception.jwt.MissingTokenException;
 import com.xdavide9.sso.user.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+
+import static java.lang.String.format;
 
 /**
  * This class is the heart of jwt security configuration. The filter is executed only
@@ -70,12 +73,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.getWriter().write("Missing Jwt token.");
-            filterChain.doFilter(request, response);
-            return;
-        }
+        if (authHeader == null || !authHeader.startsWith("Bearer "))
+            throw new MissingTokenException(format("Request [%s] must contain a jwt token", request));
         final String jwt = authHeader.substring(7);
         final String username = jwtService.extractUsername(jwt); // can also be the email
         if (username != null && securityContext().getAuthentication() == null) {
