@@ -159,8 +159,6 @@ public class JwtService {
         return true;
     }
 
-    // TODO handle expired exception by redirecting to login again
-
     /**
      * This method checks if a token is expired by comparing current system time
      * to expiration. It returns true if the token is not expired and throws a
