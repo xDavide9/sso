@@ -84,7 +84,7 @@ class JwtAuthenticationFilterTest {
         // when & then
         assertThatThrownBy(() -> underTest.doFilterInternal(request, response, filterChain))
                 .isInstanceOf(MissingTokenException.class)
-                .hasMessageContaining(format("Request [%s] must contain a jwt token", request));
+                .hasMessageContaining(format("Request of type [%s] at [%s] must contain a jwt token", request.getMethod(), request.getRequestURI()));
     }
 
     @Test

@@ -78,6 +78,8 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
+                                .requestMatchers("/api/v0.0.1/auth/**")
+                                .permitAll()
                                 .requestMatchers(
                                         format("/api/v%s/operator/users", version),
                                         format("/api/v%s/operator/users/uuid/**", version),
@@ -85,8 +87,6 @@ public class SecurityConfig {
                                         format("/api/v%s/operator/users/email/**", version)
                                 )
                                 .hasAuthority("OPERATOR_GET")
-                                .requestMatchers("/signup", "/login")
-                                .permitAll()
                         )
                 .sessionManagement(configurer ->
                         configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

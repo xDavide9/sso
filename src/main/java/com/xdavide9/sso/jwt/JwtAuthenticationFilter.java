@@ -6,6 +6,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,6 +34,12 @@ import static java.lang.String.format;
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    /**
+     * Slf4j {@link Logger}
+     * @since 0.0.1-SNAPSHOT
+     */
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     /**
      * Service used to manage operations with jwt tokens
@@ -71,9 +79,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
+        log.info(format("Incoming request of type [%s] at [%s]", request.getMethod(), request.getRequestURI()));
+        // do not process the filter if request is about authentication
+        if (request.getRequestURI().contains("api/v0.0.1/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer "))
-            throw new MissingTokenException(format("Request [%s] must contain a jwt token", request));
+            throw new MissingTokenException(
+                    format("Request of type [%s] at [%s] must contain a jwt token", request.getMethod(), request.getRequestURI()
+                    ));
         final String jwt = authHeader.substring(7);
         final String username = jwtService.extractUsername(jwt); // can also be the email
         if (username != null && securityContext().getAuthentication() == null) {

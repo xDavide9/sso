@@ -1,5 +1,6 @@
 package com.xdavide9.sso.authentication.api;
 
+import com.xdavide9.sso.properties.AppProperties;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.api.UserController;
 import com.xdavide9.sso.authentication.SignupRequest;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @see AuthenticationService
  */
 @RestController
+@RequestMapping("/api/v0.0.1/auth")
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
