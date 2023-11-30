@@ -5,6 +5,7 @@ import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.util.JsonParserService;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,9 +17,9 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,6 +40,7 @@ public class AuthenticationApiIntegrationTests {
     // signup
 
     @Test
+    @Transactional
     void itShouldSignupANewAccount() throws Exception {
         // given
         String username = "username";
@@ -61,6 +63,7 @@ public class AuthenticationApiIntegrationTests {
     }
 
     @Test
+    @Transactional
     void itShouldNotSignupUsernameTaken() throws Exception {
         // given
         String username = "username";
@@ -93,6 +96,7 @@ public class AuthenticationApiIntegrationTests {
     }
 
     @Test
+    @Transactional
     void itShouldNotSignupEmailTaken() throws Exception {
         // given
         String username = "username";
@@ -125,6 +129,7 @@ public class AuthenticationApiIntegrationTests {
     }
 
     @Test
+    @Transactional
     void itShouldNotSignupPasswordTooShort() throws Exception {
         // given
         String username = "username";
@@ -150,6 +155,7 @@ public class AuthenticationApiIntegrationTests {
     // login
 
     @Test
+    @Transactional
     void itShouldLoginIntoExistingAccount() throws Exception{
         // given
         String username = "username";

@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.HttpStatus.*;
+
+// unit tests  AuthenticationExceptionHandler
 
 class AuthenticationExceptionsHandlerTest {
 
@@ -29,12 +31,12 @@ class AuthenticationExceptionsHandlerTest {
         // when
         ResponseEntity<?> response = underTest.handleEmailTakenException(e);
         // then
-        assertThat(response.getStatusCode()).isEqualTo(UNAUTHORIZED);
+        assertThat(response.getStatusCode()).isEqualTo(CONFLICT);
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
         assert responseBody != null;
         assertThat(responseBody.get("error")).isEqualTo("Email already taken");
         assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
-        assertThat(responseBody.get("status")).isEqualTo(UNAUTHORIZED);
+        assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
     }
 
     @SuppressWarnings("unchecked")
@@ -45,12 +47,12 @@ class AuthenticationExceptionsHandlerTest {
         // when
         ResponseEntity<?> response = underTest.handleUsernameTakenException(e);
         // then
-        assertThat(response.getStatusCode()).isEqualTo(UNAUTHORIZED);
+        assertThat(response.getStatusCode()).isEqualTo(CONFLICT);
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
         assert responseBody != null;
         assertThat(responseBody.get("error")).isEqualTo("Username already taken");
         assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
-        assertThat(responseBody.get("status")).isEqualTo(UNAUTHORIZED);
+        assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
     }
 
     @SuppressWarnings("unchecked")
@@ -61,11 +63,11 @@ class AuthenticationExceptionsHandlerTest {
         // when
         ResponseEntity<?> response = underTest.handlePasswordTooShortException(e);
         // then
-        assertThat(response.getStatusCode()).isEqualTo(UNAUTHORIZED);
+        assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
         assert responseBody != null;
-        assertThat(responseBody.get("error")).isEqualTo("Input password it too short (< 8 characters)");
+        assertThat(responseBody.get("error")).isEqualTo("Input password is too short (< 8 characters)");
         assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
-        assertThat(responseBody.get("status")).isEqualTo(UNAUTHORIZED);
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
     }
 }
