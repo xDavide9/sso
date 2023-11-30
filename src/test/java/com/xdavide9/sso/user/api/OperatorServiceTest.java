@@ -1,5 +1,6 @@
 package com.xdavide9.sso.user.api;
 
+import com.xdavide9.sso.exception.user.api.UserExceptionReason;
 import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
@@ -62,7 +63,8 @@ class OperatorServiceTest {
         // then
         assertThatThrownBy(() -> underTest.getUserByUuid(uuid))
                 .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(String.format("User with uuid [%s] not found.", uuid));
+                .hasMessageContaining(String.format("User with uuid [%s] not found.", uuid))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.INFORMATION);
         verifyNoMoreInteractions(repository);
     }
 
@@ -90,7 +92,8 @@ class OperatorServiceTest {
         // then
         assertThatThrownBy(() -> underTest.getUserByUsername(username))
                 .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(String.format(String.format("User with username [%s] not found.", username)));
+                .hasMessageContaining(String.format(String.format("User with username [%s] not found.", username)))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.INFORMATION);
     }
 
     @Test
@@ -117,6 +120,7 @@ class OperatorServiceTest {
         // then
         assertThatThrownBy(() -> underTest.getUserByEmail(email))
                 .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(String.format("User with email [%s] not found.", email));
+                .hasMessageContaining(String.format("User with email [%s] not found.", email))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.INFORMATION);
     }
 }

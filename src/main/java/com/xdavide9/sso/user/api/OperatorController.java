@@ -13,28 +13,17 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * This controller exposes endpoints to let operators manage {@link User}s
- * under the url /api/vX/operator/users where X is the current version of the application.
+ * This controller exposes endpoints to let operators manage {@link User}s.
  * Requires the OPERATOR {@link Role} within the system.
  * Delegates business logic to {@link OperatorService}.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
 @RestController
-@RequestMapping("/api/v${app.version}/operator/users")  // api/version/role/users
+@RequestMapping("/api/v0.0.1/users")
 public class OperatorController {
-    /**
-     * operatorService
-     * @since 0.0.1-SNAPSHOT
-     * @see OperatorService
-     */
     private final OperatorService operatorService;
 
-    /**
-     * constructor
-     * @param operatorService operatorService
-     * @since 0.0.1-SNAPSHOT
-     */
     @Autowired
     public OperatorController(OperatorService operatorService) {
         this.operatorService = operatorService;
@@ -47,7 +36,7 @@ public class OperatorController {
      * @since 0.0.1-SNAPSHOT
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('OPERATOR_GET')")
+    @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
     public List<User> getUsers() {
         return operatorService.getUsers();
     }
@@ -60,7 +49,7 @@ public class OperatorController {
      * @return the user in question
      */
     @GetMapping("/uuid/{uuid}")
-    @PreAuthorize("hasAuthority('OPERATOR_GET')")
+    @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
     public User getUserByUuid(@PathVariable UUID uuid) {
         return operatorService.getUserByUuid(uuid);
     }
@@ -73,7 +62,7 @@ public class OperatorController {
      * @return the user in question
      */
     @GetMapping("/username/{username}")
-    @PreAuthorize("hasAuthority('OPERATOR_GET')")
+    @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
     public User getUserByUsername(@PathVariable String username) {
         return operatorService.getUserByUsername(username);
     }
@@ -86,7 +75,7 @@ public class OperatorController {
      * @return the user in question
      */
     @GetMapping("/email/{email}")
-    @PreAuthorize("hasAuthority('OPERATOR_GET')")
+    @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
     public User getUserByEmail(@PathVariable String email) {
         return operatorService.getUserByEmail(email);
     }

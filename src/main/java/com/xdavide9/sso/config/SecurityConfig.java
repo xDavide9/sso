@@ -1,6 +1,5 @@
 package com.xdavide9.sso.config;
 
-import com.xdavide9.sso.properties.AppProperties;
 import com.xdavide9.sso.jwt.JwtAuthenticationFilter;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
@@ -21,7 +20,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import static java.lang.String.format;
 /**
  * This class provides essential security beans such as SecurityFilterChain, passwordEncoder,
  * DaoAuthenticationProvider, userDetailsService.
@@ -33,11 +31,6 @@ import static java.lang.String.format;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    /**
-     * bean that contains the value of properties that start with the "app" prefix
-     * @since 0.0.1-SNAPSHOT
-     */
-    private final AppProperties appProperties;
     /**
      * implemented by {@link RepositoryUserDetailsService}
      * @since 0.0.1-SNAPSHOT
@@ -51,11 +44,12 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
-    public SecurityConfig(UserDetailsService userDetailsService, AppProperties appProperties, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(UserDetailsService userDetailsService, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
-        this.appProperties = appProperties;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
+
+    // TODO implement logout handler
 
     /**
      * Heart of the security configuration.
@@ -74,19 +68,18 @@ public class SecurityConfig {
      */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        String version = appProperties.getVersion();
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                                 .requestMatchers("/api/v0.0.1/auth/**")
                                 .permitAll()
                                 .requestMatchers(
-                                        format("/api/v%s/operator/users", version),
-                                        format("/api/v%s/operator/users/uuid/**", version),
-                                        format("/api/v%s/operator/users/username/**", version),
-                                        format("/api/v%s/operator/users/email/**", version)
+                                        "/api/v0.0.1/users",
+                                        "/api/v0.0.1/users/uuid/**",
+                                        "/api/v0.0.1/users/username/**",
+                                        "/api/v0.0.1/users/email/**"
                                 )
-                                .hasAuthority("OPERATOR_GET")
+                                .hasAnyAuthority("OPERATOR_GET", "ADMIN_GET")
                         )
                 .sessionManagement(configurer ->
                         configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
