@@ -3,7 +3,7 @@ package com.xdavide9.sso.properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 /**
- * This class models properties with prefix "app" in application.properties to be used across the application.
+ * This class models properties with prefix "app" in application-dev.properties to be used across the application.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
