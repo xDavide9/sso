@@ -49,8 +49,6 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    // TODO implement logout handler
-
     /**
      * Heart of the security configuration.
      * Disables csrf (cross-site-request-forgery) protection as it is not needed

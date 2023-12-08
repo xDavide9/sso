@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -17,17 +18,19 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Tests the integration between AuthenticationController, AuthenticationService and UserRepository
+// tests are running in test database configured in application-test.properties
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class AuthenticationApiIntegrationTests {
+@Transactional
+@ActiveProfiles("test")
+public class AuthenticationApiIT {
 
     @Autowired
     private MockMvc mockMvc;
@@ -40,7 +43,6 @@ public class AuthenticationApiIntegrationTests {
     // signup
 
     @Test
-    @Transactional
     void itShouldSignupANewAccount() throws Exception {
         // given
         String username = "username";
@@ -63,7 +65,6 @@ public class AuthenticationApiIntegrationTests {
     }
 
     @Test
-    @Transactional
     void itShouldNotSignupUsernameTaken() throws Exception {
         // given
         String username = "username";
@@ -96,7 +97,6 @@ public class AuthenticationApiIntegrationTests {
     }
 
     @Test
-    @Transactional
     void itShouldNotSignupEmailTaken() throws Exception {
         // given
         String username = "username";
@@ -129,7 +129,6 @@ public class AuthenticationApiIntegrationTests {
     }
 
     @Test
-    @Transactional
     void itShouldNotSignupPasswordTooShort() throws Exception {
         // given
         String username = "username";
@@ -155,7 +154,6 @@ public class AuthenticationApiIntegrationTests {
     // login
 
     @Test
-    @Transactional
     void itShouldLoginIntoExistingAccount() throws Exception{
         // given
         String username = "username";
@@ -182,5 +180,53 @@ public class AuthenticationApiIntegrationTests {
         assertThat(response.token()).isNotNull();
     }
 
-    // TODO continue login test failing cases (wrong password, etc) and maybe handle other exceptions that are thrown
+    @Test
+    void itShouldNotLoginAccountDoesNotExist() throws Exception{
+        // given
+        String username = "username";
+        String password = "password1"; // > 8 characters
+        LoginRequest loginRequest = new LoginRequest(username, password);
+        // when
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(APPLICATION_JSON)
+                        .content(parser.json(loginRequest))
+        );
+        // then
+        loginResultActions.andExpect(status().isNotFound());
+        String jsonResponse = loginResultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(jsonResponse, new TypeReference<>() {});
+        assertThat(responseBody.get("error")).isEqualTo("Subject (username/email) not found");
+        assertThat(responseBody.get("message")).isEqualTo(format("User with subject [%s] not found.", username));
+        assertThat(responseBody.get("status")).isEqualTo(NOT_FOUND.toString());
+    }
+
+    @Test
+    void itShouldNotLoginExistingAccountIncorrectPassword() throws Exception{
+        // given
+        String username = "username";
+        String email = "email@email.com";
+        String password = "password1"; // > 8 characters
+        SignupRequest request = new SignupRequest(username, email, password);
+        mockMvc.perform(
+                post("/api/v0.0.1/auth/signup")
+                        .contentType(APPLICATION_JSON)
+                        .content(parser.json(request))
+        );
+        String incorrectPassword = "incorrect";
+        LoginRequest loginRequest = new LoginRequest(username, incorrectPassword);
+        // when
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(APPLICATION_JSON)
+                        .content(parser.json(loginRequest))
+        );
+        // then
+        loginResultActions.andExpect(status().isUnauthorized());
+        String jsonResponse = loginResultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(jsonResponse, new TypeReference<>() {});
+        assertThat(responseBody.get("error")).isEqualTo("incorrect input password at login");
+        assertThat(responseBody.get("message")).isEqualTo(format("Incorrect input password at login for subject [%s]", username));
+        assertThat(responseBody.get("status")).isEqualTo(UNAUTHORIZED.toString());
+    }
 }

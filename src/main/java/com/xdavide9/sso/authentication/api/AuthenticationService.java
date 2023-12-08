@@ -1,6 +1,7 @@
 package com.xdavide9.sso.authentication.api;
 
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
+import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
 import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.jwt.JwtService;
@@ -13,6 +14,7 @@ import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
 import com.xdavide9.sso.config.SecurityConfig;
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,7 +56,7 @@ public class AuthenticationService {
                                  UserRepository repository,
                                  PasswordEncoder passwordEncoder,
                                  Validator validator,
-                                 UserDetailsService userDetailsService) {
+                                 @Qualifier(value = "repositoryUserDetailsService") UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
@@ -103,7 +105,8 @@ public class AuthenticationService {
      * try to issue a token if the provided details in {@link LoginRequest} match against
      * the database queried via {@link UserRepository}. Either a username or email can be provided to log in
      * and the existence of both is assured by various constraints at different levels in the application.
-     * If login is successful a token is issued as a response via {@link AuthenticationResponse}
+     * If login is successful a token is issued as a response via {@link AuthenticationResponse}.
+     * If the password is incorrect an appropriate {@link IncorrectPasswordException} is thrown.
      * @param request login request containing the subject and the password
      * @return ResponseEntity of AuthenticationResponse
      * @since 0.0.1-SNAPSHOT
@@ -111,7 +114,11 @@ public class AuthenticationService {
     public ResponseEntity<AuthenticationResponse> login(LoginRequest request) {
         // checks
         String subject = request.subject();
+        String rawPassword = request.password();
         User user = (User) userDetailsService.loadUserByUsername(subject);
+        String encodedPassword = user.getPassword();
+        if (!passwordEncoder.matches(rawPassword, encodedPassword))
+            throw new IncorrectPasswordException(format("Incorrect input password at login for subject [%s]", subject));
         // issue token
         String token = jwtService.generateToken(user);
         return ResponseEntity.ok(new AuthenticationResponse(token));
