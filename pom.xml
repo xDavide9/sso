@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.xdavide9</groupId>
     <artifactId>sso</artifactId>
-<!--    Changing the version here will change it also in every api path-->
+<!--    Changing the version here will also change it in application's properties-->
     <version>0.0.1-SNAPSHOT</version>
     <name>sso</name>
     <description>sso</description>
@@ -41,14 +41,6 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
-        <!--
-        might use lombok as the project grows
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-        -->
 
         <!--suppress VulnerableLibrariesLocal it doesn't matter because this is used only for testing-->
         <dependency>
@@ -89,17 +81,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <!--
-                        might use lombok as the project grows larger
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                        -->
-                    </excludes>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -114,6 +95,19 @@
 <!--                    prevent byte buddy agent warning when using mockito in tests-->
                     <argLine>-XX:+EnableDynamicAgentLoading</argLine>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.1.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
