@@ -3,11 +3,11 @@ package com.xdavide9.sso.user.api;
 import com.xdavide9.sso.user.Role;
 import com.xdavide9.sso.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
-// TODO implement security configuration for these endpoints
-// TODO implement admin only functionality including destructive operation like delete
+import java.util.UUID;
 
 /**
  * This controller exposes endpoints to let admins manage {@link User}s and Operators.
@@ -17,23 +17,49 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 0.0.1-SNAPSHOT
  */
 @RestController
-@RequestMapping("/api/v${app.version}/admin/users") // api/version/role/users
+@RequestMapping("/api/v0.0.1/users")
 public class AdminController {
-
-    /**
-     * adminService
-     * @see AdminService
-     * @since 0.0.1-SNAPSHOT
-     */
     private final AdminService adminService;
 
-    /**
-     * constructor
-     * @param adminService adminService
-     * @since 0.0.1-SNAPSHOT
-     */
     @Autowired
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
+    }
+
+    /**
+     * Add operator privileges to user with specified uuid
+     * @param uuid uuid of the user to be promoted
+     * @return responseEntity with result
+     * @since 0.0.1-SNAPSHOT
+     */
+    @PutMapping("/promote/{uuid}")
+    @PreAuthorize("hasAuthority('ADMIN_PUT')")
+    public ResponseEntity<String> promoteUserToOperator(@PathVariable UUID uuid) {
+        return adminService.promoteUserToOperator(uuid);
+    }
+
+    /**
+     * Deletes user with specified uuid from the system.
+     * This is irreversible and should only be performed as a last resort.
+     * @param uuid uuid of the user to be deleted
+     * @return responseEntity with result
+     * @since 0.0.1-SNAPSHOT
+     */
+    @DeleteMapping("/delete/{uuid}")
+    @PreAuthorize("hasAuthority('ADMIN_DELETE')")
+    public ResponseEntity<String> deleteUser(@PathVariable UUID uuid) {
+        return adminService.deleteUser(uuid);
+    }
+
+    /**
+     * Demotes user with specified uuid from operator role to a plain User.
+     * @param uuid uuid of the user to be demoted
+     * @return responseEntity with result
+     * @since 0.0.1-SNAPSHOT
+     */
+    @PutMapping("/demote/{uuid}")
+    @PreAuthorize("hasAuthority('ADMIN_PUT')")
+    public ResponseEntity<String> demoteUser(@PathVariable UUID uuid) {
+        return adminService.demoteUser(uuid);
     }
 }
