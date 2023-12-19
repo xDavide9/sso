@@ -35,16 +35,7 @@ import static java.lang.String.format;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    /**
-     * Slf4j {@link Logger}
-     * @since 0.0.1-SNAPSHOT
-     */
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-
-    /**
-     * Service used to manage operations with jwt tokens
-     * @since 0.0.1-SNAPSHOT
-     */
     private final JwtService jwtService;
     /**
      * It is defined in {@link com.xdavide9.sso.config.SecurityConfig}
@@ -52,12 +43,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      */
     private final UserDetailsService userDetailsService;
 
-    /**
-     * constructor
-     * @since 0.0.1-SNAPSHOT
-     * @param jwtService jwtService
-     * @param userDetailsService userDetailsService
-     */
     @Autowired
     public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
@@ -65,14 +50,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * The actual filter implementation that processes the tokens
-     * sent within http requests.
+     * The filter that processes the jwt tokens sent inside requests. The tokens are found in
+     * the Authorization header as bearer token. If the request is sent to the authentication api
+     * the filter is skipped for obvious reasons. If the request does not contain the header a
+     * {@link MissingTokenException} is thrown. Finally, if the token is provided and is valid the user is
+     * granted authentication for the current request. The token must always be provided
+     * in every request as the server is completely stateless.
      * @since 0.0.1-SNAPSHOT
      * @param request client request
      * @param response server response
      * @param filterChain filterChain
-     * @throws ServletException exception
-     * @throws IOException exception
      */
     @Override
     protected void doFilterInternal(
