@@ -4,12 +4,14 @@ import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
+@ActiveProfiles("test")
 class JwtExceptionsHandlerTest {
 
     private JwtExceptionsHandler underTest;

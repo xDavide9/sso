@@ -18,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.test.context.ActiveProfiles;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.verify;
 // unit test for JwtAuthenticationFilter
 
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles("test")
 class JwtAuthenticationFilterTest {
 
     @InjectMocks

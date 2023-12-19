@@ -10,7 +10,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 // integration test to see if app properties are correctly injected in AppProperties POJO
 
 @SpringBootTest
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class AppPropertiesIT {
 
     @Autowired

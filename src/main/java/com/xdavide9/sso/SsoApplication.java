@@ -15,10 +15,6 @@ import java.util.Collections;
 public class SsoApplication {
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(SsoApplication.class);
-        app.setDefaultProperties(Collections
-                .singletonMap("spring.profiles.default", "dev"));
         app.run(args);
     }
-
-    // TODO look further into native and nativeTest profiles
 }

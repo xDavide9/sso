@@ -6,6 +6,7 @@ import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Map;
 
@@ -13,7 +14,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.*;
 
 // unit tests  AuthenticationExceptionHandler
-
+@ActiveProfiles("test")
 class AuthenticationExceptionsHandlerTest {
 
     private AuthenticationExceptionsHandler underTest;
