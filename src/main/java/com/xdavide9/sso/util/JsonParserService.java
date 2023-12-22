@@ -31,14 +31,14 @@ public class JsonParserService {
      * @return json of the object passed
      * @since 0.0.1-SNAPSHOT
      */
-    public String json(Object o) {
+    public String json(Object o) throws JsonProcessingException {
         try {
             String json = mapper.writeValueAsString(o);
             log.info("JACKSON PARSING OBJECT " + o + " TO JSON " + json);
             return json;
         } catch (JsonProcessingException e) {
             log.error("JACKSON CANNOT CONVERT JAVA OBJECT " + o + " TO JSON");
-            throw new RuntimeException("JACKSON CANNOT CONVERT JAVA OBJECT " + o + " TO JSON");
+            throw e;
         }
     }
 
@@ -50,13 +50,13 @@ public class JsonParserService {
      * @return the object converted from json
      * @since 0.0.1-SNAPSHOT
      */
-    public<T> T java(String json, Class<T> type) {
+    public<T> T java(String json, Class<T> type) throws JsonProcessingException {
         try {
             log.info("PARSING JSON " + json + " TO A JAVA OBJECT OF TYPE " + type);
             return mapper.readValue(json, type);
         } catch (JsonProcessingException e) {
             log.error("JACKSON CANNOT CONVERT JSON " + json + " TO JAVA OBJECT OF TYPE " + type);
-            throw new RuntimeException("JACKSON CANNOT CONVERT JSON " + json + " TO JAVA OBJECT OF TYPE " + type);
+            throw e;
         }
     }
 
@@ -69,13 +69,13 @@ public class JsonParserService {
      * @return the object converted from json
      * @since 0.0.1-SNAPSHOT
      */
-    public<T> T java(String json, TypeReference<T> type) {
+    public<T> T java(String json, TypeReference<T> type) throws JsonProcessingException {
         try {
             log.info("PARSING JSON " + json + " TO A JAVA OBJECT OF TYPE " + type);
             return mapper.readValue(json, type);
         } catch (JsonProcessingException e) {
             log.error("JACKSON CANNOT CONVERT JSON " + json + " TO JAVA OBJECT OF TYPE " + type);
-            throw new RuntimeException("JACKSON CANNOT CONVERT JSON " + json + " TO JAVA OBJECT OF TYPE " + type);
+            throw e;
         }
     }
 }

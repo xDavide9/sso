@@ -2,7 +2,6 @@ package com.xdavide9.sso.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xdavide9.sso.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -12,7 +11,6 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles("test")
@@ -42,8 +40,7 @@ class JsonParserServiceTest {
         given(mapper.writeValueAsString(o)).willThrow(JsonProcessingException.class);
         // when & then
         assertThatThrownBy(() -> underTest.json(o))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("JACKSON CANNOT CONVERT JAVA OBJECT " + o + " TO JSON");
+                .isInstanceOf(JsonProcessingException.class);
     }
 
     @Test
@@ -67,7 +64,6 @@ class JsonParserServiceTest {
         given(mapper.readValue(json, type)).willThrow(JsonProcessingException.class);
         // when & then
         assertThatThrownBy(() -> underTest.java(json, type))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("JACKSON CANNOT CONVERT JSON " + json + " TO JAVA OBJECT OF TYPE " + type);
+                .isInstanceOf(JsonProcessingException.class);
     }
 }
