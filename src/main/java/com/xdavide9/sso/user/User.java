@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 
+// TODO Create user DTO
+
 /**
  * This class is a User model, entity and custom implementation of {@link UserDetails} at the same time.
  * Object creation is done using the JavaBeans pattern. There is also a constructor that requires username,
@@ -22,7 +24,6 @@ import java.util.UUID;
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
-
 @Entity
 @Table(name = "sso_user")
 public class User implements UserDetails {
@@ -128,6 +129,7 @@ public class User implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getAuthorities();
     }
