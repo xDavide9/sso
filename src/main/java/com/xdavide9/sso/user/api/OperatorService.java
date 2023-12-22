@@ -33,6 +33,7 @@ public class OperatorService {
      * @return all users in database
      * @see OperatorController#getUsers()
      */
+    @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
     public List<User> getUsers() {
         return userRepository.findAll();
     }

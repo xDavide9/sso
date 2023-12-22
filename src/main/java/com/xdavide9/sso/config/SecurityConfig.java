@@ -78,6 +78,15 @@ public class SecurityConfig {
                                         "/api/v0.0.1/users/email/**"
                                 )
                                 .hasAnyAuthority("OPERATOR_GET", "ADMIN_GET")
+                                .requestMatchers(
+                                        "/api/v0.0.1/demote",
+                                        "/api/v0.0.1/promote"
+                                )
+                                .hasAuthority("ADMIN_PUT")
+                                .requestMatchers(
+                                        "/api/v0.0.1/delete"
+                                )
+                                .hasAuthority("ADMIN_DELETE")
                         )
                 .sessionManagement(configurer ->
                         configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

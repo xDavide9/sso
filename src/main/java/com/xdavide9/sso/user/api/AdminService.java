@@ -8,6 +8,7 @@ import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -36,6 +37,7 @@ public class AdminService {
      * @param uuid uuid of the user to be promoted
      * @return responseEntity with message for client
      */
+    @PreAuthorize("hasAuthority('ADMIN_PUT')")
     public ResponseEntity<String> promoteUserToOperator(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(
                 () -> new UserNotFoundException(
@@ -61,6 +63,7 @@ public class AdminService {
      * @param uuid uuid of the user to be deleted
      * @return responseEntity with message for client
      */
+    @PreAuthorize("hasAuthority('ADMIN_DELETE')")
     public ResponseEntity<String> deleteUser(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(
                 () -> new UserNotFoundException(
@@ -84,6 +87,7 @@ public class AdminService {
      * @param uuid uuid of the user to be deleted
      * @return responseEntity with message for client
      */
+    @PreAuthorize("hasAuthority('ADMIN_PUT')")
     public ResponseEntity<String> demoteUser(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(
                 () -> new UserNotFoundException(
