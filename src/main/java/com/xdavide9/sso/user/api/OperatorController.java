@@ -30,10 +30,9 @@ public class OperatorController {
     }
 
     /**
-     * Http get method
+     * Gets all users from the database.
      * @return all users saved in database
      * @see OperatorService#getUsers()
-     * @since 0.0.1-SNAPSHOT
      */
     @GetMapping
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
@@ -42,9 +41,8 @@ public class OperatorController {
     }
 
     /**
-     * Http get method
+     * Gets user with specified UUID.
      * @see OperatorService#getUserByUuid(UUID)
-     * @since 0.0.1-SNAPSHOT
      * @param uuid of the user in question
      * @return the user in question
      */
@@ -55,9 +53,8 @@ public class OperatorController {
     }
 
     /**
-     * Http get method
+     * Gets user with specified Username.
      * @see OperatorService#getUserByUsername(String)
-     * @since 0.0.1-SNAPSHOT
      * @param username of the user in question
      * @return the user in question
      */
@@ -68,9 +65,8 @@ public class OperatorController {
     }
 
     /**
-     * Http get method
+     * Gets user with specified Email.
      * @see OperatorService#getUserByEmail(String)
-     * @since 0.0.1-SNAPSHOT
      * @param email of the user in question
      * @return the user in question
      */

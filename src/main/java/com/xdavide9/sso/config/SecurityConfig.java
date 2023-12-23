@@ -32,14 +32,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     /**
-     * implemented by {@link RepositoryUserDetailsService}
-     * @since 0.0.1-SNAPSHOT
+     * It is implemented by {@link RepositoryUserDetailsService}.
      */
     private final UserDetailsService userDetailsService;
     /**
      * It is a custom-made filter to handle jwt token.
-     * Operates strictly with {@link JwtService}
-     * @since 0.0.1-SNAPSHOT
+     * Depends on the methods provided by {@link JwtService}.
      */
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -58,11 +56,10 @@ public class SecurityConfig {
      * Two special endpoints that require no authentication are also configured to allow any incoming request (/signup, /login).
      * The {@link JwtAuthenticationFilter} is added.
      * Sessions are configured to be completely stateless.
-     * An appropriate {@link DaoAuthenticationProvider} is configured to communicate with the database (below in this class)
-     * @since 0.0.1-SNAPSHOT
-     * @param http http
-     * @return custom security filter chain
-     * @throws Exception any
+     * An appropriate {@link DaoAuthenticationProvider} is configured to communicate with the database.
+     * @param http {@link HttpSecurity} object to manipulate configuration
+     * @return The custom security filter chain bean described
+     * @throws Exception any exception
      */
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -97,9 +94,8 @@ public class SecurityConfig {
     }
 
     /**
-     * provides the default BCryptPasswordEncoder implementation
-     * @return BcryptPasswordEncoder
-     * @since 0.0.1-SNAPSHOT
+     * Provides the default {@link BCryptPasswordEncoder} implementation.
+     * @return The default {@link BCryptPasswordEncoder}
      */
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -107,11 +103,9 @@ public class SecurityConfig {
     }
 
     /**
-     * provides a {@link DaoAuthenticationProvider} implementation
-     * with set passwordEncoder and userDetailsService
-     * @since 0.0.1-SNAPSHOT
-     * @return daoAuthenticationProvider implementation
-     * @since 0.0.1-SNAPSHOT
+     * Provides a {@link DaoAuthenticationProvider} implementation
+     * with set passwordEncoder and userDetailsService.
+     * @return the custom daoAuthenticationProvider bean described
      */
     @Bean
     DaoAuthenticationProvider daoAuthenticationProvider() {

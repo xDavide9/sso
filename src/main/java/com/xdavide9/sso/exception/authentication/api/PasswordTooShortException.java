@@ -2,7 +2,7 @@ package com.xdavide9.sso.exception.authentication.api;
 
 /**
  * This exception is thrown when a user tries to sign up to the application
- * with a password that is too short (less than 8 characters)
+ * with a password that is too short (less than 8 characters).
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */

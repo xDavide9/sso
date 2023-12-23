@@ -13,6 +13,13 @@ import java.util.Map;
 
 import static org.springframework.http.HttpStatus.*;
 
+/**
+ * This class holds methods annotated with {@link ExceptionHandler}
+ * that handle exceptions related to the Authentication process by returning appropriate
+ * http responses to clients.
+ * @author xdavide9
+ * @since 0.0.1-SNAPSHOT
+ */
 @ControllerAdvice
 public class AuthenticationExceptionsHandler {
 

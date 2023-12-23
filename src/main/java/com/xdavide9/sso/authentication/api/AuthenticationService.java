@@ -26,28 +26,31 @@ import static java.lang.String.format;
  * This service holds business logic for {@link AuthenticationController}.
  * @since 0.0.1-SNAPSHOT
  * @author xdavide9
- * @see AuthenticationService
+ * @see AuthenticationController
  */
 @Service
 public class AuthenticationService {
+    /**
+     * Service that allows to work with jwt with ease.
+     */
     private final JwtService jwtService;
-
+    /**
+     * Jpa repository to interact with the database.
+     */
     private final UserRepository repository;
 
     /**
-     * default bcrypt implementation defined in {@link SecurityConfig}
-     * @since 0.0.1-SNAPSHOT
+     * It is the default bcrypt implementation defined in {@link SecurityConfig}.
      */
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * default validator from jakarta api
-     * @since 0.0.1-SNAPSHOT
+     * It is the default validator from jakarta api.
      */
     private final Validator validator;
 
     /**
-     * using the {@link RepositoryUserDetailsService} implementation
+     * It is the {@link RepositoryUserDetailsService} implementation of {@link UserDetailsService}.
      */
     private final UserDetailsService userDetailsService;
 
@@ -109,7 +112,6 @@ public class AuthenticationService {
      * If the password is incorrect an appropriate {@link IncorrectPasswordException} is thrown.
      * @param request login request containing the subject and the password
      * @return ResponseEntity of AuthenticationResponse
-     * @since 0.0.1-SNAPSHOT
      */
     public ResponseEntity<AuthenticationResponse> login(LoginRequest request) {
         // checks

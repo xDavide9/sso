@@ -18,21 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 0.0.1-SNAPSHOT
  */
 @RestController
-@RequestMapping("/api/v${app.version}/user/users")  // api/version/role/users
+@RequestMapping("/api/v0.0.1/user/users")
 public class UserController {
 
-    /**
-     * userService
-     * @see UserService
-     * @since 0.0.1-SNAPSHOT
-     */
     private final UserService userService;
 
-    /**
-     * constructor
-     * @param userService userService
-     * @since 0.0.1-SNAPSHOT
-     */
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;

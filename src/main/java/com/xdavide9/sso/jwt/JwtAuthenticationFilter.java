@@ -1,5 +1,6 @@
 package com.xdavide9.sso.jwt;
 
+import com.xdavide9.sso.config.SecurityConfig;
 import com.xdavide9.sso.exception.jwt.MissingTokenException;
 import com.xdavide9.sso.user.User;
 import jakarta.servlet.FilterChain;
@@ -30,16 +31,21 @@ import static java.lang.String.format;
  * is sent straight back to the client otherwise the FilterChain proceeds with other filters.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
- * @see com.xdavide9.sso.config.SecurityConfig
+ * @see SecurityConfig
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    /**
+     * Logger from Slf4j
+     */
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    /**
+     * Service that allows to work with jwt with ease
+     */
     private final JwtService jwtService;
     /**
-     * It is defined in {@link com.xdavide9.sso.config.SecurityConfig}
-     * @since 0.0.1-SNAPSHOT
+     * It is defined in {@link SecurityConfig}
      */
     private final UserDetailsService userDetailsService;
 
@@ -56,7 +62,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * {@link MissingTokenException} is thrown. Finally, if the token is provided and is valid the user is
      * granted authentication for the current request. The token must always be provided
      * in every request as the server is completely stateless.
-     * @since 0.0.1-SNAPSHOT
      * @param request client request
      * @param response server response
      * @param filterChain filterChain
@@ -99,9 +104,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Wrapping security context holder for testability (a static utility cannot be mocked)
-     * @since 0.0.1-SNAPSHOT
-     * @return securityContext
+     * Wrapping security context holder for testability (a static utility cannot be mocked).
+     * @return {@link SecurityContext} object that is not static
      */
     protected SecurityContext securityContext() {
         return SecurityContextHolder.getContext();

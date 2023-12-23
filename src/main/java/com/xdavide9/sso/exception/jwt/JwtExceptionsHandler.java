@@ -12,10 +12,10 @@ import java.util.Map;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 /**
- * This class is the Exception Handler for exception related to jwt tokens.
- * Each method is annotated with {@link ExceptionHandler} and handles the list of exception specified
- * as the value attribute. This design allows to clearly map any exception to an action that should be performed
- * as a result of that exception. Each of these actions is described in the name of the method.
+ * This class holds methods annotated with {@link ExceptionHandler}
+ * that handle exceptions related to manipulating JWT tokens  by returning appropriate
+ * http responses to clients. One method rotates the security key if there are reasons to think there
+ * was a breach in the application.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */

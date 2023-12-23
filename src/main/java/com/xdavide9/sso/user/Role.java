@@ -23,7 +23,8 @@ import static com.xdavide9.sso.user.Permission.*;
  */
 public enum Role {
     /**
-     * role
+     * Has permission to only manage their personal details
+     * and information within the application they are using (get, put).
      * @since 0.0.1-SNAPSHOT
      */
     USER(Set.of(
@@ -31,7 +32,8 @@ public enum Role {
             USER_PUT
     )),
     /**
-     * role
+     * Has User privileges and also permission to manage other users information
+     * with a limited degree of freedom (get, put).
      * @since 0.0.1-SNAPSHOT
      */
     OPERATOR(Set.of(
@@ -41,7 +43,8 @@ public enum Role {
             OPERATOR_PUT
     )),
     /**
-     * role
+     * Has User and Operator privileges as well as any other permission in the system
+     * including destructive operations (get, put, delete).
      * @since 0.0.1-SNAPSHOT
      */
     ADMIN(Set.of(
@@ -54,34 +57,20 @@ public enum Role {
             ADMIN_DELETE
     ));
 
-    /**
-     * permissions
-     * @since 0.0.1-SNAPSHOT
-     */
     private final Set<Permission> permissions;
 
-    /**
-     * constructor for a role based on permissions
-     * @param permissions permissions
-     * @since 0.0.1-SNAPSHOT
-     */
     Role(Set<Permission> permissions) {
         this.permissions = permissions;
     }
 
-    /**
-     * getter
-     * @return permissions
-     * @since 0.0.1-SNAPSHOT
-     */
     public Set<Permission> getPermissions() {
         return permissions;
     }
 
     /**
-     * constructs authorities from permissions associated with role
+     * Constructs authorities from permissions associated with role
      * @since 0.0.1-SNAPSHOT
-     * @return list of authorities for each role
+     * @return list of SimpleGrantedAuthorities for each role
      */
     public List<SimpleGrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = getPermissions()

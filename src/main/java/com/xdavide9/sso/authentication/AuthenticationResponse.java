@@ -12,10 +12,9 @@ import com.xdavide9.sso.jwt.JwtService;
  */
 public record AuthenticationResponse(String token) {
     /**
-     * canonical constructor that checks if the provided token is null. If it happens to be null the
+     * Canonical constructor that checks if the provided token is null. If it happens to be null the
      * class has been instantiated incorrectly
      * @param token token to be created with {@link JwtService}
-     * @since 0.0.1-SNAPSHOT
      */
     public AuthenticationResponse {
         if (token == null)

@@ -9,23 +9,19 @@ package com.xdavide9.sso.exception.user.api;
  */
 public enum UserExceptionReason {
     /**
-     * The user was queried to simply retrieve their details from the database
-     * @since 0.0.1-SNAPSHOT
+     * The user was queried to simply retrieve their details from the database by either an Admin or Operator
      */
     INFORMATION,
     /**
      * The user was queried from an Admin to be promoted to Operator
-     * @since 0.0.1-SNAPSHOT
      */
     PROMOTION,
     /**
      * The user was queried from an Admin to be demoted to a plain User from Operator role.
-     * @since 0.0.1-SNAPSHOT
      */
     DEMOTION,
     /**
      * The user was queried from an Admin to be cancelled from the system irreversibly
-     * @since 0.0.1-SNAPSHOT
      */
     DELETION
 }

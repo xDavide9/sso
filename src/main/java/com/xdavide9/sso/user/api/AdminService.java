@@ -33,8 +33,9 @@ public class AdminService {
      * Finds user by UUID from repository.
      * Checks if the user is eligible for promotion and if
      * successful clears their authorities and changes their role.
-     * @since 0.0.1-SNAPSHOT
      * @param uuid uuid of the user to be promoted
+     * @throws UserNotFoundException with PROMOTION {@link UserExceptionReason} when the user is not found
+     * @throws UserCannotBeModifiedException with PROMOTION {@link UserExceptionReason} when the user does not have USER {@link Role}
      * @return responseEntity with message for client
      */
     @PreAuthorize("hasAuthority('ADMIN_PUT')")
@@ -59,7 +60,8 @@ public class AdminService {
      * Finds user by UUID from repository.
      * Checks if the user is eligible for deletion and if
      * successful deletes them from the database.
-     * @since 0.0.1-SNAPSHOT
+     * @throws UserNotFoundException with DELETION {@link UserExceptionReason} when the user is not found
+     * @throws UserCannotBeModifiedException with DELETION {@link UserExceptionReason} when the user to be deleted is an admin
      * @param uuid uuid of the user to be deleted
      * @return responseEntity with message for client
      */
@@ -83,8 +85,9 @@ public class AdminService {
      * Finds user by UUID from repository.
      * Checks if the user is eligible for demotion and if successful
      * demotes them from operator role to user.
-     * @since 0.0.1-SNAPSHOT
-     * @param uuid uuid of the user to be deleted
+     * @throws UserNotFoundException with DEMOTION {@link UserExceptionReason} when the user is not found
+     * @throws UserCannotBeModifiedException with DEMOTION {@link UserExceptionReason} when the user to be demoted is not an operator
+     * @param uuid uuid of the user to be demoted
      * @return responseEntity with message for client
      */
     @PreAuthorize("hasAuthority('ADMIN_PUT')")

@@ -29,7 +29,6 @@ public class OperatorService {
 
     /**
      * Gets all users from the database.
-     * @since 0.0.1-SNAPSHOT
      * @return all users in database
      * @see OperatorController#getUsers()
      */
@@ -40,9 +39,8 @@ public class OperatorService {
 
     /**
      * Gets user with specified uuid from the database.
-     * In case of failure it throws a {@link UserNotFoundException} with an appropriate
+     * In case of failure it throws a {@link UserNotFoundException} with INFORMATION
      * {@link UserExceptionReason}.
-     * @since 0.0.1-SNAPSHOT
      * @see OperatorController#getUserByUuid(UUID)
      * @param uuid of the user in question
      * @return the user in question
@@ -60,9 +58,8 @@ public class OperatorService {
 
     /**
      * Gets user with specified username from the database.
-     * In case of failure it throws a {@link UserNotFoundException} with an appropriate
+     * In case of failure it throws a {@link UserNotFoundException} with INFORMATION
      * {@link UserExceptionReason}.
-     * @since 0.0.1-SNAPSHOT
      * @see OperatorController#getUserByUsername(String)
      * @param username of the user in question
      * @return the user in question
@@ -80,9 +77,8 @@ public class OperatorService {
 
     /**
      * Gets user with specified email from the database.
-     * In case of failure it throws a {@link UserNotFoundException} with an appropriate
+     * In case of failure it throws a {@link UserNotFoundException} with INFORMATION
      * {@link UserExceptionReason}.
-     * @since 0.0.1-SNAPSHOT
      * @see OperatorController#getUserByEmail(String)
      * @param email of the user in question
      * @return the user in question

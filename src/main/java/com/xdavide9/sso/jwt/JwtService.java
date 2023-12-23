@@ -33,7 +33,6 @@ public class JwtService {
     /**
      * This bean contains fundamental properties to work with jwt tokens
      * such as secret key and expiration time.
-     * @since 0.0.1-SNAPSHOT
      */
     private final JwtProperties jwtProperties;
 
@@ -45,10 +44,9 @@ public class JwtService {
     // extract claims
 
     /**
-     * This method extracts all claims (json fields) from a token
-     * @param token token
+     * This method extracts all claims (json fields) from a token.
+     * @param token jwt token to extract from
      * @return claims as a Claims object
-     * @since 0.0.1-SNAPSHOT
      */
     private Claims extractAllClaims(String token) {
         return Jwts
@@ -60,12 +58,11 @@ public class JwtService {
     }
 
     /**
-     * This method extracts a specific claim from a token
-     * @param token token
+     * This method extracts a specific claim from a token.
+     * @param token jwt token to extract from
      * @param claimsResolver Function that specifies which token
-     * @return Generic T type of the token returned by Function
      * @param <T> type of the claim to be returned
-     * @since 0.0.1-SNAPSHOT
+     * @return Generic T type of the token returned by Function
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         Claims claims = extractAllClaims(token);
@@ -73,20 +70,18 @@ public class JwtService {
     }
 
     /**
-     * This method uses extractClaim to extract the username (subject in the context of jwt) from token
-     * @param token token
+     * This method uses extractClaim to extract the username (subject in the context of jwt) from token.
+     * @param token jwt token to extract from
      * @return username contained in the token
-     * @since 0.0.1-SNAPSHOT
      */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
     /**
-     * This method uses extractClaim to extract the expiration time from token
-     * @param token token
+     * This method uses extractClaim to extract the expiration time from token.
+     * @param token jwt token to extract from
      * @return expiration contained in the token
-     * @since 0.0.1-SNAPSHOT
      */
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
@@ -99,9 +94,8 @@ public class JwtService {
      * expiration and signInKey. It also allows to set extra claims.
      * @see JwtProperties
      * @param extraClaims extraClaims to be added
-     * @param userDetails userDetails
-     * @return the token
-     * @since 0.0.1-SNAPSHOT
+     * @param userDetails userDetails to generate to token for
+     * @return jwt token
      */
     public String generateToken(
             Map<String, Object> extraClaims,
@@ -121,8 +115,7 @@ public class JwtService {
      * expiration and signInKey without any extra claim.
      * @see JwtProperties
      * @param userDetails userDetails
-     * @return the token
-     * @since 0.0.1-SNAPSHOT
+     * @return jwt token
      */
     public String generateToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
@@ -130,15 +123,12 @@ public class JwtService {
 
     // token validation
 
-    // TODO handle SignatureException by rotating security key
-
     /**
      * This method checks if a token is valid by combining the results of isTokenSubjectMatching and isTokenExpired.
-     * If any of the two is false it returns false, if both are true it returns true
-     * @param token token
-     * @param userDetails userDetails
-     * @return boolean
-     * @since 0.0.1-SNAPSHOT
+     * If any of the two is false it returns false, if both are true it returns true.
+     * @param token jwt token to validate
+     * @param userDetails userDetails to validate against
+     * @return true or false
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         return !isTokenExpired(token) && isTokenSubjectMatching(token, userDetails);
@@ -146,27 +136,24 @@ public class JwtService {
 
     /**
      * This method returns true if the subject in the token is the same User passed to it. Otherwise, it throws a
-     * {@link JwtSubjectMissMatchException}
-     * @param token token
-     * @param userDetails userDetails
-     * @return boolean
-     * @since 0.0.1-SNAPSHOT
+     * {@link JwtSubjectMissMatchException}.
+     * @param token jwt token to validate
+     * @param userDetails userDetails to validate against
+     * @return true or false
      */
     public boolean isTokenSubjectMatching(String token, UserDetails userDetails) {
-        if (!(extractUsername(token).equals(userDetails.getUsername()))) {
+        if (!(extractUsername(token).equals(userDetails.getUsername())))
             throw new JwtSubjectMissMatchException(format("token [%s] is not equal to expected [%s]", token, userDetails.getUsername()));
-        }
         return true;
     }
 
     /**
      * This method checks if a token is expired by comparing current system time
      * to expiration. It returns true if the token is not expired and throws a
-     * {@link ExpiredJwtException} exception if the token is expired (by {@link Jwts} parser)
+     * {@link ExpiredJwtException} exception if the token is expired (by {@link Jwts} parser).
      * @see JwtProperties
      * @param token token
      * @return boolean
-     * @since 0.0.1-SNAPSHOT
      */
     public boolean isTokenExpired(String token) throws ExpiredJwtException {
         return extractExpiration(token).before(new Date());

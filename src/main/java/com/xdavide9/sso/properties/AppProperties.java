@@ -2,6 +2,8 @@ package com.xdavide9.sso.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+// TODO refactor properties and move them to the config package
 /**
  * This class models properties with prefix "app" in application-dev.properties to be used across the application.
  * @author xdavide9

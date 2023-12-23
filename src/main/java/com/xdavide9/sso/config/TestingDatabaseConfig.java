@@ -14,11 +14,27 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 
+/**
+ * This class holds configuration for the testing database. This testing environment is active
+ * when the spring profile "test" is used. A {@link CommandLineRunner} bean is registered if this is the case
+ * and saves some custom {@link User} to the database.
+ * @author xdavide9
+ * @since 0.0.1-SNAPSHOT
+ */
 @Configuration
 public class TestingDatabaseConfig {
 
+    /**
+     * Jpa repository to interact with the database.
+     */
     private final UserRepository userRepository;
+    /**
+     * It is a {@link PasswordEncoder} implementation defined in {@link SecurityConfig}.
+     */
     private final PasswordEncoder passwordEncoder;
+    /**
+     * Logger from slf4j interface.
+     */
     private static final Logger log = LoggerFactory.getLogger(TestingDatabaseConfig.class);
 
     @Autowired
@@ -27,6 +43,11 @@ public class TestingDatabaseConfig {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /**
+     * Command line runner bean that is registered only when the "test" profile is active. It
+     * saves 1 admin, 1 operator and 1 plain user to the testing database to ease the process.
+     * @return the custom command line runner bean described
+     */
     @Bean
     @Profile("test")
     CommandLineRunner setUpTestingDatabase() {

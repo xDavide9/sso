@@ -26,10 +26,10 @@ public class JsonParserService {
     private static final Logger log = LoggerFactory.getLogger(JsonParserService.class);
 
     /**
-     * converts java objects to json. In case of failure an error message in capital letters is thrown.
+     * Converts java objects to json.
      * @param o the object to be converted
+     * @throws JsonProcessingException as well a custom message
      * @return json of the object passed
-     * @since 0.0.1-SNAPSHOT
      */
     public String json(Object o) throws JsonProcessingException {
         try {
@@ -44,11 +44,10 @@ public class JsonParserService {
 
     /**
      * Converts a json string to a java object whom type (Class instance) must be passed in input.
-     * In case of failure an error message in capital letters is thrown.
      * @param json the json string to convert
      * @param type instance of Class that holds the type of the object you want to convert the json string to
+     * @throws JsonProcessingException as well as a custom message
      * @return the object converted from json
-     * @since 0.0.1-SNAPSHOT
      */
     public<T> T java(String json, Class<T> type) throws JsonProcessingException {
         try {
@@ -66,8 +65,8 @@ public class JsonParserService {
      * In case of failure an error message in capital letters is thrown.
      * @param json the json string to convert
      * @param type anonymous subclass of TypeReference that holds the type of the object you want to convert the json string to
+     * @throws JsonProcessingException as well as a custom message
      * @return the object converted from json
-     * @since 0.0.1-SNAPSHOT
      */
     public<T> T java(String json, TypeReference<T> type) throws JsonProcessingException {
         try {

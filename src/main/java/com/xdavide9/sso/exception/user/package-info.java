@@ -1,7 +1,7 @@
 /**
- * This package contains exception under the user package.
+ * This package contains exceptions under the user package.
  * Subpackages of "exception" (such as this one) follow the convention of mirroring the project structure
- * of the classes that throw each exception
+ * of the classes that throw each exception.
  * @since 0.0.1-SNAPSHOT
  * @author xdavide9
  */

@@ -1,11 +1,10 @@
 package com.xdavide9.sso.authentication.api;
 
-import com.xdavide9.sso.properties.AppProperties;
+import com.xdavide9.sso.authentication.AuthenticationResponse;
+import com.xdavide9.sso.authentication.LoginRequest;
+import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.api.UserController;
-import com.xdavide9.sso.authentication.SignupRequest;
-import com.xdavide9.sso.authentication.LoginRequest;
-import com.xdavide9.sso.authentication.AuthenticationResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,10 +37,9 @@ public class AuthenticationController {
 
     /**
      * Method that maps the /signup endpoint. It requires a {@link SignupRequest}
-     * that holds the username, email and password
+     * that holds the username, email and password.
      * @param request signup request containing username, email and password
      * @return ResponseEntity of AuthenticationResponse
-     * @since 0.0.1-SNAPSHOT
      */
     @PostMapping("/signup")
     public ResponseEntity<AuthenticationResponse> signup(@RequestBody SignupRequest request) {
@@ -52,8 +50,7 @@ public class AuthenticationController {
      * Method that maps the /login endpoint. It requires a {@link LoginRequest}
      * that holds either the username or email, and the password of the account.
      * @param request Login request containing the subject and the password
-     * @return ResponseEntity of AuthenticationResponse
-     * @since 0.0.1-SNAPSHOT
+     * @return ResponseEntity of AuthenticationResponse.
      */
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest request) {

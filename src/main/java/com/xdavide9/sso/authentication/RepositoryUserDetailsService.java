@@ -29,11 +29,9 @@ public class RepositoryUserDetailsService implements UserDetailsService {
 
     /**
      * This method uses a custom query to find either by username or email (subject) from the database.
-     * It throws a {@link SubjectNotFoundException}.
-     * @since 0.0.1-SNAPSHOT
-     * @param subject this variable holds either the email or username depending on which one the user input in the form
-     * @return UserDetails
-     * @throws UsernameNotFoundException usernameNotFoundException
+     * @param subject This variable holds either the email or username depending on which one the user input in the form
+     * @return UserDetails of the matched user
+     * @throws SubjectNotFoundException when the user is not found
      */
     @Override
     public UserDetails loadUserByUsername(String subject) {

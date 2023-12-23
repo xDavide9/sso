@@ -13,12 +13,11 @@ import com.xdavide9.sso.authentication.api.AuthenticationController;
  */
 public record SignupRequest(String username, String email, String password) {
     /**
-     * canonical constructor that checks that any of the field is not null. If any happens to be null,
-     * the class has been instantiated incorrectly
+     * Canonical constructor that checks that any of the field is not null. If any happens to be null,
+     * the class has been instantiated incorrectly.
      * @param username username sent by the client
      * @param email email sent by the client
      * @param password password sent by the client
-     * @since 0.0.1-SNAPSHOT
      */
     public SignupRequest {
         if (username == null || email == null || password == null)
