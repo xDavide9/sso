@@ -1,17 +1,17 @@
 package com.xdavide9.sso.authentication.api;
 
+import com.xdavide9.sso.authentication.AuthenticationResponse;
+import com.xdavide9.sso.authentication.LoginRequest;
+import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
+import com.xdavide9.sso.authentication.SignupRequest;
+import com.xdavide9.sso.config.SecurityConfig;
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
 import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.jwt.JwtService;
-import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
-import com.xdavide9.sso.authentication.SignupRequest;
-import com.xdavide9.sso.authentication.AuthenticationResponse;
-import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
-import com.xdavide9.sso.config.SecurityConfig;
 import jakarta.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

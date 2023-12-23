@@ -1,8 +1,8 @@
 package com.xdavide9.sso.user.api;
 
 import com.xdavide9.sso.exception.user.api.UserCannotBeModifiedException;
-import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.exception.user.api.UserExceptionReason;
+import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.user.Role;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;

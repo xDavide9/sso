@@ -1,10 +1,10 @@
 package com.xdavide9.sso.config;
 
+import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
 import com.xdavide9.sso.jwt.JwtAuthenticationFilter;
 import com.xdavide9.sso.jwt.JwtService;
-import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
-import com.xdavide9.sso.user.Role;
 import com.xdavide9.sso.user.Permission;
+import com.xdavide9.sso.user.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
