@@ -2,6 +2,7 @@ package com.xdavide9.sso.config;
 
 import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
 import com.xdavide9.sso.jwt.JwtAuthenticationFilter;
+import com.xdavide9.sso.jwt.JwtTokenValidatorFilter;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.Permission;
 import com.xdavide9.sso.user.Role;
@@ -36,14 +37,21 @@ public class SecurityConfig {
      */
     private final UserDetailsService userDetailsService;
     /**
-     * It is a custom-made filter to handle jwt token.
+     * It is a custom-made filter that validates the token sent with http requests.
      * Depends on the methods provided by {@link JwtService}.
+     */
+    private final JwtTokenValidatorFilter jwtTokenValidatorFilter;
+
+    /**
+     * It is a custom-made filter that registers the user
+     * contained in the validated jwt token in the security context
      */
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
-    public SecurityConfig(UserDetailsService userDetailsService, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(UserDetailsService userDetailsService, JwtTokenValidatorFilter jwtTokenValidatorFilter, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
+        this.jwtTokenValidatorFilter = jwtTokenValidatorFilter;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
@@ -54,7 +62,7 @@ public class SecurityConfig {
      * Protects controller endpoints with the appropriate {@link Permission}s and {@link Role}s
      * by providing requestMatchers. Note that each method is also protected with method security in its controller.
      * Two special endpoints that require no authentication are also configured to allow any incoming request (/signup, /login).
-     * The {@link JwtAuthenticationFilter} is added.
+     * The {@link JwtTokenValidatorFilter} and {@link com.xdavide9.sso.jwt.JwtAuthenticationFilter} are added
      * Sessions are configured to be completely stateless.
      * An appropriate {@link DaoAuthenticationProvider} is configured to communicate with the database.
      * @param http {@link HttpSecurity} object to manipulate configuration
@@ -90,6 +98,7 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(daoAuthenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtTokenValidatorFilter, JwtAuthenticationFilter.class)
                 .build();
     }
 
