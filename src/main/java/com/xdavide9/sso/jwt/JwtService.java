@@ -1,6 +1,5 @@
 package com.xdavide9.sso.jwt;
 
-import com.xdavide9.sso.exception.jwt.JwtSubjectMissMatchException;
 import com.xdavide9.sso.properties.JwtProperties;
 import com.xdavide9.sso.user.User;
 import io.jsonwebtoken.Claims;
@@ -9,6 +8,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -18,8 +19,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
-import static java.lang.String.format;
 
 /**
  * This service provides various methods to work with jwt tokens.
@@ -35,6 +34,11 @@ public class JwtService {
      * such as secret key and expiration time.
      */
     private final JwtProperties jwtProperties;
+
+    /**
+     * Logger from Slf4j
+     */
+    private final Logger log = LoggerFactory.getLogger(JwtService.class);
 
     @Autowired
     public JwtService(JwtProperties jwtProperties) {
@@ -135,28 +139,33 @@ public class JwtService {
     }
 
     /**
-     * This method returns true if the subject in the token is the same User passed to it. Otherwise, it throws a
-     * {@link JwtSubjectMissMatchException}.
+     * This method returns true if the subject in the token is the same User passed to it;
+     * returns false otherwise.
      * @param token jwt token to validate
      * @param userDetails userDetails to validate against
      * @return true or false
      */
     public boolean isTokenSubjectMatching(String token, UserDetails userDetails) {
-        if (!(extractUsername(token).equals(userDetails.getUsername())))
-            throw new JwtSubjectMissMatchException(format("token [%s] is not equal to expected [%s]", token, userDetails.getUsername()));
-        return true;
+        return (extractUsername(token).equals(userDetails.getUsername()));
     }
 
     /**
      * This method checks if a token is expired by comparing current system time
-     * to expiration. It returns true if the token is not expired and throws a
-     * {@link ExpiredJwtException} exception if the token is expired (by {@link Jwts} parser).
+     * to expiration.
      * @see JwtProperties
-     * @param token token
-     * @return boolean
+     * @param token jwt token to check
+     * @return true if the token is expired; this value is set after catching
+     * {@link ExpiredJwtException} that stands in the way.
+     * If the token is not expired false is correctly set and returned;
      */
-    public boolean isTokenExpired(String token) throws ExpiredJwtException {
-        return extractExpiration(token).before(new Date());
+    public boolean isTokenExpired(String token) {
+        boolean expired;
+        try {
+            expired = extractExpiration(token).before(new Date());
+        } catch (ExpiredJwtException e) {
+            expired = true;
+        }
+        return expired;
     }
 
     // sign in key in hmac-sha265 / hs256 (minimum requirement)

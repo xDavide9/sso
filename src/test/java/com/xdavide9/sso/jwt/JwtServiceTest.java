@@ -1,9 +1,7 @@
 package com.xdavide9.sso.jwt;
 
-import com.xdavide9.sso.exception.jwt.JwtSubjectMissMatchException;
 import com.xdavide9.sso.properties.JwtProperties;
 import com.xdavide9.sso.user.User;
-import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,6 +64,7 @@ class JwtServiceTest {
         String token = underTest.generateToken(extraClaims, user);
         // then
         assertThat(underTest.isTokenExpired(token)).isFalse();
+        assertThat(underTest.isTokenSubjectMatching(token, user)).isTrue();
         assertThat(underTest.isTokenValid(token, user)).isTrue();
         assertThat(underTest.extractUsername(token)).isEqualTo(username);
         String returnedEmail = (String) underTest.extractClaim(token, resolver -> resolver.get("email"));
@@ -74,7 +72,7 @@ class JwtServiceTest {
     }
 
     @Test
-    void itShouldThrowWithExpiredToken() {
+    void itShouldRecogniseExpiredToken() {
         // given
         String username = "xdavide9";
         User user = new User();
@@ -82,27 +80,27 @@ class JwtServiceTest {
         expiration = 0; // generate a token that expires immediately
         given(jwtProperties.getSecretKey()).willReturn(secretKey);
         given(jwtProperties.getExpiration()).willReturn(expiration);
-        // when
         String expiredToken = underTest.generateToken(user);
+        // when
+        boolean expired = underTest.isTokenExpired(expiredToken);
         // then
-        assertThatThrownBy(() -> underTest.extractUsername(expiredToken))
-                .isInstanceOf(ExpiredJwtException.class);   // any operation with the token throws the exception
+        assertThat(expired).isTrue();
     }
 
     @Test
-    void itShouldThrowWithMissMatchedSubject() {
+    void itShouldRecogniseUsernameMissMatch() {
         // given
-        String username = "xdavide9";
         User user = new User();
-        user.setUsername(username);
+        User user2 = new User();
+        user.setUsername("username");
+        user2.setUsername("username2");
         expiration = 1000 * 60 * 60 * 24; // generate a token that expires immediately
         given(jwtProperties.getSecretKey()).willReturn(secretKey);
         given(jwtProperties.getExpiration()).willReturn(expiration);
+        String missMatchedToken = underTest.generateToken(user);
         // when
-        String token = underTest.generateToken(user);
+        boolean tokenSubjectMatching = underTest.isTokenSubjectMatching(missMatchedToken, user2);
         // then
-        // if the token is not expired but the user it not the same
-        assertThatThrownBy(() -> underTest.isTokenSubjectMatching(token, new User()))
-                .isInstanceOf(JwtSubjectMissMatchException.class);
+        assertThat(tokenSubjectMatching).isFalse();
     }
 }
