@@ -2,10 +2,13 @@ package com.xdavide9.sso.user.api;
 
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
+import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.util.JsonParserService;
-import org.assertj.core.api.AssertionsForClassTypes;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,13 +37,15 @@ public class OperatorApiIT {
     @Autowired
     private JsonParserService parser;
 
-    @Test
-    void itShouldGetUserByUsername() throws Exception {
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    void itShouldGetUserByUsername(String loginUsername, String loginPassword) throws Exception {
         // given
         // login to get jwt token first
-        String operatorUsername = "operatorUsername";
-        String operatorPassword = "operatorPassword";
-        LoginRequest loginRequest = new LoginRequest(operatorUsername, operatorPassword);
+        LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
         ResultActions loginResultActions = mockMvc.perform(
                 post("/api/v0.0.1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -48,7 +53,6 @@ public class OperatorApiIT {
         );
         String loginJsonResponse = loginResultActions.andReturn().getResponse().getContentAsString();
         AuthenticationResponse authenticationResponse = parser.java(loginJsonResponse, AuthenticationResponse.class);
-        System.out.println("TOKEN" + authenticationResponse.token());
         String username = "userUsername";
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -61,5 +65,111 @@ public class OperatorApiIT {
         String json = resultActions.andReturn().getResponse().getContentAsString();
         User user = parser.java(json, User.class);
         assertThat(user.getUsername()).isEqualTo(username);
+        assertThat(user.getEmail()).isEqualTo("user@email.com");
+    }
+
+    @Test
+    void itShouldNotGetUserByUsernameTokenIsMissing() throws Exception {
+        // given
+        String username = "userUsername";
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get(format("/api/v0.0.1/users/username/%s", username))
+        );
+        // then
+        resultActions.andExpect(status().isUnauthorized());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(responseBody).isEqualTo("Missing jwt Token. Every request should include a valid jwt token to authenticate to the server.");
+    }
+
+    @Test
+    void itShouldNotGetUserByUsernameNotEnoughAuthorization() throws Exception {
+        // given
+        String userUsername = "userUsername";
+        String userPassword = "userPassword";
+        LoginRequest loginRequest = new LoginRequest(userUsername, userPassword);
+        String jsonBody = parser.json(loginRequest);
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonBody)
+        );
+        loginResultActions.andExpect(status().isOk());
+        AuthenticationResponse response = parser.java(
+                loginResultActions.andReturn().getResponse().getContentAsString(),
+                AuthenticationResponse.class
+        );
+        String token = response.token();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get("/api/v0.0.1/users/username/userUsername")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isForbidden());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        // see SecurityConfig AccessDeniedHandler
+        assertThat(responseBody).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
+    }
+
+    // TODO finish this tests because right not is not easy to test retrieve by uuid, implement dto first
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    void itShouldGetUserByUuid(String loginUsername, String loginPassword) throws Exception {
+        // given
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get("api/v0.0.1/users/uuid/fillInHere")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isOk());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        User user = parser.java(responseBody, User.class);
+        // assertions for user username = "userUsername" so on...
+    }
+
+    // TODO test no authorization, not enough authorization for getUserByUuid
+
+
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    void itShouldGetUserByEmail(String loginUsername, String loginPassword) throws Exception {
+        // given
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get("/api/v0.0.1/users/email/user@email.com")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isOk());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        User user = parser.java(responseBody, User.class);
+        assertThat(user.getUsername()).isEqualTo("userUsername");
+        assertThat(user.getEmail()).isEqualTo("user@email.com");
     }
 }
