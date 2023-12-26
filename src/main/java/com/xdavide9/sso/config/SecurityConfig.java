@@ -6,9 +6,12 @@ import com.xdavide9.sso.jwt.JwtTokenValidatorFilter;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.Permission;
 import com.xdavide9.sso.user.Role;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,11 +22,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * This class provides essential security beans such as SecurityFilterChain, passwordEncoder,
- * DaoAuthenticationProvider, userDetailsService.
+ * DaoAuthenticationProvider, userDetailsService, accessDeniedHandler
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
@@ -96,6 +100,7 @@ public class SecurityConfig {
                 .sessionManagement(configurer ->
                         configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .exceptionHandling(configurer -> configurer.accessDeniedHandler(accessDeniedHandler()))
                 .authenticationProvider(daoAuthenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtTokenValidatorFilter, JwtAuthenticationFilter.class)
@@ -122,5 +127,19 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder());
         provider.setUserDetailsService(userDetailsService);
         return provider;
+    }
+
+    /**
+     * Allows to modify the response sent back to client when a request is
+     * sent with authorization but is not enough to access the requested resource.
+     */
+    @Bean
+    AccessDeniedHandler accessDeniedHandler() {
+        return (HttpServletRequest request,
+                HttpServletResponse response,
+                AccessDeniedException e) -> {
+            response.setStatus(403); // Forbidden
+            response.getWriter().write("Access Denied. You do not have enough authorization to access the request resource.");
+        };
     }
 }
