@@ -1,22 +1,49 @@
 package com.xdavide9.sso.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
-// TODO refactor properties and move them to the config package
 /**
- * This class models properties with prefix "app" in application-dev.properties to be used across the application.
+ * This class models properties with prefix "app" in properties files
+ * to be used across the application.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
-@Configuration
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
-    private String name;
-    private String version;
-    private String description;
-    private String groupId;
-    private String jdk;
+    /**
+     * It is the name of the application also specified in pom.xml
+     */
+    private final String name;
+    /**
+     * It is the current version of the application also specified in pom.xml
+     */
+    private final String version;
+    /**
+     * It is the description of the application also specified on GitHub
+     */
+    private final String description;
+    /**
+     * It is the domain on which the application is hosted
+     */
+    private final String groupId;
+    /**
+     * It is the java development kit version used to develop this application
+     */
+    private final String jdk;
+
+    @ConstructorBinding
+    public AppProperties(String name,
+                         String version,
+                         String description,
+                         String groupId,
+                         String jdk) {
+        this.name = name;
+        this.version = version;
+        this.description = description;
+        this.groupId = groupId;
+        this.jdk = jdk;
+    }
 
     // GETTERS
 
@@ -34,52 +61,5 @@ public class AppProperties {
     }
     public String getJdk() {
         return jdk;
-    }
-
-    // SETTERS
-
-    /**
-     * This setter is used by Spring to inject the property value.
-     * It should not be called anywhere else.
-     * @since 0.0.1-SNAPSHOT
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * This setter is used by Spring to inject the property value.
-     * It should not be called anywhere else.
-     * @since 0.0.1-SNAPSHOT
-     */
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    /**
-     * This setter is used by Spring to inject the property value.
-     * It should not be called anywhere else.
-     * @since 0.0.1-SNAPSHOT
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    /**
-     * This setter is used by Spring to inject the property value.
-     * It should not be called anywhere else.
-     * @since 0.0.1-SNAPSHOT
-     */
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    /**
-     * This setter is used by Spring to inject the property value.
-     * It should not be called anywhere else.
-     * @since 0.0.1-SNAPSHOT
-     */
-    public void setJdk(String jdk) {
-        this.jdk = jdk;
     }
 }

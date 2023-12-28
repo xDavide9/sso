@@ -1,53 +1,30 @@
 package com.xdavide9.sso.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
-/**
- * This class models properties with prefix "jwt" in application-dev.properties to be used across the application.
- * @author xdavide9
- * @since 0.0.1-SNAPSHOT
- */
-@Configuration
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
 
     /**
      * secret key that is used to sign jwt tokens
-     * @since 0.0.1-SNAPSHOT
      */
-    private String secretKey;
-
+    private final String secretKey;
     /**
      * defines how long until a jwt token expires
-     * @since 0.0.1-SNAPSHOT
      */
-    private long expiration;
+    private final long expiration;
+    @ConstructorBinding
+    public JwtProperties(String secretKey,
+                         long expiration) {
+        this.secretKey = secretKey;
+        this.expiration = expiration;
+    }
     public String getSecretKey() {
         return secretKey;
     }
     public long getExpiration() {
         return expiration;
-    }
-
-    /**
-     * This setter is used by Spring to inject the property value.
-     * It should not be called anywhere else.
-     * @since 0.0.1-SNAPSHOT
-     * @param secretKey secretKey
-     */
-    public void setSecretKey(String secretKey) {
-        this.secretKey = secretKey;
-    }
-
-    /**
-     * This setter is used by Spring to inject the property value.
-     * It should not be called anywhere else.
-     * @since 0.0.1-SNAPSHOT
-     * @param expiration expiration
-     */
-    public void setExpiration(long expiration) {
-        this.expiration = expiration;
     }
 
 }
