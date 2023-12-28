@@ -3,6 +3,7 @@ package com.xdavide9.sso.user.api;
 import com.xdavide9.sso.exception.user.api.UserExceptionReason;
 import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.UserDTO;
 import com.xdavide9.sso.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,11 +50,12 @@ class OperatorServiceTest {
         // given
         User user = new User();
         UUID uuid = user.getUuid();
+        user.setUsername("usernameByUuid");
         given(repository.findById(uuid)).willReturn(Optional.of(user));
         // when
-        User retunedUser = underTest.getUserByUuid(uuid);
+        UserDTO dto = underTest.getUserByUuid(uuid);
         // then
-        assertThat(retunedUser).isEqualTo(user);
+        assertThat(dto.getUsername()).isEqualTo("usernameByUuid");
     }
 
     @Test
@@ -78,9 +80,9 @@ class OperatorServiceTest {
         user.setUsername(username);
         given(repository.findByUsername(username)).willReturn(Optional.of(user));
         // when
-        User returnedUser = underTest.getUserByUsername(username);
+        UserDTO dto = underTest.getUserByUsername(username);
         // then
-        assertThat(returnedUser).isEqualTo(user);
+        assertThat(dto.getUsername()).isEqualTo(user.getUsername());
     }
 
     @Test
@@ -106,9 +108,9 @@ class OperatorServiceTest {
         user.setEmail(email);
         given(repository.findByEmail(email)).willReturn(Optional.of(user));
         // when
-        User returnedUser = underTest.getUserByEmail(email);
+        UserDTO dto = underTest.getUserByEmail(email);
         // then
-        assertThat(returnedUser).isEqualTo(user);
+        assertThat(dto.getEmail()).isEqualTo(user.getEmail());
     }
 
     @Test

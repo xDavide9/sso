@@ -29,7 +29,6 @@ public class AdminController {
     /**
      * Add operator privileges to user with specified uuid.
      * @param uuid uuid of the user to be promoted
-     * @return responseEntity with result
      */
     @PutMapping("/promote/{uuid}")
     @PreAuthorize("hasAuthority('ADMIN_PUT')")
@@ -41,7 +40,6 @@ public class AdminController {
      * Deletes user with specified uuid from the system.
      * This is irreversible and should only be performed as a last resort.
      * @param uuid uuid of the user to be deleted
-     * @return responseEntity with result
      */
     @DeleteMapping("/delete/{uuid}")
     @PreAuthorize("hasAuthority('ADMIN_DELETE')")
@@ -52,7 +50,6 @@ public class AdminController {
     /**
      * Demotes user with specified uuid from operator role to a plain User.
      * @param uuid uuid of the user to be demoted
-     * @return responseEntity with result
      */
     @PutMapping("/demote/{uuid}")
     @PreAuthorize("hasAuthority('ADMIN_PUT')")

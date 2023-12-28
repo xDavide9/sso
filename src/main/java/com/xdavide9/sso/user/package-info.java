@@ -1,5 +1,5 @@
 /**
- * This packages contains every class that relates to users. It includes a User model, repository
+ * This packages contains every class that relates to users. It includes a User model and DTO, repository
  * that uses jpa to connect to database, roles and permissions.
  * Roles and permissions are particularly relevant because they serve as the base for the api related to users
  * defined under the api package. That package contains multiple controllers and services for each role.

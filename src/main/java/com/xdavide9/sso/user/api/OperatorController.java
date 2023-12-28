@@ -2,6 +2,7 @@ package com.xdavide9.sso.user.api;
 
 import com.xdavide9.sso.user.Role;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,7 +37,7 @@ public class OperatorController {
      */
     @GetMapping
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public List<User> getUsers() {
+    public List<UserDTO> getUsers() {
         return operatorService.getUsers();
     }
 
@@ -48,7 +49,7 @@ public class OperatorController {
      */
     @GetMapping("/uuid/{uuid}")
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public User getUserByUuid(@PathVariable UUID uuid) {
+    public UserDTO getUserByUuid(@PathVariable UUID uuid) {
         return operatorService.getUserByUuid(uuid);
     }
 
@@ -60,7 +61,7 @@ public class OperatorController {
      */
     @GetMapping("/username/{username}")
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public User getUserByUsername(@PathVariable String username) {
+    public UserDTO getUserByUsername(@PathVariable String username) {
         return operatorService.getUserByUsername(username);
     }
 
@@ -72,7 +73,7 @@ public class OperatorController {
      */
     @GetMapping("/email/{email}")
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public User getUserByEmail(@PathVariable String email) {
+    public UserDTO getUserByEmail(@PathVariable String email) {
         return operatorService.getUserByEmail(email);
     }
 

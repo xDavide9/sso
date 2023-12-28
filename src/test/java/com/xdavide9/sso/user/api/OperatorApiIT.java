@@ -2,10 +2,8 @@ package com.xdavide9.sso.user.api;
 
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
-import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.util.JsonParserService;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -16,6 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -111,8 +111,6 @@ public class OperatorApiIT {
         // see SecurityConfig AccessDeniedHandler
         assertThat(responseBody).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
     }
-
-    // TODO finish this tests because right not is not easy to test retrieve by uuid, implement dto first
     @ParameterizedTest
     @CsvSource({
             "operatorUsername,operatorPassword",
@@ -120,6 +118,7 @@ public class OperatorApiIT {
     })
     void itShouldGetUserByUuid(String loginUsername, String loginPassword) throws Exception {
         // given
+        // login for authorization
         ResultActions loginResultActions = mockMvc.perform(
                 post("/api/v0.0.1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -129,20 +128,69 @@ public class OperatorApiIT {
         String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
         AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
         String token = loginResponse.token();
+        // now get the user by username (already tested)
+        ResultActions getByUsernameResultActions = mockMvc.perform(
+                get("/api/v0.0.1/users/username/userUsername")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        getByUsernameResultActions.andExpect(status().isOk());
+        String getByUsernameResponseBody = getByUsernameResultActions.andReturn().getResponse().getContentAsString();
+        User userByUsername = parser.java(getByUsernameResponseBody, User.class);
+        UUID uuid = userByUsername.getUuid();
         // when
+        // now the actual getByUuid
         ResultActions resultActions = mockMvc.perform(
-                get("api/v0.0.1/users/uuid/fillInHere")
+                get(format("/api/v0.0.1/users/uuid/%s", uuid))
                         .header("Authorization", format("Bearer %s", token))
         );
         // then
         resultActions.andExpect(status().isOk());
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         User user = parser.java(responseBody, User.class);
-        // assertions for user username = "userUsername" so on...
+        assertThat(user).isEqualTo(userByUsername);
     }
 
-    // TODO test no authorization, not enough authorization for getUserByUuid
+    @Test
+    void itShouldNotGetByUserUuidTokenIsMissing() throws Exception {
+        // given
+        // does not matter it does not match a record in the database as it should be denied
+        UUID uuid = UUID.randomUUID();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get(format("/api/v0.0.1/users/uuid/%s", uuid))
+        );
+        // then
+        resultActions.andExpect(status().isUnauthorized());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(responseBody).isEqualTo("Missing jwt Token. Every request should include a valid jwt token to authenticate to the server.");
+    }
 
+    @Test
+    void itShouldNotGetUserByUuidNotEnoughAuthorization() throws Exception {
+        // given
+        // does not matter it does not match a record in the database as it should be denied
+        UUID uuid = UUID.randomUUID();
+        // login for weak token
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest("userUsername", "userPassword")))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        // does not matter it does
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get(format("/api/v0.0.1/users/uuid/%s", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isForbidden());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(responseBody).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
+    }
 
     @ParameterizedTest
     @CsvSource({
@@ -171,5 +219,19 @@ public class OperatorApiIT {
         User user = parser.java(responseBody, User.class);
         assertThat(user.getUsername()).isEqualTo("userUsername");
         assertThat(user.getEmail()).isEqualTo("user@email.com");
+    }
+
+    @Test
+    void itShouldNotGetUserByEmailTokenIsMissing() throws Exception {
+        // given
+        String email = "user@email.com";
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get(format("/api/v0.0.1/users/email/%s", email))
+        );
+        // then
+        resultActions.andExpect(status().isUnauthorized());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(responseBody).isEqualTo("Missing jwt Token. Every request should include a valid jwt token to authenticate to the server.");
     }
 }

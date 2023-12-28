@@ -3,6 +3,7 @@ package com.xdavide9.sso.user.api;
 import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.exception.user.api.UserExceptionReason;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.UserDTO;
 import com.xdavide9.sso.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,8 +34,12 @@ public class OperatorService {
      * @see OperatorController#getUsers()
      */
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public List<User> getUsers() {
-        return userRepository.findAll();
+    public List<UserDTO> getUsers() {
+        return userRepository
+                .findAll()
+                .stream()
+                .map(UserDTO::fromUser)
+                .toList();
     }
 
     /**
@@ -46,14 +51,15 @@ public class OperatorService {
      * @return the user in question
      */
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public User getUserByUuid(UUID uuid) {
-        return userRepository
+    public UserDTO getUserByUuid(UUID uuid) {
+        User user = userRepository
                 .findById(uuid)
                 .orElseThrow(() ->
                         new UserNotFoundException(
                                 String.format("User with uuid [%s] not found.", uuid),
                                 UserExceptionReason.INFORMATION
                         ));
+        return UserDTO.fromUser(user);
     }
 
     /**
@@ -65,14 +71,15 @@ public class OperatorService {
      * @return the user in question
      */
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public User getUserByUsername(String username) {
-        return userRepository
+    public UserDTO getUserByUsername(String username) {
+        User user = userRepository
                 .findByUsername(username)
                 .orElseThrow(() ->
                         new UserNotFoundException(
                                 String.format("User with username [%s] not found.", username),
                                 UserExceptionReason.INFORMATION
                         ));
+        return UserDTO.fromUser(user);
     }
 
     /**
@@ -84,13 +91,14 @@ public class OperatorService {
      * @return the user in question
      */
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public User getUserByEmail(String email) {
-        return userRepository
+    public UserDTO getUserByEmail(String email) {
+        User user = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
                         new UserNotFoundException(
                                 String.format("User with email [%s] not found.", email),
                                 UserExceptionReason.INFORMATION
                         ));
+        return UserDTO.fromUser(user);
     }
 }
