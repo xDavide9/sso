@@ -234,4 +234,29 @@ public class OperatorApiIT {
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         assertThat(responseBody).isEqualTo("Missing jwt Token. Every request should include a valid jwt token to authenticate to the server.");
     }
+
+    @Test
+    void itShouldNotGetUserByEmailNotEnoughAuthorization() throws Exception {
+        // given
+        String loginUsername = "userUsername";
+        String loginPassword = "userPassword";
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get("/api/v0.0.1/users/email/userEmail")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isForbidden());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(responseBody).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
+    }
 }
