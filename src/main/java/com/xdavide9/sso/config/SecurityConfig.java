@@ -78,22 +78,22 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/api/v0.0.1/auth/**")
+                                .requestMatchers("/api/v0.0.1/auth/*")
                                 .permitAll()
                                 .requestMatchers(
                                         "/api/v0.0.1/users",
-                                        "/api/v0.0.1/users/uuid/**",
-                                        "/api/v0.0.1/users/username/**",
-                                        "/api/v0.0.1/users/email/**"
+                                        "/api/v0.0.1/users/uuid/*",
+                                        "/api/v0.0.1/users/username/*",
+                                        "/api/v0.0.1/users/email/*"
                                 )
                                 .hasAnyAuthority("OPERATOR_GET", "ADMIN_GET")
                                 .requestMatchers(
-                                        "/api/v0.0.1/demote",
-                                        "/api/v0.0.1/promote"
+                                        "/api/v0.0.1/users/promote/*",
+                                        "/api/v0.0.1/users/demote/*"
                                 )
                                 .hasAuthority("ADMIN_PUT")
                                 .requestMatchers(
-                                        "/api/v0.0.1/delete"
+                                        "/api/v0.0.1/users/delete/*"
                                 )
                                 .hasAuthority("ADMIN_DELETE")
                         )
