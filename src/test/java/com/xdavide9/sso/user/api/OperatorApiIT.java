@@ -1,5 +1,6 @@
 package com.xdavide9.sso.user.api;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.user.User;
@@ -10,11 +11,13 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -66,6 +69,38 @@ public class OperatorApiIT {
         User user = parser.java(json, User.class);
         assertThat(user.getUsername()).isEqualTo(username);
         assertThat(user.getEmail()).isEqualTo("user@email.com");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    void itShouldNotGetUserByUsernameUserDoesNotExist(String loginUsername, String loginPassword) throws Exception {
+        // given
+        // login to get jwt token first
+        LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(loginRequest))
+        );
+        String loginJsonResponse = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse authenticationResponse = parser.java(loginJsonResponse, AuthenticationResponse.class);
+        String username = "nonExistent";
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get(format("/api/v0.0.1/users/username/%s", username))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", format("Bearer %s", authenticationResponse.token()))
+        );
+        // then
+        resultActions.andExpect(status().isNotFound());
+        String json = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(json, new TypeReference<>() {});
+        assertThat(responseBody.get("error")).isEqualTo("Cannot get information about user");
+        assertThat(responseBody.get("status")).isEqualTo(HttpStatus.NOT_FOUND.toString());
+        assertThat(responseBody.get("message")).isEqualTo(format("User with username [%s] not found.", username));
     }
 
     @Test
@@ -150,6 +185,39 @@ public class OperatorApiIT {
         assertThat(user).isEqualTo(userByUsername);
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    void itShouldNotGetUserByUuidUserDoesNotExist(String loginUsername, String loginPassword) throws Exception {
+        // given
+        // login for authorization
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        UUID uuid = UUID.randomUUID();
+        // when
+        // now the actual getByUuid
+        ResultActions resultActions = mockMvc.perform(
+                get(format("/api/v0.0.1/users/uuid/%s", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isNotFound());
+        String json = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(json, new TypeReference<>() {});
+        assertThat(responseBody.get("error")).isEqualTo("Cannot get information about user");
+        assertThat(responseBody.get("status")).isEqualTo(HttpStatus.NOT_FOUND.toString());
+        assertThat(responseBody.get("message")).isEqualTo(format("User with uuid [%s] not found.", uuid));
+    }
+
     @Test
     void itShouldNotGetByUserUuidTokenIsMissing() throws Exception {
         // given
@@ -219,6 +287,37 @@ public class OperatorApiIT {
         User user = parser.java(responseBody, User.class);
         assertThat(user.getUsername()).isEqualTo("userUsername");
         assertThat(user.getEmail()).isEqualTo("user@email.com");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    void itShouldNotGetUserByEmailUserDoesNotExist(String loginUsername, String loginPassword) throws Exception {
+        // given
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        String email = "wrong@email.com";
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get(format("/api/v0.0.1/users/email/%s", email))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isNotFound());
+        String json = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(json, new TypeReference<>() {});
+        assertThat(responseBody.get("error")).isEqualTo("Cannot get information about user");
+        assertThat(responseBody.get("status")).isEqualTo(HttpStatus.NOT_FOUND.toString());
+        assertThat(responseBody.get("message")).isEqualTo(format("User with email [%s] not found.", email));
     }
 
     @Test
