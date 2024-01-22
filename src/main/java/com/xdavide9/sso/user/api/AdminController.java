@@ -36,6 +36,8 @@ public class AdminController {
         return adminService.promoteUserToOperator(uuid);
     }
 
+    // TODO change delete feature to ban and unban, no reason to provide a way to permanently delete user data
+
     /**
      * Deletes user with specified uuid from the system.
      * This is irreversible and should only be performed as a last resort.
