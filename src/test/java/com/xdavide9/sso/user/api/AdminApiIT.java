@@ -186,6 +186,7 @@ public class AdminApiIT {
             "operatorUsername",
             "adminUsername"
     })
+    @Transactional
     void itShouldNotPromoteUserToOperatorUserIsNotARoleUser(String username) throws Exception {
         // given
         String token = loginAsAdmin();
@@ -211,7 +212,82 @@ public class AdminApiIT {
         assertThat(responseBody.get("status")).isEqualTo(HttpStatus.CONFLICT.toString());
     }
 
+    // TODO fill in these tests to finish adminAPI v0.0.1
+
     @Test
+    @Transactional
+    void itShouldBanUser() {
+        // given
+        // when
+        // then
+    }
+
+    @Test
+    @Transactional
+    void itShouldNotBanUserNoAdminPrivileges() {
+        // given
+        // when
+        // then
+    }
+
+    @Test
+    @Transactional
+    void itShouldNotBanUserDoesNotExist() {
+        // given
+        // when
+        // then
+    }
+
+    @Test
+    @Transactional
+    void itShouldNotBanUserIsAnAdmin() {
+        // given
+        // when
+        // then
+    }
+
+    @Test
+    @Transactional
+    void itShouldNotBanUserTheyAreAlreadyBanned() {
+        // given
+        // when
+        // then
+    }
+
+    @Test
+    @Transactional
+    void itShouldUnbanUser() {
+        // given
+        // when
+        // then
+    }
+
+    @Test
+    @Transactional
+    void itShouldNotUnbanUserNoAdminPrivileges() {
+        // given
+        // when
+        // then
+    }
+
+    @Test
+    @Transactional
+    void itShouldNotUnbanUserDoesNotExist() {
+        // given
+        // when
+        // then
+    }
+
+    @Test
+    @Transactional
+    void itShouldNotUnbanUserTheyAreNotBannedInTheFirstPlace() {
+        // given
+        // when
+        // then
+    }
+
+    @Test
+    @Transactional
     void itShouldDemoteUser() throws Exception {
         // given
         String token = loginAsAdmin();
@@ -232,6 +308,7 @@ public class AdminApiIT {
             "userUsername,userPassword",
             "operatorUsername,operatorPassword"
     })
+    @Transactional
     void itShouldNotDemoteUserNoAdminPrivileges(String loginUsername, String loginPassword) throws Exception {
         // given
         ResultActions loginResultActions = mockMvc.perform(
@@ -259,6 +336,7 @@ public class AdminApiIT {
     }
 
     @Test
+    @Transactional
     void itShouldNotDemoteUserDoesNotExist() throws Exception {
         // given
         String token = loginAsAdmin();
@@ -283,6 +361,7 @@ public class AdminApiIT {
             "userUsername",
             "adminUsername"
     })
+    @Transactional
     void itShouldNotDemoteUserIsNotOperator(String username) throws Exception {
         // given
         String token = loginAsAdmin();

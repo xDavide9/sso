@@ -36,17 +36,24 @@ public class AdminController {
         return adminService.promoteUserToOperator(uuid);
     }
 
-    // TODO change delete feature to ban and unban, no reason to provide a way to permanently delete user data
+    /**
+     * Bans user with specified uuid which means they cannot access the system until they are unbanned.
+     * @param uuid uuid of the user to be banned
+     */
+    @DeleteMapping("/ban/{uuid}")
+    @PreAuthorize("hasAuthority('ADMIN_DELETE')")
+    public ResponseEntity<String> banUser(@PathVariable UUID uuid) {
+        return adminService.banUser(uuid);
+    }
 
     /**
-     * Deletes user with specified uuid from the system.
-     * This is irreversible and should only be performed as a last resort.
-     * @param uuid uuid of the user to be deleted
+     * Unbans user with specified uuid.
+     * @param uuid uuid of the user to be unbanned
      */
-    @DeleteMapping("/delete/{uuid}")
-    @PreAuthorize("hasAuthority('ADMIN_DELETE')")
-    public ResponseEntity<String> deleteUser(@PathVariable UUID uuid) {
-        return adminService.deleteUser(uuid);
+    @PutMapping("/unban/{uuid}")
+    @PreAuthorize("hasAuthority('ADMIN_PUT')")
+    public ResponseEntity<String> unbanUser(@PathVariable UUID uuid) {
+        return adminService.unbanUser(uuid);
     }
 
     /**

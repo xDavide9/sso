@@ -25,7 +25,8 @@ public class UserExceptionsHandler {
         String error;
         switch (e.getReason()) {
             case INFORMATION -> error = "Cannot get information about user";
-            case DELETION -> error = "Cannot delete user";
+            case BAN -> error = "Cannot ban user";
+            case UNBAN -> error = "Cannot unban user";
             case DEMOTION -> error = "Cannot demote user";
             case PROMOTION -> error = "Cannot promote user";
             default -> error = "User not found";
@@ -42,7 +43,8 @@ public class UserExceptionsHandler {
         String error;
         switch (e.getReason()) {
             case INFORMATION -> error = "Cannot get information about user";
-            case DELETION -> error = "Cannot delete user";
+            case BAN -> error = "Cannot ban user";
+            case UNBAN -> error = "Cannot unban user";
             case DEMOTION -> error = "Cannot demote user";
             case PROMOTION -> error = "Cannot promote user";
             default -> error = "User cannot be modified";

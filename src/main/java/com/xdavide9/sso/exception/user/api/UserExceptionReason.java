@@ -21,7 +21,11 @@ public enum UserExceptionReason {
      */
     DEMOTION,
     /**
-     * The user was queried from an Admin to be cancelled from the system irreversibly
+     * The user was queried from an Admin to be banned from the system
      */
-    DELETION
+    BAN,
+    /**
+     * The user was queried from an Admin to unbanned from the system
+     */
+    UNBAN
 }

@@ -81,46 +81,102 @@ class AdminServiceTest {
     }
 
     @Test
-    void itShouldDeleteUser() {
+    void itShouldBanUser() {
         // given
-        User user = new User("username", "email@email.com", "password");
+        User user = new User();
         UUID uuid = user.getUuid();
         given(userRepository.findById(uuid)).willReturn(Optional.of(user));
         // when
-        ResponseEntity<String> response = underTest.deleteUser(uuid);
+        ResponseEntity<String> response = underTest.banUser(uuid);
         // then
-        verify(userRepository).delete(captor.capture());
+        verify(userRepository).save(captor.capture());
         User capturedUser = captor.getValue();
-        assertThat(capturedUser).isEqualTo(user);
+        assertThat(capturedUser.isEnabled()).isFalse();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo(format("The user [%s] has been permanently deleted from the system", uuid));
+        assertThat(response.getBody()).isEqualTo(format("The user [%s] has been successfully banned from the system", uuid));
         verifyNoMoreInteractions(userRepository);
     }
 
     @Test
-    void itShouldNotDeleteUserDoesNotExist() {
+    void itShouldNotBanUserDoesNotExist() {
         // given
         UUID uuid = UUID.randomUUID();
         given(userRepository.findById(uuid)).willReturn(Optional.empty());
         // when & then
-        assertThatThrownBy(() -> underTest.deleteUser(uuid))
+        assertThatThrownBy(() -> underTest.banUser(uuid))
                 .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(format("Could not find user with uuid [%s] to be deleted", uuid))
-                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.DELETION);
+                .hasMessageContaining(format("Could not find user with uuid [%s] to be banned", uuid))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.BAN);
     }
 
     @Test
-    void itShouldNotDeleteUserIsAnAdmin() {
+    void itShouldNotBanUserIsAnAdmin() {
         // given
         User user = new User("username", "email@email.com", "password");
         user.setRole(Role.ADMIN);
         UUID uuid = user.getUuid();
         given(userRepository.findById(uuid)).willReturn(Optional.of(user));
         // when & then
-        assertThatThrownBy(() -> underTest.deleteUser(uuid))
+        assertThatThrownBy(() -> underTest.banUser(uuid))
                 .isInstanceOf(UserCannotBeModifiedException.class)
-                .hasMessageContaining(format("Could not delete user [%s] because they are an admin", uuid))
-                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.DELETION);
+                .hasMessageContaining(format("Could not ban user [%s] because they are an admin", uuid))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.BAN);
+    }
+
+    @Test
+    void itShouldNotBanUserIsAlreadyBanned() {
+        // given
+        User user = new User();
+        user.setEnabled(false);
+        UUID uuid = user.getUuid();
+        given(userRepository.findById(uuid)).willReturn(Optional.of(user));
+        // when & then
+        assertThatThrownBy(() -> underTest.banUser(uuid))
+                .isInstanceOf(UserCannotBeModifiedException.class)
+                .hasMessageContaining(format("Could not ban user [%s] because they are already banned", uuid))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.BAN);
+    }
+
+    @Test
+    void itShouldUnbanUser() {
+        // given
+        User user = new User();
+        user.setEnabled(false);
+        UUID uuid = user.getUuid();
+        given(userRepository.findById(uuid)).willReturn(Optional.of(user));
+        // when
+        ResponseEntity<String> response = underTest.unbanUser(uuid);
+        // then
+        verify(userRepository).save(captor.capture());
+        User capturedUser = captor.getValue();
+        assertThat(capturedUser.isEnabled()).isTrue();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isEqualTo(format("The user [%s] has been successfully unbanned", uuid));
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void itShouldNotUnbanUserDoesNotExist() {
+        // given
+        UUID uuid = UUID.randomUUID();
+        // when & then
+        assertThatThrownBy(() -> underTest.unbanUser(uuid))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining(format("Could not find user with uuid [%s] to be unbanned", uuid))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.UNBAN);
+    }
+
+    @Test
+    void itShouldNotUnbanUserNotBannedInTheFirstPlace() {
+        // given
+        User user = new User();
+        UUID uuid = user.getUuid();
+        given(userRepository.findById(uuid)).willReturn(Optional.of(user));
+        // when & then
+        assertThatThrownBy(() -> underTest.unbanUser(uuid))
+                .isInstanceOf(UserCannotBeModifiedException.class)
+                .hasMessageContaining(format("Could not unban user [%s] because they are not banned", uuid))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.UNBAN);
     }
 
     @Test

@@ -58,27 +58,59 @@ public class AdminService {
 
     /**
      * Finds user by UUID from repository.
-     * Checks if the user is eligible for deletion and if
-     * successful deletes them from the database.
-     * @throws UserNotFoundException with DELETION {@link UserExceptionReason} when the user is not found
-     * @throws UserCannotBeModifiedException with DELETION {@link UserExceptionReason} when the user to be deleted is an admin
-     * @param uuid uuid of the user to be deleted
+     * Checks if the user can be banned and if
+     * successful disables them.
+     * @throws UserNotFoundException with BAN {@link UserExceptionReason} when the user is not found
+     * @throws UserCannotBeModifiedException with BAN {@link UserExceptionReason} when the user to be banned is an admin
+     * @param uuid uuid of the user to be banned
      * @return responseEntity with message for client
      */
     @PreAuthorize("hasAuthority('ADMIN_DELETE')")
-    public ResponseEntity<String> deleteUser(UUID uuid) {
+    public ResponseEntity<String> banUser(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(
                 () -> new UserNotFoundException(
-                        format("Could not find user with uuid [%s] to be deleted", uuid),
-                        UserExceptionReason.DELETION
+                        format("Could not find user with uuid [%s] to be banned", uuid),
+                        UserExceptionReason.BAN
                 ));
         if (user.getRole().equals(Role.ADMIN))
             throw new UserCannotBeModifiedException(
-              format("Could not delete user [%s] because they are an admin", uuid),
-                    UserExceptionReason.DELETION
+              format("Could not ban user [%s] because they are an admin", uuid),
+                    UserExceptionReason.BAN
             );
-        userRepository.delete(user);
-        return ResponseEntity.ok(format("The user [%s] has been permanently deleted from the system", uuid));
+        if (!user.isEnabled())
+            throw new UserCannotBeModifiedException(
+                    format("Could not ban user [%s] because they are already banned", uuid),
+                    UserExceptionReason.BAN
+            );
+        user.setEnabled(false);
+        userRepository.save(user);
+        return ResponseEntity.ok(format("The user [%s] has been successfully banned from the system", uuid));
+    }
+
+    /**
+     * Finds user by UUID from the repository.
+     * Checks if a user can be unbanned and if successful
+     * re-enables them in the system.
+     * @throws UserNotFoundException with UNBAN {@link UserExceptionReason} when the user is not found
+     * @throws UserCannotBeModifiedException with UNBAN {@link UserExceptionReason} when the user to be unbanned is not banned
+     * @param uuid of the user to be unbanned
+     * @return responseEntity with message for client
+     */
+    @PreAuthorize("hasAuthority('ADMIN_PUT')")
+    public ResponseEntity<String> unbanUser(UUID uuid) {
+        User user = userRepository.findById(uuid).orElseThrow(
+                () -> new UserNotFoundException(
+                        format("Could not find user with uuid [%s] to be unbanned", uuid),
+                        UserExceptionReason.UNBAN
+                ));
+        if (user.isEnabled())
+            throw new UserCannotBeModifiedException(
+                    format("Could not unban user [%s] because they are not banned", uuid),
+                    UserExceptionReason.UNBAN
+            );
+        user.setEnabled(true);
+        userRepository.save(user);
+        return ResponseEntity.ok(format("The user [%s] has been successfully unbanned", uuid));
     }
 
     /**
