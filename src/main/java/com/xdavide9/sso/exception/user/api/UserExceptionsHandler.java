@@ -14,7 +14,7 @@ import static org.springframework.http.HttpStatus.*;
  * This class holds methods annotated with {@link ExceptionHandler}
  * that handle exceptions related to the User api by returning appropriate
  * http responses to clients. A special enum constant {@link UserExceptionReason} is passed to
- * these exceptions in order to further customize the responses.
+ * some of these exceptions in order to further customize the responses.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
@@ -63,5 +63,14 @@ public class UserExceptionsHandler {
         responseBody.put("message", "Make sure the request is formatted correctly");
         responseBody.put("status", BAD_REQUEST.toString());
         return new ResponseEntity<>(responseBody, BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = UserBannedException.class)
+    public ResponseEntity<Map<String, Object>> handleUserBannedException(UserBannedException e) {
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("error", "Login request into banned account");
+        responseBody.put("message", e.getMessage());
+        responseBody.put("status", FORBIDDEN.toString());
+        return new ResponseEntity<>(responseBody, FORBIDDEN);
     }
 }

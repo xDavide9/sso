@@ -89,11 +89,12 @@ public class SecurityConfig {
                                 .hasAnyAuthority("OPERATOR_GET", "ADMIN_GET")
                                 .requestMatchers(
                                         "/api/v0.0.1/users/promote/*",
-                                        "/api/v0.0.1/users/demote/*"
+                                        "/api/v0.0.1/users/demote/*",
+                                        "/api/v0.0.1/users/unban/*"
                                 )
                                 .hasAuthority("ADMIN_PUT")
                                 .requestMatchers(
-                                        "/api/v0.0.1/users/delete/*"
+                                        "/api/v0.0.1/users/ban/*"
                                 )
                                 .hasAuthority("ADMIN_DELETE")
                         )

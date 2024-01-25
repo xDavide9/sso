@@ -9,6 +9,7 @@ import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
 import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
+import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
@@ -121,6 +122,8 @@ public class AuthenticationService {
         String encodedPassword = user.getPassword();
         if (!passwordEncoder.matches(rawPassword, encodedPassword))
             throw new IncorrectPasswordException(format("Incorrect input password at login for subject [%s]", subject));
+        if (!user.isEnabled())
+            throw new UserBannedException(format("The account with subject [%s] is banned.", subject));
         // issue token
         String token = jwtService.generateToken(user);
         return ResponseEntity.ok(new AuthenticationResponse(token));
