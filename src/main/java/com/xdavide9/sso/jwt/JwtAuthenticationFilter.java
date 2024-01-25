@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,11 +19,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static java.lang.String.format;
+
 /**
  * This class is the second filter that handles the process of authentication with jwt.
- * Its responsibility is to only register the user with corresponding username contained in the token
- * to the security context. No checks are needed because everything has already been validated by
- * {@link JwtTokenValidatorFilter}.
+ * Its responsibility is to check that the account associated with
+ * a valid jwt token is eligible to be registered to the security context.
+ * This process is done thanks to specific boolean fields (e.g. enabled)
+ * defined in {@link User}.
  * @since 0.0.1-SNAPSHOT
  * @author xdavide9
  * @see SecurityConfig
@@ -56,6 +60,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String token = request.getHeader("Authorization").substring(7);
         String username = jwtService.extractUsername(token);
         User user = (User) userDetailsService.loadUserByUsername(username);
+        // check enabled, accountNonLocked, accountExpired, credentialsNonExpired
+        if (!user.isEnabled()) {
+            response.setStatus(403);
+            response.getWriter().write(format("This account [%s] has been disabled by an Admin.", user.getUuid()));
+            return;
+        }
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(
                         user,

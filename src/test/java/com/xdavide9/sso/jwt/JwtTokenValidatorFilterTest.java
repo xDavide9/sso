@@ -69,6 +69,7 @@ class JwtTokenValidatorFilterTest {
         assertThat(response.getStatus()).isEqualTo(401);
         assertThat(response.getContentAsString()).isEqualTo("Missing jwt Token. Every request should include " +
                 "a valid jwt token to authenticate to the server.");
+        verify(filterChain, times(0)).doFilter(request, response);
     }
 
     @Test
@@ -86,6 +87,7 @@ class JwtTokenValidatorFilterTest {
         // then
         assertThat(response.getStatus()).isEqualTo(500);
         assertThat(response.getContentAsString()).isEqualTo("Expired jwt token. Login again to provide a new one.");
+        verify(filterChain, times(0)).doFilter(request, response);
     }
 
     @Test
@@ -105,5 +107,6 @@ class JwtTokenValidatorFilterTest {
         // then
         assertThat(response.getStatus()).isEqualTo(500);
         assertThat(response.getContentAsString()).isEqualTo("Username in token does not match record in database.");
+        verify(filterChain, times(0)).doFilter(request, response);
     }
 }

@@ -9,6 +9,7 @@ import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
 import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
+import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
@@ -158,6 +159,24 @@ class AuthenticationServiceTest {
         ResponseEntity<AuthenticationResponse> response = underTest.login(request);
         // then
         assertThat(Objects.requireNonNull(response.getBody()).token()).isEqualTo(token);
+    }
+
+    @Test
+    void itShouldNotLoginAccountIsBanned() {
+        // given
+        String username = "username";
+        String email = "email@email.com";
+        String rawPassword = "rawPassword";
+        String encodedPassword = "encodedPassword";
+        User user = new User(username, email, encodedPassword);
+        user.setEnabled(false);
+        LoginRequest request = new LoginRequest(username, rawPassword);
+        given(userDetailsService.loadUserByUsername(username)).willReturn(user);
+        given(passwordEncoder.matches(rawPassword, encodedPassword)).willReturn(true);
+        // when & then
+        assertThatThrownBy(() -> underTest.login(request))
+                .isInstanceOf(UserBannedException.class)
+                .hasMessageContaining(format("The account with subject [%s] is banned.", username));
     }
 
     @Test
