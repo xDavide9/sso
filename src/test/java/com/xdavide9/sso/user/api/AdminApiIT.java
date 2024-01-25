@@ -3,6 +3,7 @@ package com.xdavide9.sso.user.api;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
+import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.util.JsonParserService;
 import jakarta.transaction.Transactional;
@@ -18,11 +19,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
