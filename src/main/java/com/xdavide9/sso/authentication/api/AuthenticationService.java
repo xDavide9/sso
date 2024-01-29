@@ -13,7 +13,7 @@ import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
-import jakarta.validation.Validator;
+import com.xdavide9.sso.util.UserValidatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -46,9 +46,9 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * It is the default validator from jakarta api.
+     * Service that validates user input to make sure it adheres to specific constraints.
      */
-    private final Validator validator;
+    private final UserValidatorService validatorService;
 
     /**
      * It is the {@link RepositoryUserDetailsService} implementation of {@link UserDetailsService}.
@@ -59,12 +59,12 @@ public class AuthenticationService {
     public AuthenticationService(JwtService jwtService,
                                  UserRepository repository,
                                  PasswordEncoder passwordEncoder,
-                                 Validator validator,
+                                 UserValidatorService validatorService,
                                  @Qualifier(value = "repositoryUserDetailsService") UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
-        this.validator = validator;
+        this.validatorService = validatorService;
         this.userDetailsService = userDetailsService;
     }
 
@@ -97,7 +97,7 @@ public class AuthenticationService {
             throw new PasswordTooShortException("Password must be at least 8 characters long");
         // process of registration
         User user = new User(username, email, passwordEncoder.encode(password));
-        validator.validate(user);   // if not valid throws ConstraintViolationException
+        validatorService.validate(user);    // if not valid throws ConstraintViolationException
         repository.save(user);
         String token = jwtService.generateToken(user);
         AuthenticationResponse response = new AuthenticationResponse(token);

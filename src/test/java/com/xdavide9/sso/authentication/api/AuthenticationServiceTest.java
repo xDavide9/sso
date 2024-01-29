@@ -13,10 +13,14 @@ import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
-import jakarta.validation.Validator;
+import com.xdavide9.sso.util.UserValidatorService;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +49,7 @@ class AuthenticationServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
-    private Validator validator;
+    private UserValidatorService validatorService;
 
     @Mock
     private UserDetailsService userDetailsService;
@@ -68,7 +72,7 @@ class AuthenticationServiceTest {
         // when
         ResponseEntity<AuthenticationResponse> response = underTest.signup(request);
         // then
-        verify(validator).validate(captor.capture());
+        verify(validatorService).validate(captor.capture());
         User capturedUser = captor.getValue();
         verify(repository).save(capturedUser);
         assertThat(capturedUser.getUsername()).isEqualTo(username);
@@ -80,7 +84,7 @@ class AuthenticationServiceTest {
                 .isEqualTo("token123");
         verifyNoMoreInteractions(passwordEncoder);
         verifyNoMoreInteractions(jwtService);
-        verifyNoMoreInteractions(validator);
+        verifyNoMoreInteractions(validatorService);
         verifyNoMoreInteractions(repository);
     }
 
@@ -98,7 +102,7 @@ class AuthenticationServiceTest {
                 .hasMessageContaining(format("Username [%s] is already taken", username));
         verifyNoMoreInteractions(repository);
         verifyNoInteractions(jwtService);
-        verifyNoInteractions(validator);
+        verifyNoInteractions(validatorService);
         verifyNoInteractions(passwordEncoder);
     }
 
@@ -117,7 +121,7 @@ class AuthenticationServiceTest {
                 .hasMessageContaining(format("Email [%s] is already taken", email));
         verifyNoMoreInteractions(repository);
         verifyNoInteractions(jwtService);
-        verifyNoInteractions(validator);
+        verifyNoInteractions(validatorService);
         verifyNoInteractions(passwordEncoder);
     }
 
@@ -136,8 +140,22 @@ class AuthenticationServiceTest {
                 .hasMessageContaining("Password must be at least 8 characters long");
         verifyNoMoreInteractions(repository);
         verifyNoInteractions(jwtService);
-        verifyNoInteractions(validator);
+        verifyNoInteractions(validatorService);
         verifyNoInteractions(passwordEncoder);
+    }
+
+    @Test
+    void itShouldNotSignupInvalidUserInputAndThrow() {
+        // given
+        String username = "";
+        String email = "invalid email";
+        String password = "more than 8";
+        given(repository.existsByUsername(username)).willReturn(false);
+        given(repository.existsByEmail(email)).willReturn(false);
+        SignupRequest request = new SignupRequest(username, email, password);
+        // when & then
+        assertThatThrownBy(() -> underTest.signup(request))
+                .isInstanceOf(ConstraintViolationException.class);
     }
 
     // login

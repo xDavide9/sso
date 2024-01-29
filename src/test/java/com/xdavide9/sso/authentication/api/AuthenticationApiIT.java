@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -62,6 +63,30 @@ public class AuthenticationApiIT {
         AuthenticationResponse response = parser.java(jsonResponse, AuthenticationResponse.class);
         assertThat(response).isNotNull();
         assertThat(response.token()).isNotNull();
+    }
+
+    @Test
+    void itShouldNotSignupInvalidUserInput() throws Exception{
+        // given
+        String username = "username";
+        String password = "password";
+        String email = "invalid email";
+        SignupRequest request = new SignupRequest(username, password, email);
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/signup")
+                        .contentType(APPLICATION_JSON)
+                        .content(parser.json(request))
+        );
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(contentAsString, new TypeReference<>(){});
+        List<String> violations = List.of("email: Invalid email format");
+        assertThat(responseBody.get("violations")).isEqualTo(violations);
+        assertThat(responseBody.get("error")).isEqualTo("Invalid user input");
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+        assertThat(responseBody.get("message")).isEqualTo("One or more constraints have been violated, provide valid input next time");
     }
 
     @Test

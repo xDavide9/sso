@@ -11,16 +11,4 @@ import com.xdavide9.sso.authentication.api.AuthenticationController;
  * @since 0.0.1-SNAPSHOT
  * @author xdavide9
  */
-public record SignupRequest(String username, String email, String password) {
-    /**
-     * Canonical constructor that checks that any of the field is not null. If any happens to be null,
-     * the class has been instantiated incorrectly.
-     * @param username username sent by the client
-     * @param email email sent by the client
-     * @param password password sent by the client
-     */
-    public SignupRequest {
-        if (username == null || email == null || password == null)
-            throw new IllegalStateException("username, email and password must be correctly set when creating a SignupRequest");
-    }
-}
+public record SignupRequest(String username, String email, String password) {}

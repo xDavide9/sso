@@ -10,15 +10,4 @@ import com.xdavide9.sso.authentication.api.AuthenticationController;
  * @param password password
  * @author xdavide9
  */
-public record LoginRequest(String subject, String password) {
-    /**
-     * Canonical constructor that checks that neither the subject nor the password is null. If any of the
-     * two happen to be null, the class has been instantiated incorrectly.
-     * @param subject username or email sent by the client
-     * @param password password sent by the client
-     */
-    public LoginRequest {
-        if (subject == null || password == null)
-            throw new IllegalStateException("subject and password must be correctly set when creating a LoginRequest");
-    }
-}
+public record LoginRequest(String subject, String password) {}
