@@ -6,6 +6,7 @@ import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.user.Role;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,8 @@ import static java.lang.String.format;
 /**
  * This service holds business logic for {@link AdminController}.
  * It interacts with {@link UserRepository} for database operations.
+ * These operations are transactions because they modify records in the database
+ * and the system need to ensure data integrity.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
@@ -38,6 +41,7 @@ public class AdminService {
      * @throws UserCannotBeModifiedException with PROMOTION {@link UserExceptionReason} when the user does not have USER {@link Role}
      * @return responseEntity with message for client
      */
+    @Transactional
     @PreAuthorize("hasAuthority('ADMIN_PUT')")
     public ResponseEntity<String> promoteUserToOperator(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(
@@ -65,6 +69,7 @@ public class AdminService {
      * @param uuid uuid of the user to be banned
      * @return responseEntity with message for client
      */
+    @Transactional
     @PreAuthorize("hasAuthority('ADMIN_DELETE')")
     public ResponseEntity<String> banUser(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(
@@ -96,6 +101,7 @@ public class AdminService {
      * @param uuid of the user to be unbanned
      * @return responseEntity with message for client
      */
+    @Transactional
     @PreAuthorize("hasAuthority('ADMIN_PUT')")
     public ResponseEntity<String> unbanUser(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(
@@ -122,6 +128,7 @@ public class AdminService {
      * @param uuid uuid of the user to be demoted
      * @return responseEntity with message for client
      */
+    @Transactional
     @PreAuthorize("hasAuthority('ADMIN_PUT')")
     public ResponseEntity<String> demoteUser(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(
