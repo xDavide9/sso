@@ -3,6 +3,12 @@ package com.xdavide9.sso.properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
+/**
+ * This class models properties with prefix "jwt" in properties files
+ * to be used across the application.
+ * @author xdavide9
+ * @since 0.0.1-SNAPSHOT
+ */
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
 
@@ -11,7 +17,7 @@ public class JwtProperties {
      */
     private final String secretKey;
     /**
-     * defines how long until a jwt token expires
+     * defines how long until a jwt token expires in milliseconds
      */
     private final long expiration;
     @ConstructorBinding
