@@ -77,6 +77,7 @@ public class OperatorController {
         return operatorService.getUserByEmail(email);
     }
 
-    // TODO add requests of type Put (e.g time out with the "enabled" field)
-
+    // TODO implement time out using TimeoutService
+    // TODO implement a service that changes other user fields like username, email etc that can be reused by other services like userService and adminService
+    // TODO test for expired token and finished timeout duration both unit and integration, add missing tests
 }
