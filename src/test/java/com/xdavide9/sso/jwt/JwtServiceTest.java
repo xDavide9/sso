@@ -16,7 +16,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 class JwtServiceTest {
 
     @Mock
@@ -43,7 +42,6 @@ class JwtServiceTest {
         // when
         String token = underTest.generateToken(user);
         // then
-        assertThat(underTest.isTokenExpired(token)).isFalse();
         assertThat(underTest.isTokenValid(token, user)).isTrue();
         assertThat(underTest.extractUsername(token)).isEqualTo(username);
     }
@@ -63,44 +61,9 @@ class JwtServiceTest {
         // when
         String token = underTest.generateToken(extraClaims, user);
         // then
-        assertThat(underTest.isTokenExpired(token)).isFalse();
-        assertThat(underTest.isTokenSubjectMatching(token, user)).isTrue();
         assertThat(underTest.isTokenValid(token, user)).isTrue();
         assertThat(underTest.extractUsername(token)).isEqualTo(username);
         String returnedEmail = (String) underTest.extractClaim(token, resolver -> resolver.get("email"));
         assertThat(returnedEmail).isEqualTo(email);
-    }
-
-    @Test
-    void itShouldRecogniseExpiredToken() {
-        // given
-        String username = "xdavide9";
-        User user = new User();
-        user.setUsername(username);
-        expiration = 0; // generate a token that expires immediately
-        given(jwtProperties.getSecretKey()).willReturn(secretKey);
-        given(jwtProperties.getExpiration()).willReturn(expiration);
-        String expiredToken = underTest.generateToken(user);
-        // when
-        boolean expired = underTest.isTokenExpired(expiredToken);
-        // then
-        assertThat(expired).isTrue();
-    }
-
-    @Test
-    void itShouldRecogniseUsernameMissMatch() {
-        // given
-        User user = new User();
-        User user2 = new User();
-        user.setUsername("username");
-        user2.setUsername("username2");
-        expiration = 1000 * 60 * 60 * 24; // generate a token that expires immediately
-        given(jwtProperties.getSecretKey()).willReturn(secretKey);
-        given(jwtProperties.getExpiration()).willReturn(expiration);
-        String missMatchedToken = underTest.generateToken(user);
-        // when
-        boolean tokenSubjectMatching = underTest.isTokenSubjectMatching(missMatchedToken, user2);
-        // then
-        assertThat(tokenSubjectMatching).isFalse();
     }
 }

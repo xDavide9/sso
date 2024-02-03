@@ -57,25 +57,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        final String token = request.getHeader("Authorization").substring(7);
-        String username = jwtService.extractUsername(token);
-        User user = (User) userDetailsService.loadUserByUsername(username);
-        // check enabled, accountNonLocked, accountExpired, credentialsNonExpired
-        if (!user.isEnabled()) {
-            response.setStatus(403);
-            response.getWriter().write(format("This account [%s] has been disabled by an Admin.", user.getUuid()));
-            return;
+        String username = (String) request.getAttribute("username");
+        String token = (String) request.getAttribute("token");
+        if (username != null && token != null && securityContext().getAuthentication() == null) {
+            User user = (User) userDetailsService.loadUserByUsername(username);
+            if (!jwtService.isTokenValid(token, user)) {
+                response.setStatus(403);
+                response.getWriter()
+                        .write("Invalid Jwt token. Login again.");
+                return;
+            }
+            // check enabled, accountNonLocked, accountExpired, credentialsNonExpired
+            if (!user.isEnabled()) {
+                response.setStatus(403);
+                response.getWriter().write(format("This account [%s] has been disabled by an Admin.", user.getUuid()));
+                return;
+            }
+            // ...
+            // now register to security context
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                            user,
+                            null,
+                            user.getAuthorities()
+                    );
+            authToken.setDetails(
+                    new WebAuthenticationDetails(request)
+            );
+            securityContext().setAuthentication(authToken);
         }
-        UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(
-                        user,
-                        null,
-                        user.getAuthorities()
-                );
-        authToken.setDetails(
-                new WebAuthenticationDetails(request)
-        );
-        securityContext().setAuthentication(authToken);
         filterChain.doFilter(request, response);
     }
 

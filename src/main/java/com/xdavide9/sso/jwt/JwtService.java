@@ -35,11 +35,6 @@ public class JwtService {
      */
     private final JwtProperties jwtProperties;
 
-    /**
-     * Logger from Slf4j
-     */
-    private final Logger log = LoggerFactory.getLogger(JwtService.class);
-
     @Autowired
     public JwtService(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
@@ -128,44 +123,14 @@ public class JwtService {
     // token validation
 
     /**
-     * This method checks if a token is valid by combining the results of isTokenSubjectMatching and isTokenExpired.
-     * If any of the two is false it returns false, if both are true it returns true.
+     * This method checks if a token is valid by
+     * checking if it contains the same userDetails object
      * @param token jwt token to validate
      * @param userDetails userDetails to validate against
      * @return true or false
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        return !isTokenExpired(token) && isTokenSubjectMatching(token, userDetails);
-    }
-
-    /**
-     * This method returns true if the subject in the token is the same User passed to it;
-     * returns false otherwise.
-     * @param token jwt token to validate
-     * @param userDetails userDetails to validate against
-     * @return true or false
-     */
-    public boolean isTokenSubjectMatching(String token, UserDetails userDetails) {
         return (extractUsername(token).equals(userDetails.getUsername()));
-    }
-
-    /**
-     * This method checks if a token is expired by comparing current system time
-     * to expiration.
-     * @see JwtProperties
-     * @param token jwt token to check
-     * @return true if the token is expired; this value is set after catching
-     * {@link ExpiredJwtException} that stands in the way.
-     * If the token is not expired false is correctly set and returned;
-     */
-    public boolean isTokenExpired(String token) {
-        boolean expired;
-        try {
-            expired = extractExpiration(token).before(new Date());
-        } catch (ExpiredJwtException e) {
-            expired = true;
-        }
-        return expired;
     }
 
     // sign in key in hmac-sha265 / hs256 (minimum requirement)

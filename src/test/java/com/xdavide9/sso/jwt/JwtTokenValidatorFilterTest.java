@@ -1,6 +1,7 @@
 package com.xdavide9.sso.jwt;
 
 import com.xdavide9.sso.user.User;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,6 @@ import static org.mockito.Mockito.verify;
 // unit test for JwtTokenValidatorFilter
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 class JwtTokenValidatorFilterTest {
 
     @InjectMocks
@@ -48,16 +48,15 @@ class JwtTokenValidatorFilterTest {
         String username = "xdavide9";
         User user = new User();
         user.setUsername(username);
-        given(userDetailsService.loadUserByUsername(username)).willReturn(user);
         String token = "validToken";
         request.addHeader("Authorization", format("Bearer %s", token));
         given(jwtService.extractUsername(token)).willReturn(username);
-        given(jwtService.isTokenExpired(token)).willReturn(false);
-        given(jwtService.isTokenSubjectMatching(token, user)).willReturn(true);
         // when
         underTest.doFilterInternal(request, response, filterChain);
         // then
         verify(filterChain, times(1)).doFilter(request, response);
+        assertThat(request.getAttribute("username")).isEqualTo(username);
+        assertThat(request.getAttribute("token")).isEqualTo(token);
     }
 
     @Test
@@ -75,38 +74,14 @@ class JwtTokenValidatorFilterTest {
     @Test
     void itShouldNotContinueFilterChainExpiredToken() throws Exception {
         // given
-        String username = "xdavide9";
-        User user = new User();
-        user.setUsername(username);
-        String token = "validToken";
+        String token = "expiredToken";
         request.addHeader("Authorization", format("Bearer %s", token));
-        given(jwtService.extractUsername(token)).willReturn(username);
-        given(jwtService.isTokenExpired(token)).willReturn(true);
+        given(jwtService.extractUsername(token)).willThrow(new ExpiredJwtException(null, null, "Token expired"));
         // when
         underTest.doFilterInternal(request, response, filterChain);
         // then
-        assertThat(response.getStatus()).isEqualTo(500);
+        assertThat(response.getStatus()).isEqualTo(401);
         assertThat(response.getContentAsString()).isEqualTo("Expired jwt token. Login again to provide a new one.");
-        verify(filterChain, times(0)).doFilter(request, response);
-    }
-
-    @Test
-    void itShouldNotContinueFilterChainUsernameMissMatch() throws Exception {
-        // given
-        String username = "xdavide9";
-        User user = new User();
-        user.setUsername(username);
-        String token = "validToken";
-        request.addHeader("Authorization", format("Bearer %s", token));
-        given(userDetailsService.loadUserByUsername(username)).willReturn(user);
-        given(jwtService.extractUsername(token)).willReturn(username);
-        given(jwtService.isTokenExpired(token)).willReturn(false);
-        given(jwtService.isTokenSubjectMatching(token, user)).willReturn(false);
-        // when
-        underTest.doFilterInternal(request, response, filterChain);
-        // then
-        assertThat(response.getStatus()).isEqualTo(500);
-        assertThat(response.getContentAsString()).isEqualTo("Username in token does not match record in database.");
         verify(filterChain, times(0)).doFilter(request, response);
     }
 }

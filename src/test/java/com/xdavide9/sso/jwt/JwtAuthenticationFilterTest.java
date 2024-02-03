@@ -13,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.ActiveProfiles;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -22,7 +21,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 class JwtAuthenticationFilterTest {
 
     @InjectMocks
@@ -54,8 +52,9 @@ class JwtAuthenticationFilterTest {
         user.setUsername(username);
         given(userDetailsService.loadUserByUsername(username)).willReturn(user);
         String token = "validToken";
-        request.addHeader("Authorization", format("Bearer %s", token));
-        given(jwtService.extractUsername(token)).willReturn(username);
+        request.setAttribute("token", token);
+        request.setAttribute("username", username);
+        given(jwtService.isTokenValid(token, user)).willReturn(true);
         given(underTest.securityContext()).willReturn(securityContext);
         // when
         underTest.doFilterInternal(request, response, filterChain);
@@ -70,6 +69,26 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    void itShouldNotRegisterUserToSecurityContextInvalidToken() throws Exception {
+        // given
+        String username = "xdavide9";
+        User user = new User();
+        user.setUsername(username);
+        given(userDetailsService.loadUserByUsername(username)).willReturn(user);
+        String token = "validToken";
+        request.setAttribute("token", token);
+        request.setAttribute("username", username);
+        given(jwtService.isTokenValid(token, user)).willReturn(false);
+        given(underTest.securityContext()).willReturn(securityContext);
+        // when
+        underTest.doFilterInternal(request, response, filterChain);
+        // then
+        assertThat(response.getStatus()).isEqualTo(403);
+        assertThat(response.getContentAsString()).isEqualTo("Invalid Jwt token. Login again.");
+        verify(filterChain, times(0)).doFilter(request, response);
+    }
+
+    @Test
     void itShouldNotRegisterUserToSecurityContextBecauseItIsDisabled() throws Exception {
         // given
         String username = "xdavide9";
@@ -78,8 +97,10 @@ class JwtAuthenticationFilterTest {
         user.setEnabled(false);
         given(userDetailsService.loadUserByUsername(username)).willReturn(user);
         String token = "validToken";
-        request.addHeader("Authorization", format("Bearer %s", token));
-        given(jwtService.extractUsername(token)).willReturn(username);
+        request.setAttribute("token", token);
+        request.setAttribute("username", username);
+        given(jwtService.isTokenValid(token, user)).willReturn(true);
+        given(underTest.securityContext()).willReturn(securityContext);
         // when
         underTest.doFilterInternal(request, response, filterChain);
         // then
