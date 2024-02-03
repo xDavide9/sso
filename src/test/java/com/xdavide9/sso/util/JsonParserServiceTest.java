@@ -13,7 +13,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 class JsonParserServiceTest {
 
     @InjectMocks

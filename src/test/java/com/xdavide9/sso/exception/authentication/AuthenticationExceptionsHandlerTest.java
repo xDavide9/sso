@@ -14,7 +14,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.*;
 
 // unit tests  AuthenticationExceptionHandler
-@ActiveProfiles("test")
 class AuthenticationExceptionsHandlerTest {
 
     private AuthenticationExceptionsHandler underTest;

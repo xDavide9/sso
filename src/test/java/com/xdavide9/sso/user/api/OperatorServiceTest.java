@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 // unit test for OperatorService
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 class OperatorServiceTest {
     private OperatorService underTest;
     @Mock

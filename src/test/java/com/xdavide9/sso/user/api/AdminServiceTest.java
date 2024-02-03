@@ -29,7 +29,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 // unit test for AdminService
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 class AdminServiceTest {
 
     @InjectMocks

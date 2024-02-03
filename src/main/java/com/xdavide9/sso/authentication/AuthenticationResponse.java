@@ -10,14 +10,4 @@ import com.xdavide9.sso.jwt.JwtService;
  * @param token jwtToken to be created with {@link JwtService}
  * @author xdavide9
  */
-public record AuthenticationResponse(String token) {
-    /**
-     * Canonical constructor that checks if the provided token is null. If it happens to be null the
-     * class has been instantiated incorrectly
-     * @param token token to be created with {@link JwtService}
-     */
-    public AuthenticationResponse {
-        if (token == null)
-            throw new IllegalStateException("Token cannot be null when creating an Authentication Response");
-    }
-}
+public record AuthenticationResponse(String token) {}

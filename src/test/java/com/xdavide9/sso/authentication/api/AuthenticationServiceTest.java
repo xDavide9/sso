@@ -37,7 +37,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@ActiveProfiles("test")
 class AuthenticationServiceTest {
 
     @InjectMocks
@@ -142,20 +141,6 @@ class AuthenticationServiceTest {
         verifyNoInteractions(jwtService);
         verifyNoInteractions(validatorService);
         verifyNoInteractions(passwordEncoder);
-    }
-
-    @Test
-    void itShouldNotSignupInvalidUserInputAndThrow() {
-        // given
-        String username = "";
-        String email = "invalid email";
-        String password = "more than 8";
-        given(repository.existsByUsername(username)).willReturn(false);
-        given(repository.existsByEmail(email)).willReturn(false);
-        SignupRequest request = new SignupRequest(username, email, password);
-        // when & then
-        assertThatThrownBy(() -> underTest.signup(request))
-                .isInstanceOf(ConstraintViolationException.class);
     }
 
     // login

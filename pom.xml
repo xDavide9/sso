@@ -97,6 +97,12 @@
                 <activated.spring.profile>test</activated.spring.profile>
             </properties>
         </profile>
+        <profile>
+            <id>test2</id>
+            <properties>
+                <activated.spring.profile>test2</activated.spring.profile>
+            </properties>
+        </profile>
     </profiles>
 
     <build>

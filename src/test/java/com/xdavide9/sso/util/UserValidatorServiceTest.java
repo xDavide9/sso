@@ -35,7 +35,7 @@ class UserValidatorServiceTest {
         // when
         underTest.validate(user);
         // then
-        verify(validator.validate(user));
+        verify(validator).validate(user);
 
     }
 

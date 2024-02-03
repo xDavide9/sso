@@ -15,7 +15,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
  // unit tests running against sso_user table in public schema using h2 autoconfigured in memory database for UserRepository
 @DataJpaTest
-@ActiveProfiles("test")
 class UserRepositoryTest {
 
     @Autowired

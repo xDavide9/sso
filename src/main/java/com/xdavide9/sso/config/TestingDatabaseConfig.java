@@ -49,7 +49,7 @@ public class TestingDatabaseConfig {
      * @return the custom command line runner bean described
      */
     @Bean
-    @Profile("test")
+    @Profile({"test", "test2"})
     CommandLineRunner setUpTestingDatabase() {
         return args -> {
             User user = new User(
