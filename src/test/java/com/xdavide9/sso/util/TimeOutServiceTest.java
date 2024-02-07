@@ -36,12 +36,12 @@ class TimeOutServiceTest {
     private ArgumentCaptor<Runnable> captor;
 
     @Test
-    void itShouldTimeoutCorrectlyWithoutAnyArgs() throws Exception {
+    void itShouldTimeoutCorrectlyWithoutAnyArgs() {
         // given
         User user = new User();
         given(timeOutProperties.getDefaultTimeOutDuration()).willReturn(1000L);
         // when
-        underTest.timeout(user);
+        underTest.timeOut(user);
         // then
         assertThat(user.isEnabled()).isFalse();
         verify(scheduledExecutorService).schedule(captor.capture(), eq(1000L), eq(TimeUnit.MILLISECONDS));
@@ -51,11 +51,11 @@ class TimeOutServiceTest {
     }
 
     @Test
-    void itShouldTimeoutCorrectlyWithGivenDuration() throws Exception {
+    void itShouldTimeoutCorrectlyWithGivenDuration() {
         // given
         User user = new User();
         // when
-        underTest.timeout(user, 500L);  // in milliseconds
+        underTest.timeOut(user, 500L);  // in milliseconds
         // then
         assertThat(user.isEnabled()).isFalse();
         verify(scheduledExecutorService).schedule(captor.capture(), eq(500L), eq(TimeUnit.MILLISECONDS));
@@ -69,7 +69,7 @@ class TimeOutServiceTest {
         // given
         User user = new User();
         // when
-        underTest.timeout(user, 1L, TimeUnit.MINUTES);
+        underTest.timeOut(user, 1L, TimeUnit.MINUTES);
         // then
         assertThat(user.isEnabled()).isFalse();
         verify(scheduledExecutorService).schedule(captor.capture(), eq(1L), eq(TimeUnit.MINUTES));

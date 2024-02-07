@@ -1,16 +1,21 @@
 package com.xdavide9.sso.user.api;
 
+import com.xdavide9.sso.exception.user.api.UserCannotBeModifiedException;
 import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.exception.user.api.UserExceptionReason;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserDTO;
 import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.util.TimeOutService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+
+import static java.lang.String.format;
 
 /**
  * This service holds business logic for {@link OperatorController}.
@@ -21,10 +26,12 @@ import java.util.UUID;
 @Service
 public class OperatorService {
     private final UserRepository userRepository;
+    private final TimeOutService timeOutService;
 
     @Autowired
-    public OperatorService(UserRepository userRepository) {
+    public OperatorService(UserRepository userRepository, TimeOutService timeOutService) {
         this.userRepository = userRepository;
+        this.timeOutService = timeOutService;
     }
 
 
@@ -56,7 +63,7 @@ public class OperatorService {
                 .findById(uuid)
                 .orElseThrow(() ->
                         new UserNotFoundException(
-                                String.format("User with uuid [%s] not found.", uuid),
+                                format("User with uuid [%s] not found.", uuid),
                                 UserExceptionReason.INFORMATION
                         ));
         return UserDTO.fromUser(user);
@@ -76,7 +83,7 @@ public class OperatorService {
                 .findByUsername(username)
                 .orElseThrow(() ->
                         new UserNotFoundException(
-                                String.format("User with username [%s] not found.", username),
+                                format("User with username [%s] not found.", username),
                                 UserExceptionReason.INFORMATION
                         ));
         return UserDTO.fromUser(user);
@@ -96,9 +103,28 @@ public class OperatorService {
                 .findByEmail(email)
                 .orElseThrow(() ->
                         new UserNotFoundException(
-                                String.format("User with email [%s] not found.", email),
+                                format("User with email [%s] not found.", email),
                                 UserExceptionReason.INFORMATION
                         ));
         return UserDTO.fromUser(user);
+    }
+
+    @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
+    public ResponseEntity<String> timeOut(UUID uuid, Long duration) {
+        User user = userRepository
+                .findById(uuid)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                format("User with uuid [%s] not found.", uuid),
+                                UserExceptionReason.TIMEOUT
+                        ));
+        if (!user.isEnabled())
+            throw new UserCannotBeModifiedException(format("User with uuid [%s] is already banned or timed out", uuid), UserExceptionReason.TIMEOUT);
+        if (duration == null) {
+            timeOutService.timeOut(user);
+            return ResponseEntity.ok(format("User with uuid [%s] has been timed out for the default duration", uuid));
+        }
+        timeOutService.timeOut(user, duration);
+        return ResponseEntity.ok(format("User with uuid [%s] has been timed out for [%d] milliseconds", uuid, duration));
     }
 }

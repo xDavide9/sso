@@ -36,6 +36,7 @@ public class UserExceptionsHandler {
             case UNBAN -> error = "Cannot unban user";
             case DEMOTION -> error = "Cannot demote user";
             case PROMOTION -> error = "Cannot promote user";
+            case TIMEOUT -> error = "Cannot time out user";
             default -> error = "User not found";
         }
         Map<String, Object> responseBody = new HashMap<>();
@@ -54,6 +55,7 @@ public class UserExceptionsHandler {
             case UNBAN -> error = "Cannot unban user";
             case DEMOTION -> error = "Cannot demote user";
             case PROMOTION -> error = "Cannot promote user";
+            case TIMEOUT -> error = "Cannot time out user";
             default -> error = "User cannot be modified";
         }
         Map<String, Object> responseBody = new HashMap<>();

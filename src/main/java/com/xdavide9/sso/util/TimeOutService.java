@@ -33,7 +33,7 @@ public class TimeOutService {
         this.repository = repository;
     }
 
-    public void timeout(User user, long duration, TimeUnit timeUnit) {
+    public void timeOut(User user, long duration, TimeUnit timeUnit) {
         user.setEnabled(false);
         repository.save(user);
         scheduler.schedule(() -> {
@@ -42,12 +42,12 @@ public class TimeOutService {
         }, duration, timeUnit);
     }
 
-    public void timeout(User user, long duration) {
-        timeout(user, duration, TimeUnit.MILLISECONDS);
+    public void timeOut(User user, long duration) {
+        timeOut(user, duration, TimeUnit.MILLISECONDS);
     }
 
-    public void timeout(User user) {
-        timeout(user, timeOutProperties.getDefaultTimeOutDuration());
+    public void timeOut(User user) {
+        timeOut(user, timeOutProperties.getDefaultTimeOutDuration());
     }
 
     @PreDestroy

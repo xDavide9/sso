@@ -1,20 +1,24 @@
 package com.xdavide9.sso.user.api;
 
+import com.xdavide9.sso.exception.user.api.UserCannotBeModifiedException;
 import com.xdavide9.sso.exception.user.api.UserExceptionReason;
 import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserDTO;
 import com.xdavide9.sso.user.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.xdavide9.sso.util.TimeOutService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -25,14 +29,13 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @ExtendWith(MockitoExtension.class)
 class OperatorServiceTest {
+    @InjectMocks
     private OperatorService underTest;
     @Mock
     private UserRepository repository;
 
-    @BeforeEach
-    void setUp() {
-        underTest = new OperatorService(repository);
-    }
+    @Mock
+    private TimeOutService timeOutService;
 
     @Test
     void itShouldGetUsers() {
@@ -66,7 +69,7 @@ class OperatorServiceTest {
         // then
         assertThatThrownBy(() -> underTest.getUserByUuid(uuid))
                 .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(String.format("User with uuid [%s] not found.", uuid))
+                .hasMessageContaining(format("User with uuid [%s] not found.", uuid))
                 .hasFieldOrPropertyWithValue("reason", UserExceptionReason.INFORMATION);
         verifyNoMoreInteractions(repository);
     }
@@ -95,7 +98,7 @@ class OperatorServiceTest {
         // then
         assertThatThrownBy(() -> underTest.getUserByUsername(username))
                 .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(String.format(String.format("User with username [%s] not found.", username)))
+                .hasMessageContaining(format(format("User with username [%s] not found.", username)))
                 .hasFieldOrPropertyWithValue("reason", UserExceptionReason.INFORMATION);
     }
 
@@ -123,7 +126,61 @@ class OperatorServiceTest {
         // then
         assertThatThrownBy(() -> underTest.getUserByEmail(email))
                 .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining(String.format("User with email [%s] not found.", email))
+                .hasMessageContaining(format("User with email [%s] not found.", email))
                 .hasFieldOrPropertyWithValue("reason", UserExceptionReason.INFORMATION);
+    }
+
+    @Test
+    void itShouldTimeOutCorrectlyWithDefaultDuration() {
+        // given
+        User user = new User();
+        UUID uuid = UUID.randomUUID();
+        given(repository.findById(uuid)).willReturn(Optional.of(user));
+        // when
+        ResponseEntity<String> response = underTest.timeOut(uuid, null);
+        // then
+        verify(timeOutService).timeOut(user);
+        assertThat(response.getBody()).isEqualTo(format("User with uuid [%s] has been timed out for the default duration", uuid));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void itShouldTimeOutCorrectlyWithGivenDuration() {
+        // given
+        User user = new User();
+        UUID uuid = UUID.randomUUID();
+        given(repository.findById(uuid)).willReturn(Optional.of(user));
+        long duration = 1000*60*60; // 1 hour
+        // when
+        ResponseEntity<String> response = underTest.timeOut(uuid, duration);
+        // then
+        verify(timeOutService).timeOut(user, duration);
+        assertThat(response.getBody()).isEqualTo(format("User with uuid [%s] has been timed out for [%d] milliseconds", uuid, duration));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void itShouldNotTimeOutUserNotFound() {
+        // given
+        UUID uuid = UUID.randomUUID();
+        // when & then
+        assertThatThrownBy(() -> underTest.timeOut(uuid, null))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessageContaining(format("User with uuid [%s] not found", uuid))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.TIMEOUT);
+    }
+
+    @Test
+    void itShouldNotTimeOutUserIsAlreadyDisabled() {
+        // given
+        User user = new User();
+        user.setEnabled(false);
+        UUID uuid = UUID.randomUUID();
+        given(repository.findById(uuid)).willReturn(Optional.of(user));
+        // when & then
+        assertThatThrownBy(() -> underTest.timeOut(uuid, null))
+                .isInstanceOf(UserCannotBeModifiedException.class)
+                .hasMessageContaining(format("User with uuid [%s] is already banned or timed out", uuid))
+                .hasFieldOrPropertyWithValue("reason", UserExceptionReason.TIMEOUT);
     }
 }

@@ -1,9 +1,9 @@
 package com.xdavide9.sso.exception.user.api;
 
 /**
- * This enum specifies what is the reason a user was queried by an Admin or Operator.
- * This is passed to {@link UserNotFoundException} and {@link UserCannotBeModifiedException}
- * to let ExceptionHandlers construct an appropriate response in each failing case.
+ * This enum specifies what is the reason a specific exception related to user is thrown. The name of the exception
+ * generally describes what is the problem with the given situation while this value should allow
+ * to target the exact problem so that it can be handled in the best way.
  * @since 0.0.1-SNAPSHOT
  * @author xdavide9
  */
@@ -27,5 +27,9 @@ public enum UserExceptionReason {
     /**
      * The user was queried from an Admin to unbanned from the system
      */
-    UNBAN
+    UNBAN,
+    /**
+     * The user was queried by an Admin or Operator to be timed out
+     */
+    TIMEOUT
 }

@@ -5,6 +5,7 @@ import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.util.JsonParserService;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -22,8 +23,7 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Tests the integration between OperatorController, OperatorService and UserRepository
@@ -357,5 +357,125 @@ public class OperatorApiIT {
         resultActions.andExpect(status().isForbidden());
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         assertThat(responseBody).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
+    }
+
+    // HELPER METHODS
+
+    private User getUser(String username, String token) throws Exception {
+        ResultActions resultActions = mockMvc.perform(
+                get("/api/v0.0.1/users/username/" + username)
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        resultActions.andExpect(status().isOk());
+        return parser.java(resultActions.andReturn().getResponse().getContentAsString(), User.class);
+    }
+
+    private User getUserWithRoleUser(String token) throws Exception {
+        return getUser("userUsername", token);
+    }
+    private User getUserWithRoleOperator(String token) throws Exception {
+        return getUser("operatorUsername", token);
+    }
+    private User getUserWithRoleAdmin(String token) throws Exception {
+        return getUser("adminUsername", token);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    @Transactional
+    void itShouldTimeOutUserCorrectlyWithSpecifiedDuration(String loginUsername, String loginPassword) throws Exception {
+        // given
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        UUID uuid = getUserWithRoleUser(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/timeout/%s?duration=1000", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isOk());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(responseBody).isEqualTo(format("User with uuid [%s] has been timed out for [1000] milliseconds", uuid));
+        User timedOutUser = getUserWithRoleUser(token);
+        assertThat(timedOutUser.isEnabled()).isFalse();
+        Thread.sleep(1000);
+        User enabledUser = getUserWithRoleUser(token);
+        assertThat(enabledUser.isEnabled()).isTrue();
+    }
+
+    // test with the default duration is in TimeOutDefaultDurationIT.java
+
+    @Test
+    void itShouldNotTimeOutUserTokenIsMissing() throws Exception {
+        // given
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/timeout/%s?duration=2000", UUID.randomUUID()))
+        );
+        // then
+        resultActions.andExpect(status().isUnauthorized());
+        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(contentAsString).isEqualTo("Missing jwt Token. Every request should include a valid jwt token to authenticate to the server.");
+    }
+
+    @Test
+    void itShouldNotTimeOutUserNotEnoughAuthorization() throws Exception {
+        // given
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest("userUsername", "userPassword")))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/timeout/%s?duration=2000", UUID.randomUUID()))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isForbidden());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
+    }
+
+    @Test
+    void itShouldNotTimeOutUserDoesNotExist() throws Exception {
+        // given
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest("operatorUsername", "operatorPassword")))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        UUID uuid = UUID.randomUUID();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/timeout/%s?duration=2000", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isNotFound());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>(){});
+        assertThat(responseBody.get("status")).isEqualTo(HttpStatus.NOT_FOUND.toString());
+        assertThat(responseBody.get("error")).isEqualTo("Cannot time out user");
+        assertThat(responseBody.get("message")).isEqualTo(format("User with uuid [%s] not found.", uuid));
     }
 }

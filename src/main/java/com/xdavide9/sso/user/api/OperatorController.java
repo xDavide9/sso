@@ -4,11 +4,9 @@ import com.xdavide9.sso.user.Role;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -77,7 +75,13 @@ public class OperatorController {
         return operatorService.getUserByEmail(email);
     }
 
-    // TODO implement time out using TimeoutService
+    @PutMapping("/timeout/{uuid}")
+    @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
+    public ResponseEntity<String> timeOut(@PathVariable UUID uuid,
+                                          @RequestParam(required = false, value = "duration") Long duration) {
+        return operatorService.timeOut(uuid, duration);
+    }
+
+    // TODO implement time out using TimeoutService in operatorController and service, create special IT to test with "test2" short duration a real time scenario where the timeout is finished
     // TODO implement a service that changes other user fields like username, email etc that can be reused by other services like userService and adminService
-    // TODO test for expired token and finished timeout duration both unit and integration, add missing tests
 }
