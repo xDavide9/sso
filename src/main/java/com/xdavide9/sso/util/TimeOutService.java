@@ -4,6 +4,7 @@ import com.xdavide9.sso.properties.TimeOutProperties;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import jakarta.annotation.PreDestroy;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class TimeOutService {
         this.repository = repository;
     }
 
+    @Transactional
     public void timeOut(User user, long duration, TimeUnit timeUnit) {
         user.setEnabled(false);
         repository.save(user);
@@ -42,10 +44,12 @@ public class TimeOutService {
         }, duration, timeUnit);
     }
 
+    @Transactional
     public void timeOut(User user, long duration) {
         timeOut(user, duration, TimeUnit.MILLISECONDS);
     }
 
+    @Transactional
     public void timeOut(User user) {
         timeOut(user, timeOutProperties.getDefaultTimeOutDuration());
     }

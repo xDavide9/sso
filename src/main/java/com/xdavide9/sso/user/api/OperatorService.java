@@ -7,6 +7,7 @@ import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserDTO;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.util.TimeOutService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -109,6 +110,7 @@ public class OperatorService {
         return UserDTO.fromUser(user);
     }
 
+    @Transactional
     @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
     public ResponseEntity<String> timeOut(UUID uuid, Long duration) {
         User user = userRepository

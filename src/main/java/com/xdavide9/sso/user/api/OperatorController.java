@@ -82,6 +82,5 @@ public class OperatorController {
         return operatorService.timeOut(uuid, duration);
     }
 
-    // TODO implement time out using TimeoutService in operatorController and service, create special IT to test with "test2" short duration a real time scenario where the timeout is finished
     // TODO implement a service that changes other user fields like username, email etc that can be reused by other services like userService and adminService
 }
