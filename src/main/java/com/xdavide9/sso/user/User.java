@@ -89,7 +89,7 @@ public class User implements UserDetails {
     /**
      * enabled set to true unless an Admin or Operator timed the account out
      */
-    private boolean enabled = true; // TODO set to false to time out someone
+    private boolean enabled = true;
 
     // Object creation
 

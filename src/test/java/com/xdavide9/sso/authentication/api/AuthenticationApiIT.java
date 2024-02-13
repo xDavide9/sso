@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.authentication.SignupRequest;
+import com.xdavide9.sso.user.PasswordDTO;
 import com.xdavide9.sso.util.JsonParserService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -48,8 +49,9 @@ public class AuthenticationApiIT {
         // given
         String username = "username";
         String email = "email@email.com";
-        String password = "password1"; // > 8 characters
-        SignupRequest request = new SignupRequest(username, email, password);
+        String password = "Password1!";
+        PasswordDTO passwordDTO = new PasswordDTO(password);
+        SignupRequest request = new SignupRequest(username, email, passwordDTO);
         String json = parser.json(request);
         // when
         ResultActions signupResultActions = mockMvc.perform(
@@ -69,9 +71,10 @@ public class AuthenticationApiIT {
     void itShouldNotSignupInvalidUserInput() throws Exception{
         // given
         String username = "username";
-        String password = "password";
+        String password = "Password1!";
+        PasswordDTO passwordDTO = new PasswordDTO(password);
         String email = "invalid email";
-        SignupRequest request = new SignupRequest(username, password, email);
+        SignupRequest request = new SignupRequest(username, email, passwordDTO);
         // when
         ResultActions resultActions = mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")
@@ -94,8 +97,9 @@ public class AuthenticationApiIT {
         // given
         String username = "username";
         String email = "email@email.com";
-        String password = "password1"; // > 8 characters
-        SignupRequest request = new SignupRequest(username, email, password);
+        String password = "Password1!";
+        PasswordDTO passwordDTO = new PasswordDTO(password);
+        SignupRequest request = new SignupRequest(username, email, passwordDTO);
         mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")
                         .contentType(APPLICATION_JSON)
@@ -105,8 +109,8 @@ public class AuthenticationApiIT {
         // when
         // try to signup again with same username
         String email2 = "another@email.com";
-        String password2 = "password2"; // > 8 characters
-        SignupRequest request2 = new SignupRequest(username, email2, password2);
+        String password2 = "Password2!"; // > 8 characters
+        SignupRequest request2 = new SignupRequest(username, email2, new PasswordDTO(password2));
         ResultActions usernameTakenResultActions = mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")
                         .contentType(APPLICATION_JSON)
@@ -126,8 +130,8 @@ public class AuthenticationApiIT {
         // given
         String username = "username";
         String email = "email@email.com";
-        String password = "password1"; // > 8 characters
-        SignupRequest request = new SignupRequest(username, email, password);
+        String password = "Password1!";
+        SignupRequest request = new SignupRequest(username, email, new PasswordDTO(password));
         mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")
                         .contentType(APPLICATION_JSON)
@@ -137,8 +141,8 @@ public class AuthenticationApiIT {
         // when
         // try to signup again with same email
         String username2 = "another username";
-        String password2 = "password2"; // > 8 characters
-        SignupRequest request2 = new SignupRequest(username2, email, password2);
+        String password2 = "Password2!"; // > 8 characters
+        SignupRequest request2 = new SignupRequest(username2, email, new PasswordDTO(password2));
         ResultActions emailTakenResultActions = mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")
                         .contentType(APPLICATION_JSON)
@@ -153,29 +157,6 @@ public class AuthenticationApiIT {
         assertThat(responseBody.get("message")).isEqualTo(format("Email [%s] is already taken", email));
     }
 
-    @Test
-    void itShouldNotSignupPasswordTooShort() throws Exception {
-        // given
-        String username = "username";
-        String email = "email@email.com";
-        String password = "short"; // < 8 characters
-        SignupRequest request = new SignupRequest(username, email, password);
-        String json = parser.json(request);
-        // when
-        ResultActions passwordTooShortResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/signup")
-                        .contentType(APPLICATION_JSON)
-                        .content(json)
-        );
-        // then
-        passwordTooShortResultActions.andExpect(status().isBadRequest());
-        String jsonResponse = passwordTooShortResultActions.andReturn().getResponse().getContentAsString();
-        Map<String, Object> responseBody = parser.java(jsonResponse, new TypeReference<>() {});
-        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
-        assertThat(responseBody.get("error")).isEqualTo("Input password is too short (< 8 characters)");
-        assertThat(responseBody.get("message")).isEqualTo("Password must be at least 8 characters long");
-    }
-
     // login
 
     @Test
@@ -184,7 +165,7 @@ public class AuthenticationApiIT {
         String username = "username";
         String email = "email@email.com";
         String password = "password1"; // > 8 characters
-        SignupRequest request = new SignupRequest(username, email, password);
+        SignupRequest request = new SignupRequest(username, email, new PasswordDTO(password));
         mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")
                         .contentType(APPLICATION_JSON)
@@ -232,7 +213,7 @@ public class AuthenticationApiIT {
         String username = "username";
         String email = "email@email.com";
         String password = "password1"; // > 8 characters
-        SignupRequest request = new SignupRequest(username, email, password);
+        SignupRequest request = new SignupRequest(username, email, new PasswordDTO(password));
         mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")
                         .contentType(APPLICATION_JSON)

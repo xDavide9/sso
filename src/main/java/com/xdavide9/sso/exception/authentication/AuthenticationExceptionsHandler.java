@@ -2,7 +2,6 @@ package com.xdavide9.sso.exception.authentication;
 
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
-import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -39,15 +38,6 @@ public class AuthenticationExceptionsHandler {
         responseBody.put("message", e.getMessage());
         responseBody.put("status", CONFLICT.toString());
         return new ResponseEntity<>(responseBody, CONFLICT);
-    }
-
-    @ExceptionHandler(value = PasswordTooShortException.class)
-    public ResponseEntity<Map<String, Object>> handlePasswordTooShortException(PasswordTooShortException e) {
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("error", "Input password is too short (< 8 characters)");
-        responseBody.put("message", e.getMessage());
-        responseBody.put("status", BAD_REQUEST.toString());
-        return new ResponseEntity<>(responseBody, BAD_REQUEST);
     }
 
     @ExceptionHandler(value = SubjectNotFoundException.class)

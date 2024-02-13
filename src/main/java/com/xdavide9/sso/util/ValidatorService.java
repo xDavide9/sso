@@ -1,5 +1,6 @@
 package com.xdavide9.sso.util;
 
+import com.xdavide9.sso.user.PasswordDTO;
 import com.xdavide9.sso.user.User;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -17,16 +18,28 @@ import java.util.Set;
  * @author xdavide9
  */
 @Service
-public class UserValidatorService {
+public class ValidatorService {
     private final Validator validator;
 
     @Autowired
-    public UserValidatorService(Validator validator) {
+    public ValidatorService(Validator validator) {
         this.validator = validator;
     }
 
+    /**
+     * Validates input user by applying constraints defined in {@link User} class.
+     */
     public void validate(User user) {
         Set<ConstraintViolation<User>> violations = validator.validate(user);
+        if (!violations.isEmpty())
+            throw new ConstraintViolationException(violations);
+    }
+
+    /**
+     * Validates input password by applying constraints defined in {@link User} class.
+     */
+    public void validate(PasswordDTO passwordDTO) {
+        Set<ConstraintViolation<PasswordDTO>> violations = validator.validate(passwordDTO);
         if (!violations.isEmpty())
             throw new ConstraintViolationException(violations);
     }

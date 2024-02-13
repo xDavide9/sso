@@ -1,12 +1,11 @@
 package com.xdavide9.sso.exception.authentication;
 
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
-import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
+import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Map;
 
@@ -33,7 +32,7 @@ class AuthenticationExceptionsHandlerTest {
         // then
         assertThat(response.getStatusCode()).isEqualTo(CONFLICT);
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assert responseBody != null;
+        assertThat(responseBody).isNotNull();
         assertThat(responseBody.get("error")).isEqualTo("Email already taken");
         assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
         assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
@@ -49,7 +48,7 @@ class AuthenticationExceptionsHandlerTest {
         // then
         assertThat(response.getStatusCode()).isEqualTo(CONFLICT);
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assert responseBody != null;
+        assertThat(responseBody).isNotNull();
         assertThat(responseBody.get("error")).isEqualTo("Username already taken");
         assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
         assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
@@ -57,17 +56,33 @@ class AuthenticationExceptionsHandlerTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void itShouldHandlePasswordTooShortException() {
+    void itShouldHandleSubjectNotFoundException() {
         // given
-        PasswordTooShortException e = new PasswordTooShortException("This password is too short");
+        SubjectNotFoundException e = new SubjectNotFoundException("Username [user] not found");
         // when
-        ResponseEntity<?> response = underTest.handlePasswordTooShortException(e);
+        ResponseEntity<?> response = underTest.handleSubjectNotFoundException(e);
         // then
-        assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
+        assertThat(response.getStatusCode()).isEqualTo(NOT_FOUND);
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assert responseBody != null;
-        assertThat(responseBody.get("error")).isEqualTo("Input password is too short (< 8 characters)");
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.get("error")).isEqualTo("Subject (username/email) not found");
         assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
-        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+        assertThat(responseBody.get("status")).isEqualTo(NOT_FOUND.toString());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void itShouldHandleIncorrectPasswordException() {
+        // given
+        IncorrectPasswordException e = new IncorrectPasswordException("Incorrect password");
+        // when
+        ResponseEntity<?> response = underTest.handleIncorrectPasswordException(e);
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(UNAUTHORIZED);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.get("error")).isEqualTo("incorrect input password at login");
+        assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
+        assertThat(responseBody.get("status")).isEqualTo(UNAUTHORIZED.toString());
     }
 }

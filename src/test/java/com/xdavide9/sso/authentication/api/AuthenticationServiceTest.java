@@ -7,14 +7,13 @@ import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
-import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
+import com.xdavide9.sso.user.PasswordDTO;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
-import com.xdavide9.sso.util.UserValidatorService;
-import jakarta.validation.ConstraintViolationException;
+import com.xdavide9.sso.util.ValidatorService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -26,7 +25,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Objects;
 
@@ -48,12 +46,15 @@ class AuthenticationServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
-    private UserValidatorService validatorService;
+    private ValidatorService validatorService;
 
     @Mock
     private UserDetailsService userDetailsService;
     @Captor
-    private ArgumentCaptor<User> captor;
+    private ArgumentCaptor<User> userCaptor;
+
+    @Captor
+    private ArgumentCaptor<PasswordDTO> passwordDTOCaptor;
 
     // signup
 
@@ -61,19 +62,22 @@ class AuthenticationServiceTest {
     void itShouldSignUpNewUserCorrectly() {
         // given
         String username = "xdavide9";
-        String password = "password"; // >= 8 characters
+        String password = "password";
+        PasswordDTO passwordDTO = new PasswordDTO(password);
         String email = "email@sso.com";
         given(repository.existsByEmail(email)).willReturn(false);
         given(repository.existsByUsername(username)).willReturn(false);
         given(jwtService.generateToken(any(User.class))).willReturn("token123");
         given(passwordEncoder.encode(password)).willReturn("encodedPassword");
-        SignupRequest request = new SignupRequest(username, email, password);
+        SignupRequest request = new SignupRequest(username, email, passwordDTO);
         // when
         ResponseEntity<AuthenticationResponse> response = underTest.signup(request);
         // then
-        verify(validatorService).validate(captor.capture());
-        User capturedUser = captor.getValue();
+        verify(validatorService).validate(userCaptor.capture());
+        User capturedUser = userCaptor.getValue();
+        verify(validatorService).validate(passwordDTOCaptor.capture());
         verify(repository).save(capturedUser);
+        assertThat(passwordDTOCaptor.getValue()).isEqualTo(passwordDTO);
         assertThat(capturedUser.getUsername()).isEqualTo(username);
         assertThat(capturedUser.getEmail()).isEqualTo(email);
         assertThat(capturedUser.getPassword()).isEqualTo("encodedPassword");
@@ -91,10 +95,11 @@ class AuthenticationServiceTest {
     void itShouldNotSignupUsernameTakenAndThrow() {
         // given
         String username = "xdavide9";
-        String password = "password"; // >= 8 characters
+        String password = "password";
+        PasswordDTO passwordDTO = new PasswordDTO(password);
         String email = "email@sso.com";
         given(repository.existsByUsername(username)).willReturn(true);
-        SignupRequest request = new SignupRequest(username, email, password);
+        SignupRequest request = new SignupRequest(username, email, passwordDTO);
         // when & then
         assertThatThrownBy(() -> underTest.signup(request))
                 .isInstanceOf(UsernameTakenException.class)
@@ -109,34 +114,16 @@ class AuthenticationServiceTest {
     void itShouldNotSignupEmailTakenAndThrow() {
         // given
         String username = "xdavide9";
-        String password = "password"; // >= 8 characters
+        String password = "password";
+        PasswordDTO passwordDTO = new PasswordDTO(password);
         String email = "email@sso.com";
         given(repository.existsByUsername(username)).willReturn(false);
         given(repository.existsByEmail(email)).willReturn(true);
-        SignupRequest request = new SignupRequest(username, email, password);
+        SignupRequest request = new SignupRequest(username, email, passwordDTO);
         // when & then
         assertThatThrownBy(() -> underTest.signup(request))
                 .isInstanceOf(EmailTakenException.class)
                 .hasMessageContaining(format("Email [%s] is already taken", email));
-        verifyNoMoreInteractions(repository);
-        verifyNoInteractions(jwtService);
-        verifyNoInteractions(validatorService);
-        verifyNoInteractions(passwordEncoder);
-    }
-
-    @Test
-    void itShouldNotSignupPasswordTooShortAndThrow() {
-        // given
-        String username = "xdavide9";
-        String password = "short"; // < 8 characters
-        String email = "email@sso.com";
-        given(repository.existsByUsername(username)).willReturn(false);
-        given(repository.existsByEmail(email)).willReturn(false);
-        SignupRequest request = new SignupRequest(username, email, password);
-        // when & then
-        assertThatThrownBy(() -> underTest.signup(request))
-                .isInstanceOf(PasswordTooShortException.class)
-                .hasMessageContaining("Password must be at least 8 characters long");
         verifyNoMoreInteractions(repository);
         verifyNoInteractions(jwtService);
         verifyNoInteractions(validatorService);

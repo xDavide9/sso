@@ -7,13 +7,12 @@ import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.config.SecurityConfig;
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
-import com.xdavide9.sso.exception.authentication.api.PasswordTooShortException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
-import com.xdavide9.sso.util.UserValidatorService;
+import com.xdavide9.sso.util.ValidatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +47,7 @@ public class AuthenticationService {
     /**
      * Service that validates user input to make sure it adheres to specific constraints.
      */
-    private final UserValidatorService validatorService;
+    private final ValidatorService validatorService;
 
     /**
      * It is the {@link RepositoryUserDetailsService} implementation of {@link UserDetailsService}.
@@ -59,7 +58,7 @@ public class AuthenticationService {
     public AuthenticationService(JwtService jwtService,
                                  UserRepository repository,
                                  PasswordEncoder passwordEncoder,
-                                 UserValidatorService validatorService,
+                                 ValidatorService validatorService,
                                  @Qualifier(value = "repositoryUserDetailsService") UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.repository = repository;
@@ -78,7 +77,6 @@ public class AuthenticationService {
      * @return ResponseEntity of AuthenticationResponse
      */
     public ResponseEntity<AuthenticationResponse> signup(SignupRequest request) {
-        // checks
         String username = request.username();
         if (repository.existsByUsername(username)) {
             throw new UsernameTakenException(
@@ -91,12 +89,9 @@ public class AuthenticationService {
                     format("Email [%s] is already taken", email)
             );
         }
-        String password = request.password();
-        // TODO delegate this feature to a PasswordValidator
-        if (password.length() < 8)
-            throw new PasswordTooShortException("Password must be at least 8 characters long");
-        // process of registration
-        User user = new User(username, email, passwordEncoder.encode(password));
+        // validate raw password before encoding it
+        validatorService.validate(request.passwordDTO());
+        User user = new User(username, email, passwordEncoder.encode(request.passwordDTO().getPassword()));
         validatorService.validate(user);    // if not valid throws ConstraintViolationException
         repository.save(user);
         String token = jwtService.generateToken(user);
