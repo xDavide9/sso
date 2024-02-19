@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -380,6 +381,30 @@ public class OperatorApiIT {
         return getUser("adminUsername", token);
     }
 
+    private String login(String username, String password) throws Exception {
+        ResultActions resultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest(username, password)))
+        );
+        resultActions.andExpect(status().isOk());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse authenticationResponse = parser.java(response, AuthenticationResponse.class);
+        return authenticationResponse.token();
+    }
+
+    private String loginAsOperator() throws Exception {
+        return login("operatorUsername", "operatorPassword");
+    }
+
+    private String loginAsAdmin() throws Exception {
+        return login("adminUsername", "adminPassword");
+    }
+
+    private String loginAsUser() throws Exception {
+        return login("userUsername", "userPassword");
+    }
+
     @ParameterizedTest
     @CsvSource({
             "operatorUsername,operatorPassword",
@@ -477,5 +502,205 @@ public class OperatorApiIT {
         assertThat(responseBody.get("status")).isEqualTo(HttpStatus.NOT_FOUND.toString());
         assertThat(responseBody.get("error")).isEqualTo("Cannot time out user");
         assertThat(responseBody.get("message")).isEqualTo(format("User with uuid [%s] not found.", uuid));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    @Transactional
+    void itShouldChangeUsernameCorrectly(String loginUsername, String loginPassword) throws Exception {
+        // given
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String username = "username";
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/username/%s?username=%s", uuid, username))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isOk());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo(format("Username of user with uuid [%s] has been changed correctly to [%s]", uuid, username));
+    }
+
+    @Test
+    void itShouldNotChangeUsernameTokenIsMissing() throws Exception {
+        // given
+        String token = loginAsOperator();
+        UUID uuid = getUserWithRoleUser(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/username/%s?username=any", uuid))
+        );
+        // then
+        resultActions.andExpect(status().isUnauthorized());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("Missing jwt Token. Every request should include a valid jwt token to authenticate to the server.");
+    }
+
+    @Test
+    void itShouldNotChangeUsernameNotEnoughAuthorization() throws Exception {
+        // given
+        String strongToken = loginAsOperator();
+        String weakToken = loginAsUser();
+        UUID uuid = getUserWithRoleUser(strongToken).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/username/%s?username=any", uuid))
+                        .header("Authorization", format("Bearer %s", weakToken))
+        );
+        // then
+        resultActions.andExpect(status().isForbidden());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
+    }
+
+    @Test
+    void itShouldNotChangeUsernameUserNotFound() throws Exception {
+        // given
+        String token = loginAsOperator();
+        UUID uuid = UUID.randomUUID();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/username/%s?username=any", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isNotFound());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
+        assertThat(responseBody.get("error")).isEqualTo("Cannot get information about user");
+        assertThat(responseBody.get("status")).isEqualTo(HttpStatus.NOT_FOUND.toString());
+        assertThat(responseBody.get("message")).isEqualTo(format("User with uuid [%s] not found.", uuid));
+    }
+
+    @Test
+    void itShouldNotChangeUsernameBecauseItIsTaken() throws Exception {
+        // given
+        String token = loginAsOperator();
+        UUID uuid = getUserWithRoleUser(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/username/%s?username=operatorUsername", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isConflict());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
+        assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
+        assertThat(responseBody.get("error")).isEqualTo("Username already taken");
+        assertThat(responseBody.get("message")).isEqualTo(format("Cannot change username of user with uuid [%s]", uuid));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    @Transactional
+    void itShouldChangeEmailCorrectly(String loginUsername, String loginPassword) throws Exception {
+        // given
+        ResultActions loginResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
+        );
+        loginResultActions.andExpect(status().isOk());
+        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
+        String token = loginResponse.token();
+        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String email = "email@email.com";
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/email/%s?email=%s", uuid, email))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isOk());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo(format("Email of user with uuid [%s] has been changed correctly to [%s]", uuid, email));
+    }
+
+    @Test
+    void itShouldNotChangeEmailTokenIsMissing() throws Exception {
+        // given
+        String token = loginAsOperator();
+        UUID uuid = getUserWithRoleUser(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/email/%s?email=any", uuid))
+        );
+        // then
+        resultActions.andExpect(status().isUnauthorized());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("Missing jwt Token. Every request should include a valid jwt token to authenticate to the server.");
+    }
+
+    @Test
+    void itShouldNotChangeEmailNotEnoughAuthorization() throws Exception {
+        // given
+        String strongToken = loginAsOperator();
+        String weakToken = loginAsUser();
+        UUID uuid = getUserWithRoleUser(strongToken).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/email/%s?email=any", uuid))
+                        .header("Authorization", format("Bearer %s", weakToken))
+        );
+        // then
+        resultActions.andExpect(status().isForbidden());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
+    }
+
+    @Test
+    void itShouldNotChangeEmailUserNotFound() throws Exception {
+        // given
+        String token = loginAsOperator();
+        UUID uuid = UUID.randomUUID();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/email/%s?email=any", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isNotFound());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
+        assertThat(responseBody.get("error")).isEqualTo("Cannot get information about user");
+        assertThat(responseBody.get("status")).isEqualTo(HttpStatus.NOT_FOUND.toString());
+        assertThat(responseBody.get("message")).isEqualTo(format("User with uuid [%s] not found.", uuid));
+    }
+
+    @Test
+    void itShouldNotChangeEmailBecauseItIsTaken() throws Exception {
+        // given
+        String token = loginAsOperator();
+        UUID uuid = getUserWithRoleUser(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/email/%s?email=operatorUsername", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isConflict());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
+        assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
+        assertThat(responseBody.get("error")).isEqualTo("Username already taken");
+        assertThat(responseBody.get("message")).isEqualTo(format("Cannot change username of user with uuid [%s]", uuid));
     }
 }

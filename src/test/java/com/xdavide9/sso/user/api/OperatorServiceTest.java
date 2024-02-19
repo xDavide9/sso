@@ -1,12 +1,14 @@
 package com.xdavide9.sso.user.api;
 
+import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
+import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.api.UserCannotBeModifiedException;
 import com.xdavide9.sso.exception.user.api.UserExceptionReason;
 import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.user.User;
-import com.xdavide9.sso.user.UserDTO;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.util.TimeOutService;
+import com.xdavide9.sso.util.UserModifierService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,6 +39,10 @@ class OperatorServiceTest {
     @Mock
     private TimeOutService timeOutService;
 
+    @Mock
+    private UserModifierService userModifierService;
+
+
     @Test
     void itShouldGetUsers() {
         // given
@@ -55,9 +61,9 @@ class OperatorServiceTest {
         user.setUsername("usernameByUuid");
         given(repository.findById(uuid)).willReturn(Optional.of(user));
         // when
-        UserDTO dto = underTest.getUserByUuid(uuid);
+        User returnedUser = underTest.getUserByUuid(uuid);
         // then
-        assertThat(dto.getUsername()).isEqualTo("usernameByUuid");
+        assertThat(returnedUser.getUsername()).isEqualTo("usernameByUuid");
     }
 
     @Test
@@ -82,9 +88,9 @@ class OperatorServiceTest {
         user.setUsername(username);
         given(repository.findByUsername(username)).willReturn(Optional.of(user));
         // when
-        UserDTO dto = underTest.getUserByUsername(username);
+        User returnedUser = underTest.getUserByUsername(username);
         // then
-        assertThat(dto.getUsername()).isEqualTo(user.getUsername());
+        assertThat(returnedUser.getUsername()).isEqualTo(user.getUsername());
     }
 
     @Test
@@ -110,9 +116,9 @@ class OperatorServiceTest {
         user.setEmail(email);
         given(repository.findByEmail(email)).willReturn(Optional.of(user));
         // when
-        UserDTO dto = underTest.getUserByEmail(email);
+        User returnedUser = underTest.getUserByEmail(email);
         // then
-        assertThat(dto.getEmail()).isEqualTo(user.getEmail());
+        assertThat(returnedUser.getEmail()).isEqualTo(user.getEmail());
     }
 
     @Test
@@ -182,5 +188,59 @@ class OperatorServiceTest {
                 .isInstanceOf(UserCannotBeModifiedException.class)
                 .hasMessageContaining(format("User with uuid [%s] is already banned or timed out", uuid))
                 .hasFieldOrPropertyWithValue("reason", UserExceptionReason.TIMEOUT);
+    }
+
+    @Test
+    void itShouldChangeUsername() {
+        // given
+        String username = "username";
+        User user = new User();
+        UUID uuid = UUID.randomUUID();
+        given(repository.findById(uuid)).willReturn(Optional.of(user));
+        // when
+        underTest.changeUsername(uuid, username);
+        // then
+        verify(userModifierService).setUsername(user, username);
+    }
+
+    @Test
+    void itShouldNotChangeUsernameBecauseItIsTaken() {
+        // given
+        String username = "username";
+        User user = new User();
+        UUID uuid = UUID.randomUUID();
+        given(repository.findById(uuid)).willReturn(Optional.of(user));
+        given(repository.existsByUsername(username)).willReturn(true);
+        // when & then
+        assertThatThrownBy(() -> underTest.changeUsername(uuid, username))
+                .isInstanceOf(UsernameTakenException.class)
+                .hasMessageContaining(format("Cannot change username of user with uuid [%s]", uuid));
+    }
+
+    @Test
+    void itShouldChangeEmail() {
+        // given
+        String email = "email@email.com";
+        User user = new User();
+        UUID uuid = UUID.randomUUID();
+        given(repository.findById(uuid)).willReturn(Optional.of(user));
+        // when
+        underTest.changeEmail(uuid, email);
+        // then
+        verify(userModifierService).setEmail(user, email);
+    }
+
+    @Test
+    void itShouldNotChangeEmailBecauseItIsTaken() {
+        // given
+        String email = "email@email.com";
+        User user = new User();
+        UUID uuid = UUID.randomUUID();
+        given(repository.findById(uuid)).willReturn(Optional.of(user));
+        given(repository.existsByEmail(email)).willReturn(true);
+        // when & then
+        assertThatThrownBy(() -> underTest.changeEmail(uuid, email))
+                .isInstanceOf(EmailTakenException.class)
+                .hasMessageContaining(format("Cannot change email of user with uuid [%s]", uuid));
     }
 }

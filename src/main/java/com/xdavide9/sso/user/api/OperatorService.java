@@ -1,12 +1,14 @@
 package com.xdavide9.sso.user.api;
 
+import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
+import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.api.UserCannotBeModifiedException;
 import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.exception.user.api.UserExceptionReason;
 import com.xdavide9.sso.user.User;
-import com.xdavide9.sso.user.UserDTO;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.util.TimeOutService;
+import com.xdavide9.sso.util.UserModifierService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +30,15 @@ import static java.lang.String.format;
 public class OperatorService {
     private final UserRepository userRepository;
     private final TimeOutService timeOutService;
+    private final UserModifierService userModifierService;
 
     @Autowired
-    public OperatorService(UserRepository userRepository, TimeOutService timeOutService) {
+    public OperatorService(UserRepository userRepository,
+                           TimeOutService timeOutService,
+                           UserModifierService userModifierService) {
         this.userRepository = userRepository;
         this.timeOutService = timeOutService;
+        this.userModifierService = userModifierService;
     }
 
 
@@ -42,11 +48,10 @@ public class OperatorService {
      * @see OperatorController#getUsers()
      */
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public List<UserDTO> getUsers() {
+    public List<User> getUsers() {
         return userRepository
                 .findAll()
                 .stream()
-                .map(UserDTO::fromUser)
                 .toList();
     }
 
@@ -59,15 +64,14 @@ public class OperatorService {
      * @return the user in question
      */
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public UserDTO getUserByUuid(UUID uuid) {
-        User user = userRepository
+    public User getUserByUuid(UUID uuid) {
+        return userRepository
                 .findById(uuid)
                 .orElseThrow(() ->
                         new UserNotFoundException(
                                 format("User with uuid [%s] not found.", uuid),
                                 UserExceptionReason.INFORMATION
                         ));
-        return UserDTO.fromUser(user);
     }
 
     /**
@@ -79,15 +83,14 @@ public class OperatorService {
      * @return the user in question
      */
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public UserDTO getUserByUsername(String username) {
-        User user = userRepository
+    public User getUserByUsername(String username) {
+        return userRepository
                 .findByUsername(username)
                 .orElseThrow(() ->
                         new UserNotFoundException(
                                 format("User with username [%s] not found.", username),
                                 UserExceptionReason.INFORMATION
                         ));
-        return UserDTO.fromUser(user);
     }
 
     /**
@@ -99,15 +102,14 @@ public class OperatorService {
      * @return the user in question
      */
     @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
-    public UserDTO getUserByEmail(String email) {
-        User user = userRepository
+    public User getUserByEmail(String email) {
+        return userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
                         new UserNotFoundException(
                                 format("User with email [%s] not found.", email),
                                 UserExceptionReason.INFORMATION
                         ));
-        return UserDTO.fromUser(user);
     }
 
     @Transactional
@@ -128,5 +130,25 @@ public class OperatorService {
         }
         timeOutService.timeOut(user, duration);
         return ResponseEntity.ok(format("User with uuid [%s] has been timed out for [%d] milliseconds", uuid, duration));
+    }
+
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
+    public ResponseEntity<String> changeUsername(UUID uuid, String username) {
+        User user = getUserByUuid(uuid);
+        if (userRepository.existsByUsername(username))
+            throw new UsernameTakenException(format("Cannot change username of user with uuid [%s]", uuid));
+        userModifierService.setUsername(user, username);
+        return ResponseEntity.ok(format("Username of user with uuid [%s] has been changed correctly to [%s]", uuid, username));
+    }
+
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
+    public ResponseEntity<String> changeEmail(UUID uuid, String email) {
+        User user = getUserByUuid(uuid);
+        if (userRepository.existsByEmail(email))
+            throw new EmailTakenException(format("Cannot change email of user with uuid [%s]", uuid));
+        userModifierService.setEmail(user, email);
+        return ResponseEntity.ok(format("Email of user with uuid [%s] has been changed correctly to [%s]", uuid, email));
     }
 }

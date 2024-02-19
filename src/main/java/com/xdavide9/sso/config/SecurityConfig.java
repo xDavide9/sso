@@ -87,7 +87,11 @@ public class SecurityConfig {
                                         "/api/v0.0.1/users/email/*"
                                 )
                                 .hasAnyAuthority("OPERATOR_GET", "ADMIN_GET")
-                                .requestMatchers("/api/v0.0.1/users/timeout/*")
+                                .requestMatchers(
+                                        "/api/v0.0.1/users/timeout/*",
+                                        "/api/v0.0.1/users/change/username/*",
+                                        "/api/v0.0.1/users/change/email/*"
+                                )
                                 .hasAnyAuthority("OPERATOR_PUT", "ADMIN_PUT")
                                 .requestMatchers(
                                         "/api/v0.0.1/users/promote/*",

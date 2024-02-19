@@ -18,9 +18,7 @@ import java.util.UUID;
  * Object creation is done using the JavaBeans pattern. There is also a constructor that requires username,
  * email and password because these fields must be provided and cannot be null nor blank (when registering a new account).
  * Every other field has a default value that may be overridden (with valid values).
- * The uuid cannot be changed. Apis should not directly return instances of this class but rather {@link UserDTO}
- * which was created specifically for this reason. Note that you can create a UserDTO from a User but not the other way
- * around because the uuid is immutable. Authorities are defined by the {@link Role} and from it, they cannot be set
+ * Authorities are defined by the {@link Role} and from it, they cannot be set
  * arbitrarily (no setter).
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
