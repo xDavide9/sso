@@ -439,7 +439,7 @@ public class OperatorApiIT {
         assertThat(enabledUser.isEnabled()).isTrue();
     }
 
-    // test with the default duration is in TimeOutDefaultDurationIT.java
+    // test with the default duration is in TimeOutDefaultDurationIT2.java
 
     @Test
     void itShouldNotTimeOutUserTokenIsMissing() throws Exception {
@@ -601,7 +601,7 @@ public class OperatorApiIT {
         Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
         assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
         assertThat(responseBody.get("error")).isEqualTo("Username already taken");
-        assertThat(responseBody.get("message")).isEqualTo(format("Cannot change username of user with uuid [%s]", uuid));
+        assertThat(responseBody.get("message")).isEqualTo(format("Cannot change username of user with uuid [%s] because it is taken", uuid));
     }
 
     @ParameterizedTest
@@ -692,7 +692,7 @@ public class OperatorApiIT {
         UUID uuid = getUserWithRoleUser(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
-                put(format("/api/v0.0.1/users/change/email/%s?email=operatorUsername", uuid))
+                put(format("/api/v0.0.1/users/change/email/%s?email=operator@email.com", uuid))
                         .header("Authorization", format("Bearer %s", token))
         );
         // then
@@ -700,7 +700,7 @@ public class OperatorApiIT {
         String response = resultActions.andReturn().getResponse().getContentAsString();
         Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
         assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
-        assertThat(responseBody.get("error")).isEqualTo("Username already taken");
-        assertThat(responseBody.get("message")).isEqualTo(format("Cannot change username of user with uuid [%s]", uuid));
+        assertThat(responseBody.get("error")).isEqualTo("Email already taken");
+        assertThat(responseBody.get("message")).isEqualTo(format("Cannot change email of user with uuid [%s] because it is taken", uuid));
     }
 }

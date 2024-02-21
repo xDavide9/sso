@@ -75,36 +75,6 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>dev</id>
-            <properties>
-                <activated.spring.profile>dev</activated.spring.profile>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>prod</id>
-            <properties>
-                <activated.spring.profile>prod</activated.spring.profile>
-            </properties>
-        </profile>
-        <profile>
-            <id>test</id>
-            <properties>
-                <activated.spring.profile>test</activated.spring.profile>
-            </properties>
-        </profile>
-        <profile>
-            <id>test2</id>
-            <properties>
-                <activated.spring.profile>test2</activated.spring.profile>
-            </properties>
-        </profile>
-    </profiles>
-
     <build>
 <!--        As different databases and dependencies are configured depending on the profile
             run the different goals of phases of the lifecycle singularly without using the entire lifecycle
@@ -124,7 +94,7 @@
                 <version>3.5.0</version>
             </plugin>
             <plugin>
-<!--                ./mvnw surefire:test -Ptest to run unit tests in classes that follow convention-->
+<!--                ./mvnw surefire:test -Ptest to run unit tests in classes that follow convention **/*Test.java -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.1.2</version>
@@ -137,7 +107,8 @@
                 </configuration>
             </plugin>
             <plugin>
-<!--                ./mvnw failsafe:integration-test -Ptest to run tests in classes that follow convention-->
+<!--                ./mvnw failsafe:integration-test -Ptest to run integration tests in classes that follow convention **/*IT.java-->
+<!--                test classes ending with IT2 use "test2" profile, therefore they are run separately -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.1.2</version>
@@ -163,5 +134,4 @@
             </resource>
         </resources>
     </build>
-
 </project>

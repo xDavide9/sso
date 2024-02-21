@@ -164,7 +164,7 @@ public class AuthenticationApiIT {
         // given
         String username = "username";
         String email = "email@email.com";
-        String password = "password1"; // > 8 characters
+        String password = "Password1!"; // > 8 characters
         SignupRequest request = new SignupRequest(username, email, new PasswordDTO(password));
         mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")
@@ -212,7 +212,7 @@ public class AuthenticationApiIT {
         // given
         String username = "username";
         String email = "email@email.com";
-        String password = "password1"; // > 8 characters
+        String password = "Password1!"; // > 8 characters
         SignupRequest request = new SignupRequest(username, email, new PasswordDTO(password));
         mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")

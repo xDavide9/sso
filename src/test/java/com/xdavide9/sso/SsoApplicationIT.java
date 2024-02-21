@@ -2,9 +2,13 @@ package com.xdavide9.sso;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+// this test checks if specific environment is loaded correctly
 
 @SpringBootTest
-class SsoApplicationTests {
+@ActiveProfiles("dev")
+class SsoApplicationIT {
 
     @Test
     void contextLoads() {

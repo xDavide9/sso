@@ -2,8 +2,8 @@ package com.xdavide9.sso.config;
 
 import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
 import com.xdavide9.sso.jwt.JwtAuthenticationFilter;
-import com.xdavide9.sso.jwt.JwtTokenValidatorFilter;
 import com.xdavide9.sso.jwt.JwtService;
+import com.xdavide9.sso.jwt.JwtTokenValidatorFilter;
 import com.xdavide9.sso.user.Permission;
 import com.xdavide9.sso.user.Role;
 import jakarta.servlet.http.HttpServletRequest;

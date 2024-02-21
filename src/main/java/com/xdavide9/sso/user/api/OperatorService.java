@@ -185,7 +185,7 @@ public class OperatorService {
         if (userRepository.existsByEmail(email))
             throw new EmailTakenException(format("Cannot change email of user with uuid [%s] because it is taken", uuid));
         userModifierService.setEmail(user, email);
-        return ResponseEntity.ok(format("Email of user with uuid [%s] has been changed correctly to [%s] because it is taken", uuid, email));
+        return ResponseEntity.ok(format("Email of user with uuid [%s] has been changed correctly to [%s]", uuid, email));
     }
 
     /**

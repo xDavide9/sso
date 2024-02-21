@@ -11,8 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.test.context.ActiveProfiles;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -29,8 +27,7 @@ class JwtTokenValidatorFilterTest {
     private JwtTokenValidatorFilter underTest;
     @Mock
     private JwtService jwtService;
-    @Mock
-    private UserDetailsService userDetailsService;
+
     private MockHttpServletRequest request;
 
     private MockHttpServletResponse response;
