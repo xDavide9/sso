@@ -89,10 +89,12 @@ public class AuthenticationService {
                     format("Email [%s] is already taken", email)
             );
         }
-        // validate raw password before encoding it
-        validatorService.validate(request.passwordDTO());
-        User user = new User(username, email, passwordEncoder.encode(request.passwordDTO().getPassword()));
-        validatorService.validate(user);    // if not valid throws ConstraintViolationException
+        // validate fields
+        validatorService.validateUsername(username);
+        validatorService.validateEmail(email);
+        validatorService.validateRawPassword(request.password());
+        User user = new User(username, email, passwordEncoder.encode(request.password()));
+        validatorService.validateUser(user);    // if not valid throws ConstraintViolationException
         repository.save(user);
         String token = jwtService.generateToken(user);
         AuthenticationResponse response = new AuthenticationResponse(token);

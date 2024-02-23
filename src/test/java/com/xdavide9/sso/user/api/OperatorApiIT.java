@@ -18,11 +18,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -604,6 +606,26 @@ public class OperatorApiIT {
         assertThat(responseBody.get("message")).isEqualTo(format("Cannot change username of user with uuid [%s] because it is taken", uuid));
     }
 
+    @Test
+    void itShouldNotChangeUsernameInvalidInput() throws Exception {
+        // given
+        String token = loginAsOperator();
+        UUID uuid = getUserWithRoleUser(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/username/%s?username=", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+        assertThat(responseBody.get("error")).isEqualTo("Invalid user input");
+        assertThat(responseBody.get("message")).isEqualTo("One or more constraints have been violated, provide valid input next time");
+        assertThat(responseBody.get("violations")).isEqualTo(List.of("username: Username cannot be blank nor null"));
+    }
+
     @ParameterizedTest
     @CsvSource({
             "operatorUsername,operatorPassword",
@@ -702,5 +724,25 @@ public class OperatorApiIT {
         assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
         assertThat(responseBody.get("error")).isEqualTo("Email already taken");
         assertThat(responseBody.get("message")).isEqualTo(format("Cannot change email of user with uuid [%s] because it is taken", uuid));
+    }
+
+    @Test
+    void itShouldNotChangeEmailInvalidUserInput() throws Exception {
+        // given
+        String token = loginAsOperator();
+        UUID uuid = getUserWithRoleUser(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/email/%s?email=email", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+        assertThat(responseBody.get("error")).isEqualTo("Invalid user input");
+        assertThat(responseBody.get("message")).isEqualTo("One or more constraints have been violated, provide valid input next time");
+        assertThat(responseBody.get("violations")).isEqualTo(List.of("email: Invalid email format"));
     }
 }

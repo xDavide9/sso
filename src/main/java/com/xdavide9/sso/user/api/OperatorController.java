@@ -76,6 +76,12 @@ public class OperatorController {
 
     // TODO make methods of type put work also by passing something else rather than the uuid after assuring system is robust enough
 
+    /**
+     * Times out user with specified uuid for specified duration
+     * @param uuid - of the user to be timed out
+     * @param duration - how long to time out the user for
+     * @return {@link ResponseEntity}
+     */
     @PutMapping("/timeout/{uuid}")
     @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
     public ResponseEntity<String> timeOut(@PathVariable UUID uuid,
@@ -83,6 +89,12 @@ public class OperatorController {
         return operatorService.timeOut(uuid, duration);
     }
 
+    /**
+     * Changes username of {@link User} with specified uuid
+     * @param uuid - of the user to be changed
+     * @param username - new username
+     * @return {@link ResponseEntity}
+     */
     @PutMapping("/change/username/{uuid}")
     @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
     public ResponseEntity<String> changeUsername(@PathVariable UUID uuid,
@@ -90,6 +102,12 @@ public class OperatorController {
         return operatorService.changeUsername(uuid, username);
     }
 
+    /**
+     * Changes email of {@link User} with specified uuid
+     * @param uuid - of the user to be changed
+     * @param email - new email
+     * @return {@link ResponseEntity}
+     */
     @PutMapping("/change/email/{uuid}")
     @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
     public ResponseEntity<String> changeEmail(@PathVariable UUID uuid,

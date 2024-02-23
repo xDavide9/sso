@@ -40,7 +40,7 @@ public class User implements UserDetails {
     @NotBlank(message = "Username cannot be blank nor null")
     private String username;
 
-    // TODO create email authenticator that sends a verification email
+    // TODO create email authenticator that sends a verification email (twilio) and improve validation with apache commons validator
     /**
      * It is used to authenticate (can also use username)
      */
@@ -56,7 +56,7 @@ public class User implements UserDetails {
     @NotBlank(message = "Password cannot be blank nor null")
     @JsonIgnore
     private String password;
-    // TODO implement a phone number validator
+    // TODO implement a phone number validator using google's lib and confirm sms
     /**
      * phoneNumber
      * @since 0.0.1-SNAPSHOT

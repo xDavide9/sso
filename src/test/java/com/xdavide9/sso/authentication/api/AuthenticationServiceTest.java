@@ -10,7 +10,6 @@ import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
-import com.xdavide9.sso.user.PasswordDTO;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.util.ValidatorService;
@@ -47,14 +46,11 @@ class AuthenticationServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private ValidatorService validatorService;
-
     @Mock
     private UserDetailsService userDetailsService;
     @Captor
     private ArgumentCaptor<User> userCaptor;
 
-    @Captor
-    private ArgumentCaptor<PasswordDTO> passwordDTOCaptor;
 
     // signup
 
@@ -63,21 +59,21 @@ class AuthenticationServiceTest {
         // given
         String username = "xdavide9";
         String password = "password";
-        PasswordDTO passwordDTO = new PasswordDTO(password);
         String email = "email@sso.com";
         given(repository.existsByEmail(email)).willReturn(false);
         given(repository.existsByUsername(username)).willReturn(false);
         given(jwtService.generateToken(any(User.class))).willReturn("token123");
         given(passwordEncoder.encode(password)).willReturn("encodedPassword");
-        SignupRequest request = new SignupRequest(username, email, passwordDTO);
+        SignupRequest request = new SignupRequest(username, email, password);
         // when
         ResponseEntity<AuthenticationResponse> response = underTest.signup(request);
         // then
-        verify(validatorService).validate(userCaptor.capture());
+        verify(validatorService).validateUser(userCaptor.capture());
         User capturedUser = userCaptor.getValue();
-        verify(validatorService).validate(passwordDTOCaptor.capture());
+        verify(validatorService).validateRawPassword(password);
+        verify(validatorService).validateUsername(username);
+        verify(validatorService).validateEmail(email);
         verify(repository).save(capturedUser);
-        assertThat(passwordDTOCaptor.getValue()).isEqualTo(passwordDTO);
         assertThat(capturedUser.getUsername()).isEqualTo(username);
         assertThat(capturedUser.getEmail()).isEqualTo(email);
         assertThat(capturedUser.getPassword()).isEqualTo("encodedPassword");
@@ -96,10 +92,9 @@ class AuthenticationServiceTest {
         // given
         String username = "xdavide9";
         String password = "password";
-        PasswordDTO passwordDTO = new PasswordDTO(password);
         String email = "email@sso.com";
         given(repository.existsByUsername(username)).willReturn(true);
-        SignupRequest request = new SignupRequest(username, email, passwordDTO);
+        SignupRequest request = new SignupRequest(username, email, password);
         // when & then
         assertThatThrownBy(() -> underTest.signup(request))
                 .isInstanceOf(UsernameTakenException.class)
@@ -115,11 +110,10 @@ class AuthenticationServiceTest {
         // given
         String username = "xdavide9";
         String password = "password";
-        PasswordDTO passwordDTO = new PasswordDTO(password);
         String email = "email@sso.com";
         given(repository.existsByUsername(username)).willReturn(false);
         given(repository.existsByEmail(email)).willReturn(true);
-        SignupRequest request = new SignupRequest(username, email, passwordDTO);
+        SignupRequest request = new SignupRequest(username, email, password);
         // when & then
         assertThatThrownBy(() -> underTest.signup(request))
                 .isInstanceOf(EmailTakenException.class)

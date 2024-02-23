@@ -7,26 +7,29 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ValidatorServiceTest {
 
     @InjectMocks
+    @Spy
     private ValidatorService underTest;
 
     @Mock
     private Validator validator;
+
+    @Captor
+    private ArgumentCaptor<PasswordDTO> dtoCaptor;
 
     @Test
     void itShouldValidateUserNoViolations() {
@@ -34,7 +37,7 @@ class ValidatorServiceTest {
         User user = new User();
         given(validator.validate(user)).willReturn(new HashSet<>());
         // when
-        underTest.validate(user);
+        underTest.validateUser(user);
         // then
         verify(validator).validate(user);
 
@@ -49,7 +52,7 @@ class ValidatorServiceTest {
         violations.add(violation);
         given(validator.validate(user)).willReturn(violations);
         // when & then
-        assertThatThrownBy(() -> underTest.validate(user))
+        assertThatThrownBy(() -> underTest.validateUser(user))
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasFieldOrPropertyWithValue("constraintViolations", violations);
     }
@@ -57,24 +60,25 @@ class ValidatorServiceTest {
     @Test
     void itShouldValidatePasswordNoViolations() {
         // given
-        PasswordDTO passwordDTO = new PasswordDTO("HelloWorld1!"); // > 8 characters, 1 special character, 1 upper case character
-        given(validator.validate(passwordDTO)).willReturn(new HashSet<>());
+        String password = "ValidPassword!";
+        given(validator.validate(any(PasswordDTO.class))).willReturn(new HashSet<>());
         // when
-        underTest.validate(passwordDTO);
+        underTest.validateRawPassword(password);
         // then
-        verify(validator).validate(passwordDTO);
+        verify(underTest).validateUsingJakartaConstraints(dtoCaptor.capture());
+        assertThat(dtoCaptor.getValue().getPassword()).isEqualTo(password);
     }
 
     @Test
     void itShouldValidatePasswordThrowException() {
         // given
-        PasswordDTO passwordDTO = new PasswordDTO("Password");
-        Set<ConstraintViolation<PasswordDTO>> violations = new HashSet<>();
+        String password = "ValidPassword!";
         ConstraintViolation<PasswordDTO> violation = mock(ConstraintViolation.class);
+        Set<ConstraintViolation<PasswordDTO>> violations = new HashSet<>();
         violations.add(violation);
-        given(validator.validate(passwordDTO)).willReturn(violations);
+        given(validator.validate(any(PasswordDTO.class))).willReturn(violations);
         // when & then
-        assertThatThrownBy(() -> underTest.validate(passwordDTO))
+        assertThatThrownBy(() -> underTest.validateRawPassword(password))
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasFieldOrPropertyWithValue("constraintViolations", violations);
     }
