@@ -1,5 +1,9 @@
 package com.xdavide9.sso.util;
 
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
+import com.xdavide9.sso.exception.user.api.InvalidPhoneNumberException;
 import com.xdavide9.sso.user.PasswordDTO;
 import com.xdavide9.sso.user.User;
 import jakarta.validation.ConstraintViolation;
@@ -13,8 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static java.lang.String.format;
+import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -26,7 +30,10 @@ class ValidatorServiceTest {
     private ValidatorService underTest;
 
     @Mock
-    private Validator validator;
+    private Validator jakartaValidator;
+
+    @Mock
+    private PhoneNumberUtil phoneNumberUtil;
 
     @Captor
     private ArgumentCaptor<PasswordDTO> dtoCaptor;
@@ -35,11 +42,11 @@ class ValidatorServiceTest {
     void itShouldValidateUserNoViolations() {
         // given
         User user = new User();
-        given(validator.validate(user)).willReturn(new HashSet<>());
+        given(jakartaValidator.validate(user)).willReturn(new HashSet<>());
         // when
         underTest.validateUser(user);
         // then
-        verify(validator).validate(user);
+        verify(jakartaValidator).validate(user);
 
     }
 
@@ -50,7 +57,7 @@ class ValidatorServiceTest {
         Set<ConstraintViolation<User>> violations = new HashSet<>();
         ConstraintViolation<User> violation = mock(ConstraintViolation.class);
         violations.add(violation);
-        given(validator.validate(user)).willReturn(violations);
+        given(jakartaValidator.validate(user)).willReturn(violations);
         // when & then
         assertThatThrownBy(() -> underTest.validateUser(user))
                 .isInstanceOf(ConstraintViolationException.class)
@@ -61,7 +68,7 @@ class ValidatorServiceTest {
     void itShouldValidatePasswordNoViolations() {
         // given
         String password = "ValidPassword!";
-        given(validator.validate(any(PasswordDTO.class))).willReturn(new HashSet<>());
+        given(jakartaValidator.validate(any(PasswordDTO.class))).willReturn(new HashSet<>());
         // when
         underTest.validateRawPassword(password);
         // then
@@ -76,10 +83,51 @@ class ValidatorServiceTest {
         ConstraintViolation<PasswordDTO> violation = mock(ConstraintViolation.class);
         Set<ConstraintViolation<PasswordDTO>> violations = new HashSet<>();
         violations.add(violation);
-        given(validator.validate(any(PasswordDTO.class))).willReturn(violations);
+        given(jakartaValidator.validate(any(PasswordDTO.class))).willReturn(violations);
         // when & then
         assertThatThrownBy(() -> underTest.validateRawPassword(password))
                 .isInstanceOf(ConstraintViolationException.class)
                 .hasFieldOrPropertyWithValue("constraintViolations", violations);
+    }
+
+    @Test
+    void itShouldValidatePhoneNumberCorrectly() throws Exception {
+        // given
+        String phoneNumber = "123";
+        Phonenumber.PhoneNumber parsed = new Phonenumber.PhoneNumber();
+        given(underTest.getPhoneNumberUtil()).willReturn(phoneNumberUtil);
+        given(phoneNumberUtil.parse(phoneNumber, null)).willReturn(parsed);
+        given(phoneNumberUtil.isValidNumber(parsed)).willReturn(true);
+        // when & then
+        assertThatCode(() -> underTest.validatePhoneNumber(phoneNumber)).doesNotThrowAnyException();
+        }
+
+    @Test
+    void itShouldNotValidatePhoneNumberCouldNotParse() throws Exception {
+        // given
+        String phoneNumber = "123";
+        NumberParseException numberParseException = mock(NumberParseException.class);
+        given(numberParseException.getMessage()).willReturn("message");
+        given(underTest.getPhoneNumberUtil()).willReturn(phoneNumberUtil);
+        given(phoneNumberUtil.parse(phoneNumber, null)).willThrow(numberParseException);
+        // when & then
+        assertThatThrownBy(() -> underTest.validatePhoneNumber(phoneNumber))
+                .isInstanceOf(InvalidPhoneNumberException.class)
+                .hasMessageContaining(numberParseException.getMessage())
+                .hasCause(numberParseException);
+    }
+
+    @Test
+    void itShouldNotValidatePhoneNumberInvalidParsedPhoneNumber() throws Exception {
+        // given
+        String phoneNumber = "123";
+        Phonenumber.PhoneNumber parsed = new Phonenumber.PhoneNumber();
+        given(underTest.getPhoneNumberUtil()).willReturn(phoneNumberUtil);
+        given(phoneNumberUtil.parse(phoneNumber, null)).willReturn(parsed);
+        given(phoneNumberUtil.isValidNumber(parsed)).willReturn(false);
+        // when & then
+        assertThatThrownBy(() -> underTest.validatePhoneNumber(phoneNumber))
+                .isInstanceOf(InvalidPhoneNumberException.class)
+                .hasMessageContaining(format("Parsed phone number [%s] is invalid", parsed));
     }
 }

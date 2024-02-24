@@ -27,10 +27,13 @@ import static org.springframework.http.HttpStatus.*;
 public class UserExceptionsHandler {
 
     // DEFINED BY ME
-    @ExceptionHandler(value = UserNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundException e) {
+
+    /**
+     * Helper method for handleUserNotFoundException and handleUserCannotBeModifiedException
+     */
+    private String getErrorString(UserExceptionReason reason) {
         String error;
-        switch (e.getReason()) {
+        switch (reason) {
             case INFORMATION -> error = "Cannot get information about user";
             case BAN -> error = "Cannot ban user";
             case UNBAN -> error = "Cannot unban user";
@@ -39,8 +42,12 @@ public class UserExceptionsHandler {
             case TIMEOUT -> error = "Cannot time out user";
             default -> error = "User not found";
         }
+        return error;
+    }
+    @ExceptionHandler(value = UserNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundException e) {
         Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("error", error);
+        responseBody.put("error", getErrorString(e.getReason()));
         responseBody.put("message", e.getMessage());
         responseBody.put("status", NOT_FOUND.toString());
         return new ResponseEntity<>(responseBody, NOT_FOUND);
@@ -48,18 +55,8 @@ public class UserExceptionsHandler {
 
     @ExceptionHandler(value = UserCannotBeModifiedException.class)
     public ResponseEntity<Map<String, Object>> handleUserCannotBeModifiedException(UserCannotBeModifiedException e) {
-        String error;
-        switch (e.getReason()) {
-            case INFORMATION -> error = "Cannot get information about user";
-            case BAN -> error = "Cannot ban user";
-            case UNBAN -> error = "Cannot unban user";
-            case DEMOTION -> error = "Cannot demote user";
-            case PROMOTION -> error = "Cannot promote user";
-            case TIMEOUT -> error = "Cannot time out user";
-            default -> error = "User cannot be modified";
-        }
         Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("error", error);
+        responseBody.put("error", getErrorString(e.getReason()));
         responseBody.put("message", e.getMessage());
         responseBody.put("status", CONFLICT.toString());
         return new ResponseEntity<>(responseBody, CONFLICT);
@@ -72,6 +69,15 @@ public class UserExceptionsHandler {
         responseBody.put("message", e.getMessage());
         responseBody.put("status", FORBIDDEN.toString());
         return new ResponseEntity<>(responseBody, FORBIDDEN);
+    }
+
+    @ExceptionHandler(value = InvalidPhoneNumberException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidPhoneNumberException(InvalidPhoneNumberException e) {
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("error", "Invalid phone number");
+        responseBody.put("message", e.getMessage());
+        responseBody.put("status", BAD_REQUEST.toString());
+        return new ResponseEntity<>(responseBody, BAD_REQUEST);
     }
 
     // ALREADY DEFINED BY OTHER LIBRARIES

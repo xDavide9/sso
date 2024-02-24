@@ -1,5 +1,9 @@
 package com.xdavide9.sso.util;
 
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
+import com.xdavide9.sso.exception.user.api.InvalidPhoneNumberException;
 import com.xdavide9.sso.user.PasswordDTO;
 import com.xdavide9.sso.user.User;
 import jakarta.validation.ConstraintViolation;
@@ -9,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+
+import static java.lang.String.format;
 
 /**
  * This is the main validation service for every form of user input in the application. It makes use
@@ -23,11 +29,11 @@ public class ValidatorService {
 
     // TODO implement checks for offensive language using google's perspective api
 
-    private final Validator validator;
+    private final Validator jakartaValidator;
 
     @Autowired
-    public ValidatorService(Validator validator) {
-        this.validator = validator;
+    public ValidatorService(Validator jakartaValidator) {
+        this.jakartaValidator = jakartaValidator;
     }
 
     /**
@@ -36,7 +42,7 @@ public class ValidatorService {
      * @param <T> class that contains constraints
      */
     public <T> void validateUsingJakartaConstraints(T t) {
-        Set<ConstraintViolation<T>> violations = validator.validate(t);
+        Set<ConstraintViolation<T>> violations = jakartaValidator.validate(t);
         if (!violations.isEmpty())
             throw new ConstraintViolationException(violations);
     }
@@ -59,10 +65,24 @@ public class ValidatorService {
     // TODO use google's libphonenumber
 
     /**
-     * Validates input using google's libphonenumber
+     * Validates input using google's libphonenumber.
      */
     public void validatePhoneNumber(String phoneNumber) {
+        PhoneNumberUtil phoneNumberUtil = getPhoneNumberUtil();
+        try {
+            Phonenumber.PhoneNumber parsedNumber = phoneNumberUtil.parse(phoneNumber, null);
+            if (!phoneNumberUtil.isValidNumber(parsedNumber))
+                throw new InvalidPhoneNumberException(format("Parsed phone number [%s] is invalid", parsedNumber));
+        } catch (NumberParseException e) {
+            throw new InvalidPhoneNumberException(e.getMessage(), e);
+        }
+    }
 
+    /**
+     * Wrapping for testability
+     */
+    public PhoneNumberUtil getPhoneNumberUtil() {
+        return PhoneNumberUtil.getInstance();
     }
 
     // TODO use apache commons
