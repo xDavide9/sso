@@ -143,24 +143,36 @@ class OperatorServiceTest {
                 .hasFieldOrPropertyWithValue("reason", UserExceptionReason.INFORMATION);
     }
 
-    @Test
-    void itShouldTimeOutCorrectlyWithDefaultDuration() {
+    @ParameterizedTest
+    @CsvSource({
+            "OPERATOR,USER",
+            "ADMIN,USER",
+            "ADMIN,OPERATOR",
+            "ADMIN,ADMIN",
+    })
+    void itShouldTimeOutCorrectlyWithDefaultDurationAndAllAllowedRolesCombination(String changerRole, String changedRole) {
         // given
-        User user = new User();
+        String username = "username";
         UUID uuid = UUID.randomUUID();
-        given(repository.findById(uuid)).willReturn(Optional.of(user));
+        User changer = new User();
+        User changed = new User();
+        changer.setRole(Role.valueOf(changerRole));
+        changed.setRole(Role.valueOf(changedRole));
+        setPrincipal(changer);
+        given(repository.findById(uuid)).willReturn(Optional.of(changed));
         // when
-        ResponseEntity<String> response = underTest.timeOut(uuid, null);
+        underTest.changeUsername(uuid, username);
         // then
-        verify(timeOutService).timeOut(user);
-        assertThat(response.getBody()).isEqualTo(format("User with uuid [%s] has been timed out for the default duration", uuid));
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(userModifierService).setUsername(changed, username);
     }
 
     @Test
     void itShouldTimeOutCorrectlyWithGivenDuration() {
         // given
         User user = new User();
+        User operator = new User();
+        operator.setRole(Role.OPERATOR);
+        setPrincipal(operator);
         UUID uuid = UUID.randomUUID();
         given(repository.findById(uuid)).willReturn(Optional.of(user));
         long duration = 1000*60*60; // 1 hour
@@ -175,6 +187,9 @@ class OperatorServiceTest {
     @Test
     void itShouldNotTimeOutUserNotFound() {
         // given
+        User operator = new User();
+        operator.setRole(Role.OPERATOR);
+        setPrincipal(operator);
         UUID uuid = UUID.randomUUID();
         // when & then
         assertThatThrownBy(() -> underTest.timeOut(uuid, null))
@@ -187,6 +202,9 @@ class OperatorServiceTest {
     void itShouldNotTimeOutUserIsAlreadyDisabled() {
         // given
         User user = new User();
+        User operator = new User();
+        operator.setRole(Role.OPERATOR);
+        setPrincipal(operator);
         user.setEnabled(false);
         UUID uuid = UUID.randomUUID();
         given(repository.findById(uuid)).willReturn(Optional.of(user));
@@ -195,6 +213,27 @@ class OperatorServiceTest {
                 .isInstanceOf(UserCannotBeModifiedException.class)
                 .hasMessageContaining(format("User with uuid [%s] is already banned or timed out", uuid))
                 .hasFieldOrPropertyWithValue("reason", UserExceptionReason.TIMEOUT);
+    }
+    @ParameterizedTest
+    @CsvSource({
+            "OPERATOR,OPERATOR",
+            "OPERATOR,ADMIN"
+    })
+    void itShouldNotTimeoutAccessDenied(String changerRole, String changedRole) {
+        // given
+        UUID uuid = UUID.randomUUID();
+        User changer = new User();
+        User changed = new User();
+        changed.setEnabled(true);
+        changer.setRole(Role.valueOf(changerRole));
+        changed.setRole(Role.valueOf(changedRole));
+        setPrincipal(changer);
+        given(repository.findById(uuid)).willReturn(Optional.of(changed));
+        // when & then
+        assertThatThrownBy(() -> underTest.timeOut(uuid, null))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessageContaining(format("Access Denied. You cannot time out" +
+                        " user with uuid [%s] because they are an operator or admin.", uuid));
     }
 
     private void setPrincipal(User user) {

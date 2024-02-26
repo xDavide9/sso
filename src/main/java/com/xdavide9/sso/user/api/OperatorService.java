@@ -127,6 +127,7 @@ public class OperatorService {
     @Transactional
     @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
     public ResponseEntity<String> timeOut(UUID uuid, Long duration) {
+        User principal = (User) securityContext().getAuthentication().getPrincipal();
         User user = userRepository
                 .findById(uuid)
                 .orElseThrow(() ->
@@ -134,6 +135,9 @@ public class OperatorService {
                                 format("User with uuid [%s] not found.", uuid),
                                 UserExceptionReason.TIMEOUT
                         ));
+        if (principal.getRole().equals(Role.OPERATOR) && !user.getRole().equals(Role.USER))
+            throw new AccessDeniedException(format("Access Denied. You cannot time out" +
+                    " user with uuid [%s] because they are an operator or admin.", uuid));
         if (!user.isEnabled())
             throw new UserCannotBeModifiedException(format("User with uuid [%s] is already banned or timed out", uuid), UserExceptionReason.TIMEOUT);
         if (duration == null) {
