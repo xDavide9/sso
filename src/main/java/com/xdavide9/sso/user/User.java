@@ -3,9 +3,6 @@ package com.xdavide9.sso.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -37,26 +34,23 @@ public class User implements UserDetails {
      * It is used to authenticate (can also use email)
      */
     @Column(nullable = false, unique = true)
-    @NotBlank(message = "Username cannot be blank nor null")
     private String username;
 
-    // TODO create email authenticator that sends a verification email (twilio) and improve validation with apache commons validator
+    // TODO create email authenticator that sends a verification email (twilio)
     /**
      * It is used to authenticate (can also use username)
      */
     @Column(nullable = false, unique = true)
-    @Email(message = "Invalid email format")
-    @NotBlank(message = "Email cannot be blank nor null")
     private String email;
 
     /**
      * It is used to authenticate
      */
     @Column(nullable = false)
-    @NotBlank(message = "Password cannot be blank nor null")
     @JsonIgnore
     private String password;
-    // TODO implement a phone number validator using google's lib and confirm sms
+
+    // TODO implement sending of a confirm sms
     /**
      * phoneNumber
      * @since 0.0.1-SNAPSHOT
@@ -68,7 +62,6 @@ public class User implements UserDetails {
      * @see Role
      */
     @Enumerated(EnumType.STRING)
-    @NotNull(message = "Role cannot be null")
     private Role role = Role.USER;
     /**
      * accountNonExpired always set to true

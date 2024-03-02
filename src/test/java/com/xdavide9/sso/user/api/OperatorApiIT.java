@@ -18,7 +18,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -445,9 +444,8 @@ public class OperatorApiIT {
         String response = resultActions.andReturn().getResponse().getContentAsString();
         Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
         assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
-        assertThat(responseBody.get("error")).isEqualTo("Invalid user input");
-        assertThat(responseBody.get("message")).isEqualTo("One or more constraints have been violated, provide valid input next time");
-        assertThat(responseBody.get("violations")).isEqualTo(List.of("username: Username cannot be blank nor null"));
+        assertThat(responseBody.get("error")).isEqualTo("Invalid username");
+        assertThat(responseBody.get("message")).isEqualTo("Username [] is not valid, provide a new one");
     }
 
     @ParameterizedTest
@@ -557,8 +555,7 @@ public class OperatorApiIT {
         String response = resultActions.andReturn().getResponse().getContentAsString();
         Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
         assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
-        assertThat(responseBody.get("error")).isEqualTo("Invalid user input");
-        assertThat(responseBody.get("message")).isEqualTo("One or more constraints have been violated, provide valid input next time");
-        assertThat(responseBody.get("violations")).isEqualTo(List.of("email: Invalid email format"));
+        assertThat(responseBody.get("error")).isEqualTo("Invalid email");
+        assertThat(responseBody.get("message")).isEqualTo("Email [email] is not valid, provide a new one");
     }
 }

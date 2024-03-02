@@ -1,4 +1,4 @@
-package com.xdavide9.sso.exception.user.api;
+package com.xdavide9.sso.exception.user.validation;
 
 import com.xdavide9.sso.util.ValidatorService;
 

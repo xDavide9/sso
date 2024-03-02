@@ -81,19 +81,4 @@ class UserExceptionsHandlerTest {
         assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
         assertThat(responseBody.get("status")).isEqualTo(FORBIDDEN.toString());
     }
-
-    @Test
-    void itShouldHandleInvalidPhoneNumberException() {
-        // given
-        InvalidPhoneNumberException e = new InvalidPhoneNumberException("ab");
-        // when
-        ResponseEntity<?> response = underTest.handleInvalidPhoneNumberException(e);
-        // then
-        assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
-        assertThat(responseBody).isNotNull();
-        assertThat(responseBody.get("error")).isEqualTo("Invalid phone number");
-        assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
-        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
-    }
 }

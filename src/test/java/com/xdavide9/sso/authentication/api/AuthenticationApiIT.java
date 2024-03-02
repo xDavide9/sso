@@ -66,11 +66,11 @@ public class AuthenticationApiIT {
     }
 
     @Test
-    void itShouldNotSignupInvalidUserInput() throws Exception{
+    void itShouldNotSignupInvalidUsername() throws Exception{
         // given
-        String username = "username";
+        String username = "";
         String password = "Password1!";
-        String email = "invalid email";
+        String email = "email@gmail.com";
         SignupRequest request = new SignupRequest(username, email, password);
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -82,12 +82,60 @@ public class AuthenticationApiIT {
         resultActions.andExpect(status().isBadRequest());
         String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
         Map<String, Object> responseBody = parser.java(contentAsString, new TypeReference<>(){});
-        List<String> violations = List.of("email: Invalid email format");
-        assertThat(responseBody.get("violations")).isEqualTo(violations);
+        assertThat(responseBody.get("error")).isEqualTo("Invalid username");
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+        assertThat(responseBody.get("message")).isEqualTo(format("Username [%s] is not valid, provide a new one", username));
+    }
+
+    @Test
+    void itShouldNotSignupInvalidEmail() throws Exception{
+        // given
+        String username = "Valid";
+        String password = "Password1!";
+        String email = "NotValid";
+        SignupRequest request = new SignupRequest(username, email, password);
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/signup")
+                        .contentType(APPLICATION_JSON)
+                        .content(parser.json(request))
+        );
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(contentAsString, new TypeReference<>(){});
+        assertThat(responseBody.get("error")).isEqualTo("Invalid email");
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+        assertThat(responseBody.get("message")).isEqualTo(format("Email [%s] is not valid, provide a new one", email));
+    }
+
+    @Test
+    void itShouldNotSignupInvalidPassword() throws Exception{
+        // given
+        String username = "Valid";
+        String password = "notgood";
+        String email = "email@gmail.com";
+        SignupRequest request = new SignupRequest(username, email, password);
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/signup")
+                        .contentType(APPLICATION_JSON)
+                        .content(parser.json(request))
+        );
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(contentAsString, new TypeReference<>(){});
+        List<String> violations = List.of(
+                "password: Password must contain at least one uppercase letter," +
+                        " one lowercase letter, one digit, and one special character and be 8 characters long");
         assertThat(responseBody.get("error")).isEqualTo("Invalid user input");
         assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
         assertThat(responseBody.get("message")).isEqualTo("One or more constraints have been violated, provide valid input next time");
+        assertThat(responseBody.get("violations")).isEqualTo(violations);
     }
+
+
 
     @Test
     void itShouldNotSignupUsernameTaken() throws Exception {

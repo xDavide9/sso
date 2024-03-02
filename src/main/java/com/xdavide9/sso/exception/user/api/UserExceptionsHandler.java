@@ -71,15 +71,6 @@ public class UserExceptionsHandler {
         return new ResponseEntity<>(responseBody, FORBIDDEN);
     }
 
-    @ExceptionHandler(value = InvalidPhoneNumberException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidPhoneNumberException(InvalidPhoneNumberException e) {
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("error", "Invalid phone number");
-        responseBody.put("message", e.getMessage());
-        responseBody.put("status", BAD_REQUEST.toString());
-        return new ResponseEntity<>(responseBody, BAD_REQUEST);
-    }
-
     // ALREADY DEFINED BY OTHER LIBRARIES
 
     @ExceptionHandler(value = MethodArgumentTypeMismatchException.class)

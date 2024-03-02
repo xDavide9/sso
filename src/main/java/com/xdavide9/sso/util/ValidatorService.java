@@ -3,7 +3,9 @@ package com.xdavide9.sso.util;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
-import com.xdavide9.sso.exception.user.api.InvalidPhoneNumberException;
+import com.xdavide9.sso.exception.user.validation.InvalidEmailException;
+import com.xdavide9.sso.exception.user.validation.InvalidPhoneNumberException;
+import com.xdavide9.sso.exception.user.validation.InvalidUsernameException;
 import com.xdavide9.sso.user.PasswordDTO;
 import com.xdavide9.sso.user.User;
 import jakarta.validation.ConstraintViolation;
@@ -88,8 +90,8 @@ public class ValidatorService {
      * Validates using apache commons' email validator
      */
     public void validateEmail(String email) {
-        EmailValidator validator = getEmailValidator();
-
+        if (!getEmailValidator().isValid(email))
+            throw new InvalidEmailException(format("Email [%s] is not valid, provide a new one", email));
     }
 
     /**
@@ -100,5 +102,7 @@ public class ValidatorService {
     }
 
     public void validateUsername(String username) {
+        if (username == null || username.isBlank())
+            throw new InvalidUsernameException(format("Username [%s] is not valid, provide a new one", username));
     }
 }
