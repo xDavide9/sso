@@ -1,5 +1,6 @@
-package com.xdavide9.sso.config;
+package com.xdavide9.sso.common.config;
 
+import com.xdavide9.sso.config.SecurityConfig;
 import com.xdavide9.sso.user.Role;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
@@ -7,8 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -17,11 +18,11 @@ import java.util.List;
 /**
  * This class holds configuration for the testing database. This testing environment is active
  * when the spring profile "test" is used. A {@link CommandLineRunner} bean is registered if this is the case
- * and saves some custom {@link User} to the database.
+ * and saves some custom {@link User}s to the database.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
-@Configuration
+@TestConfiguration
 public class TestingDatabaseConfig {
 
     /**
@@ -49,7 +50,7 @@ public class TestingDatabaseConfig {
      * @return the custom command line runner bean described
      */
     @Bean
-    @Profile({"test", "test2"})
+    @Profile({"test"})
     CommandLineRunner setUpTestingDatabase() {
         return args -> {
             User user = new User(

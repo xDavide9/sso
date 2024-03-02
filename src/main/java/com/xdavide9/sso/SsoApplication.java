@@ -21,4 +21,6 @@ public class SsoApplication {
         SpringApplication app = new SpringApplication(SsoApplication.class);
         app.run(args);
     }
+
+    // todo aggiungere logging
 }

@@ -15,17 +15,20 @@ public class JwtProperties {
     /**
      * secret key that is used to sign jwt tokens
      */
-    private final String secretKey;
+    private String secretKey;
     /**
      * defines how long until a jwt token expires in milliseconds
      */
-    private final long expiration;
+    private long expiration;
     @ConstructorBinding
     public JwtProperties(String secretKey,
                          long expiration) {
         this.secretKey = secretKey;
         this.expiration = expiration;
     }
+
+    // GETTERS
+
     public String getSecretKey() {
         return secretKey;
     }
@@ -33,4 +36,13 @@ public class JwtProperties {
         return expiration;
     }
 
+    // SETTERS
+
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    public void setExpiration(long expiration) {
+        this.expiration = expiration;
+    }
 }

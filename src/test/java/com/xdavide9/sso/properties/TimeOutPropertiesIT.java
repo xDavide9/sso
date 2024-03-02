@@ -4,6 +4,7 @@ package com.xdavide9.sso.properties;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -14,6 +15,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class TimeOutPropertiesIT {
 
     @Autowired
+    @Qualifier("api.timeout-com.xdavide9.sso.properties.TimeOutProperties")
     private TimeOutProperties underTest;
 
     @Test

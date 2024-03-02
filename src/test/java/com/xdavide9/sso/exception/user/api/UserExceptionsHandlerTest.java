@@ -1,18 +1,12 @@
 package com.xdavide9.sso.exception.user.api;
 
-import com.xdavide9.sso.user.PasswordDTO;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.*;

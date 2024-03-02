@@ -1,10 +1,9 @@
 package com.xdavide9.sso.user.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.xdavide9.sso.authentication.AuthenticationResponse;
-import com.xdavide9.sso.authentication.LoginRequest;
+import com.xdavide9.sso.common.config.TestAuthenticator;
+import com.xdavide9.sso.common.util.JsonParserService;
 import com.xdavide9.sso.user.User;
-import com.xdavide9.sso.util.JsonParserService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,6 +11,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -26,22 +26,27 @@ import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Tests the integration between OperatorController, OperatorService and UserRepository
 // against a db with 1 admin, 1 operator, 1 plain user; refer to TestingDatabaseConfig.java
+
+// Uses TestAuthenticator
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestAuthenticator.class)
 public class OperatorApiIT {
 
     @Autowired
     private MockMvc mockMvc;
-    // using parser to help write json even if theoretically only mockMvc should be used
-    // in integration testing
     @Autowired
     private JsonParserService parser;
+    @Autowired
+    private TestAuthenticator authenticator;
 
     @ParameterizedTest
     @CsvSource({
@@ -50,21 +55,13 @@ public class OperatorApiIT {
     })
     void itShouldGetUserByUsername(String loginUsername, String loginPassword) throws Exception {
         // given
-        // login to get jwt token first
-        LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(loginRequest))
-        );
-        String loginJsonResponse = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse authenticationResponse = parser.java(loginJsonResponse, AuthenticationResponse.class);
+        String token = authenticator.login(loginUsername, loginPassword);
         String username = "userUsername";
         // when
         ResultActions resultActions = mockMvc.perform(
                 get(format("/api/v0.0.1/users/username/%s", username))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", format("Bearer %s", authenticationResponse.token()))
+                        .header("Authorization", format("Bearer %s", token))
         );
         // then
         resultActions.andExpect(status().isOk());
@@ -74,28 +71,16 @@ public class OperatorApiIT {
         assertThat(user.getEmail()).isEqualTo("user@email.com");
     }
 
-    @ParameterizedTest
-    @CsvSource({
-            "operatorUsername,operatorPassword",
-            "adminUsername,adminPassword"
-    })
-    void itShouldNotGetUserByUsernameUserDoesNotExist(String loginUsername, String loginPassword) throws Exception {
+    @Test
+    void itShouldNotGetUserByUsernameUserDoesNotExist() throws Exception {
         // given
-        // login to get jwt token first
-        LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(loginRequest))
-        );
-        String loginJsonResponse = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse authenticationResponse = parser.java(loginJsonResponse, AuthenticationResponse.class);
+        String token = authenticator.loginAsOperator();
         String username = "nonExistent";
         // when
         ResultActions resultActions = mockMvc.perform(
                 get(format("/api/v0.0.1/users/username/%s", username))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", format("Bearer %s", authenticationResponse.token()))
+                        .header("Authorization", format("Bearer %s", token))
         );
         // then
         resultActions.andExpect(status().isNotFound());
@@ -123,21 +108,7 @@ public class OperatorApiIT {
     @Test
     void itShouldNotGetUserByUsernameNotEnoughAuthorization() throws Exception {
         // given
-        String userUsername = "userUsername";
-        String userPassword = "userPassword";
-        LoginRequest loginRequest = new LoginRequest(userUsername, userPassword);
-        String jsonBody = parser.json(loginRequest);
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonBody)
-        );
-        loginResultActions.andExpect(status().isOk());
-        AuthenticationResponse response = parser.java(
-                loginResultActions.andReturn().getResponse().getContentAsString(),
-                AuthenticationResponse.class
-        );
-        String token = response.token();
+        String token = authenticator.loginAsUser();
         // when
         ResultActions resultActions = mockMvc.perform(
                 get("/api/v0.0.1/users/username/userUsername")
@@ -156,27 +127,10 @@ public class OperatorApiIT {
     })
     void itShouldGetUserByUuid(String loginUsername, String loginPassword) throws Exception {
         // given
-        // login for authorization
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
-        // now get the user by username (already tested)
-        ResultActions getByUsernameResultActions = mockMvc.perform(
-                get("/api/v0.0.1/users/username/userUsername")
-                        .header("Authorization", format("Bearer %s", token))
-        );
-        getByUsernameResultActions.andExpect(status().isOk());
-        String getByUsernameResponseBody = getByUsernameResultActions.andReturn().getResponse().getContentAsString();
-        User userByUsername = parser.java(getByUsernameResponseBody, User.class);
-        UUID uuid = userByUsername.getUuid();
+        String token = authenticator.login(loginUsername, loginPassword);
+        User user = authenticator.getUserWithRoleUser(token);
+        UUID uuid = user.getUuid();
         // when
-        // now the actual getByUuid
         ResultActions resultActions = mockMvc.perform(
                 get(format("/api/v0.0.1/users/uuid/%s", uuid))
                         .header("Authorization", format("Bearer %s", token))
@@ -184,30 +138,16 @@ public class OperatorApiIT {
         // then
         resultActions.andExpect(status().isOk());
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        User user = parser.java(responseBody, User.class);
-        assertThat(user).isEqualTo(userByUsername);
+        User returnedUser = parser.java(responseBody, User.class);
+        assertThat(returnedUser).isEqualTo(user);
     }
 
-    @ParameterizedTest
-    @CsvSource({
-            "operatorUsername,operatorPassword",
-            "adminUsername,adminPassword"
-    })
-    void itShouldNotGetUserByUuidUserDoesNotExist(String loginUsername, String loginPassword) throws Exception {
+    @Test
+    void itShouldNotGetUserByUuidUserDoesNotExist() throws Exception {
         // given
-        // login for authorization
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
+        String token = authenticator.loginAsOperator();
         UUID uuid = UUID.randomUUID();
         // when
-        // now the actual getByUuid
         ResultActions resultActions = mockMvc.perform(
                 get(format("/api/v0.0.1/users/uuid/%s", uuid))
                         .header("Authorization", format("Bearer %s", token))
@@ -224,7 +164,6 @@ public class OperatorApiIT {
     @Test
     void itShouldNotGetByUserUuidTokenIsMissing() throws Exception {
         // given
-        // does not matter it does not match a record in the database as it should be denied
         UUID uuid = UUID.randomUUID();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -239,19 +178,8 @@ public class OperatorApiIT {
     @Test
     void itShouldNotGetUserByUuidNotEnoughAuthorization() throws Exception {
         // given
-        // does not matter it does not match a record in the database as it should be denied
         UUID uuid = UUID.randomUUID();
-        // login for weak token
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest("userUsername", "userPassword")))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
-        // does not matter it does
+        String token = authenticator.loginAsUser();
         // when
         ResultActions resultActions = mockMvc.perform(
                 get(format("/api/v0.0.1/users/uuid/%s", uuid))
@@ -270,15 +198,7 @@ public class OperatorApiIT {
     })
     void itShouldGetUserByEmail(String loginUsername, String loginPassword) throws Exception {
         // given
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
+        String token = authenticator.login(loginUsername, loginPassword);
         // when
         ResultActions resultActions = mockMvc.perform(
                 get("/api/v0.0.1/users/email/user@email.com")
@@ -292,22 +212,10 @@ public class OperatorApiIT {
         assertThat(user.getEmail()).isEqualTo("user@email.com");
     }
 
-    @ParameterizedTest
-    @CsvSource({
-            "operatorUsername,operatorPassword",
-            "adminUsername,adminPassword"
-    })
-    void itShouldNotGetUserByEmailUserDoesNotExist(String loginUsername, String loginPassword) throws Exception {
+    @Test
+    void itShouldNotGetUserByEmailUserDoesNotExist() throws Exception {
         // given
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
+        String token = authenticator.loginAsOperator();
         String email = "wrong@email.com";
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -340,17 +248,7 @@ public class OperatorApiIT {
     @Test
     void itShouldNotGetUserByEmailNotEnoughAuthorization() throws Exception {
         // given
-        String loginUsername = "userUsername";
-        String loginPassword = "userPassword";
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
+        String token = authenticator.loginAsUser();
         // when
         ResultActions resultActions = mockMvc.perform(
                 get("/api/v0.0.1/users/email/userEmail")
@@ -362,51 +260,6 @@ public class OperatorApiIT {
         assertThat(responseBody).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
     }
 
-    // HELPER METHODS
-
-    private User getUser(String username, String token) throws Exception {
-        ResultActions resultActions = mockMvc.perform(
-                get("/api/v0.0.1/users/username/" + username)
-                        .header("Authorization", format("Bearer %s", token))
-        );
-        resultActions.andExpect(status().isOk());
-        return parser.java(resultActions.andReturn().getResponse().getContentAsString(), User.class);
-    }
-
-    private User getUserWithRoleUser(String token) throws Exception {
-        return getUser("userUsername", token);
-    }
-    private User getUserWithRoleOperator(String token) throws Exception {
-        return getUser("operatorUsername", token);
-    }
-    private User getUserWithRoleAdmin(String token) throws Exception {
-        return getUser("adminUsername", token);
-    }
-
-    private String login(String username, String password) throws Exception {
-        ResultActions resultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest(username, password)))
-        );
-        resultActions.andExpect(status().isOk());
-        String response = resultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse authenticationResponse = parser.java(response, AuthenticationResponse.class);
-        return authenticationResponse.token();
-    }
-
-    private String loginAsOperator() throws Exception {
-        return login("operatorUsername", "operatorPassword");
-    }
-
-    private String loginAsAdmin() throws Exception {
-        return login("adminUsername", "adminPassword");
-    }
-
-    private String loginAsUser() throws Exception {
-        return login("userUsername", "userPassword");
-    }
-
     @ParameterizedTest
     @CsvSource({
             "operatorUsername,operatorPassword",
@@ -415,33 +268,26 @@ public class OperatorApiIT {
     @Transactional
     void itShouldTimeOutUserCorrectlyWithSpecifiedDuration(String loginUsername, String loginPassword) throws Exception {
         // given
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
-        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String token = authenticator.login(loginUsername, loginPassword);
+        User user = authenticator.getUserWithRoleUser(token);
+        UUID uuid = user.getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
-                put(format("/api/v0.0.1/users/timeout/%s?duration=1000", uuid))
+                put(format("/api/v0.0.1/users/timeout/%s?duration=1000", user.getUuid()))
                         .header("Authorization", format("Bearer %s", token))
         );
         // then
         resultActions.andExpect(status().isOk());
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         assertThat(responseBody).isEqualTo(format("User with uuid [%s] has been timed out for [1000] milliseconds", uuid));
-        User timedOutUser = getUserWithRoleUser(token);
+        User timedOutUser = authenticator.getUserWithRoleUser(token);
         assertThat(timedOutUser.isEnabled()).isFalse();
         Thread.sleep(1000);
-        User enabledUser = getUserWithRoleUser(token);
+        User enabledUser = authenticator.getUserWithRoleUser(token);
         assertThat(enabledUser.isEnabled()).isTrue();
     }
 
-    // test with the default duration is in TimeOutDefaultDurationIT2.java
+    // test with the default duration is in TimeOutDefaultDurationIT.java
 
     @Test
     void itShouldNotTimeOutUserTokenIsMissing() throws Exception {
@@ -459,19 +305,13 @@ public class OperatorApiIT {
     @Test
     void itShouldNotTimeOutUserNotEnoughAuthorization() throws Exception {
         // given
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest("userUsername", "userPassword")))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
+        String weakToken = authenticator.loginAsUser();
+        String strongToken = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleUser(strongToken).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
-                put(format("/api/v0.0.1/users/timeout/%s?duration=2000", UUID.randomUUID()))
-                        .header("Authorization", format("Bearer %s", token))
+                put(format("/api/v0.0.1/users/timeout/%s?duration=2000", uuid))
+                        .header("Authorization", format("Bearer %s", weakToken))
         );
         // then
         resultActions.andExpect(status().isForbidden());
@@ -482,15 +322,7 @@ public class OperatorApiIT {
     @Test
     void itShouldNotTimeOutUserDoesNotExist() throws Exception {
         // given
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest("operatorUsername", "operatorPassword")))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
+        String token = authenticator.loginAsOperator();
         UUID uuid = UUID.randomUUID();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -514,16 +346,8 @@ public class OperatorApiIT {
     @Transactional
     void itShouldChangeUsernameCorrectly(String loginUsername, String loginPassword) throws Exception {
         // given
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
-        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String token = authenticator.login(loginUsername, loginPassword);
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         String username = "username";
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -539,8 +363,8 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeUsernameTokenIsMissing() throws Exception {
         // given
-        String token = loginAsOperator();
-        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String token = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleOperator(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/change/username/%s?username=any", uuid))
@@ -554,9 +378,9 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeUsernameNotEnoughAuthorization() throws Exception {
         // given
-        String strongToken = loginAsOperator();
-        String weakToken = loginAsUser();
-        UUID uuid = getUserWithRoleUser(strongToken).getUuid();
+        String strongToken = authenticator.loginAsOperator();
+        String weakToken = authenticator.loginAsUser();
+        UUID uuid = authenticator.getUserWithRoleUser(strongToken).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/change/username/%s?username=any", uuid))
@@ -571,7 +395,7 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeUsernameUserNotFound() throws Exception {
         // given
-        String token = loginAsOperator();
+        String token = authenticator.loginAsOperator();
         UUID uuid = UUID.randomUUID();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -590,8 +414,8 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeUsernameBecauseItIsTaken() throws Exception {
         // given
-        String token = loginAsOperator();
-        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String token = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/change/username/%s?username=operatorUsername", uuid))
@@ -609,8 +433,8 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeUsernameInvalidInput() throws Exception {
         // given
-        String token = loginAsOperator();
-        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String token = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/change/username/%s?username=", uuid))
@@ -634,16 +458,8 @@ public class OperatorApiIT {
     @Transactional
     void itShouldChangeEmailCorrectly(String loginUsername, String loginPassword) throws Exception {
         // given
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest(loginUsername, loginPassword)))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String token = loginResponse.token();
-        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String token = authenticator.login(loginUsername, loginPassword);
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         String email = "email@email.com";
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -659,8 +475,8 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeEmailTokenIsMissing() throws Exception {
         // given
-        String token = loginAsOperator();
-        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String token = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/change/email/%s?email=any", uuid))
@@ -674,9 +490,9 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeEmailNotEnoughAuthorization() throws Exception {
         // given
-        String strongToken = loginAsOperator();
-        String weakToken = loginAsUser();
-        UUID uuid = getUserWithRoleUser(strongToken).getUuid();
+        String strongToken = authenticator.loginAsOperator();
+        String weakToken = authenticator.loginAsUser();
+        UUID uuid = authenticator.getUserWithRoleUser(strongToken).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/change/email/%s?email=any", uuid))
@@ -691,7 +507,7 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeEmailUserNotFound() throws Exception {
         // given
-        String token = loginAsOperator();
+        String token = authenticator.loginAsOperator();
         UUID uuid = UUID.randomUUID();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -710,8 +526,8 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeEmailBecauseItIsTaken() throws Exception {
         // given
-        String token = loginAsOperator();
-        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String token = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/change/email/%s?email=operator@email.com", uuid))
@@ -729,8 +545,8 @@ public class OperatorApiIT {
     @Test
     void itShouldNotChangeEmailInvalidUserInput() throws Exception {
         // given
-        String token = loginAsOperator();
-        UUID uuid = getUserWithRoleUser(token).getUuid();
+        String token = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/change/email/%s?email=email", uuid))

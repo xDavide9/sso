@@ -36,6 +36,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceTest {
 
+    // do not user TestAuthenticator as its functionality is being tested
+
     @InjectMocks
     private AuthenticationService underTest;
     @Mock

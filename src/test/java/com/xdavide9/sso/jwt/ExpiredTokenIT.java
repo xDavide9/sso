@@ -1,13 +1,12 @@
 package com.xdavide9.sso.jwt;
 
-import com.xdavide9.sso.authentication.AuthenticationResponse;
-import com.xdavide9.sso.authentication.LoginRequest;
-import com.xdavide9.sso.util.JsonParserService;
+import com.xdavide9.sso.common.config.OverrideJwtPropertiesConfig;
+import com.xdavide9.sso.common.config.TestAuthenticator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -15,34 +14,28 @@ import org.springframework.test.web.servlet.ResultActions;
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // holds a simple integration test to see what happens after a token expires
+// overrides duration with special property bean
+// abstract authentication logic (already tested) with TestAuthenticator
 
 @SpringBootTest
-@ActiveProfiles("test2")
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
+@Import({OverrideJwtPropertiesConfig.class, TestAuthenticator.class})
 public class ExpiredTokenIT {
 
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    private JsonParserService parser;
+    private TestAuthenticator authenticator;
 
     @Test
     void itShouldNotGetUserByUsernameExpiredToken() throws Exception {
         // given
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(new LoginRequest("operatorUsername", "operatorPassword")))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String contentAsString = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(contentAsString, AuthenticationResponse.class);
-        String token = loginResponse.token();
-        // waiting at least 1 second token must be expired by now
+        String token = authenticator.loginAsOperator();
+        // waiting at least 1 second token must be expired by now @see OverrideJwtPropertiesConfig
         Thread.sleep(1000);
         // when
         ResultActions resultActions = mockMvc.perform(

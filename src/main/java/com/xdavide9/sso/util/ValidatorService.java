@@ -9,6 +9,7 @@ import com.xdavide9.sso.user.User;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -62,8 +63,6 @@ public class ValidatorService {
         validateUsingJakartaConstraints(dto);
     }
 
-    // TODO use google's libphonenumber
-
     /**
      * Validates input using google's libphonenumber.
      */
@@ -85,13 +84,19 @@ public class ValidatorService {
         return PhoneNumberUtil.getInstance();
     }
 
-    // TODO use apache commons
-
     /**
      * Validates using apache commons' email validator
      */
     public void validateEmail(String email) {
+        EmailValidator validator = getEmailValidator();
 
+    }
+
+    /**
+     * Wrapping for testability
+     */
+    public EmailValidator getEmailValidator() {
+        return EmailValidator.getInstance();
     }
 
     public void validateUsername(String username) {

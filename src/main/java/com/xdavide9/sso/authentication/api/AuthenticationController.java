@@ -35,6 +35,9 @@ public class AuthenticationController {
         this.authenticationService = authenticationService;
     }
 
+    // TODO make more signup endpoints to provide additional information if  without forgetting to validate input
+    // so change SignupRequest to a class again instead of record
+
     /**
      * Method that maps the /signup endpoint. It requires a {@link SignupRequest}
      * that holds the username, email and password.

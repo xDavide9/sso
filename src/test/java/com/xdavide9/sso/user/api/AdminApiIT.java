@@ -1,10 +1,11 @@
 package com.xdavide9.sso.user.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
+import com.xdavide9.sso.common.config.TestAuthenticator;
+import com.xdavide9.sso.common.config.TestingDatabaseConfig;
+import com.xdavide9.sso.common.util.JsonParserService;
 import com.xdavide9.sso.user.User;
-import com.xdavide9.sso.util.JsonParserService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,6 +13,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,75 +33,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // All tests should be wrapped in transactions because they modify database state
 // and might lead to test failure elsewhere
 
+// using test component TestAuthenticator because authentication features are tested else where
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import({TestAuthenticator.class, TestingDatabaseConfig.class})
 public class AdminApiIT {
     @Autowired
     private MockMvc mockMvc;
-    // using parser to help write json even if theoretically only mockMvc should be used
-    // in integration testing
     @Autowired
     private JsonParserService parser;
-
-    // HELPER METHODS (functionality widely tested before)
-
-    private String login(String loginUsername, String loginPassword) throws Exception {
-        LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(loginRequest))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String responseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(responseBody, AuthenticationResponse.class);
-        return loginResponse.token();
-    }
-
-    private String loginAsAdmin() throws Exception {
-        return login("adminUsername", "adminPassword");
-    }
-
-    private String loginAsOperator() throws Exception {
-        return login("operatorUsername", "operatorPassword");
-    }
-
-    private String loginAsUser() throws Exception {
-        return login("userUsername", "userPassword");
-    }
-
-    private UUID getUuid(String token, String username) throws Exception {
-        ResultActions resultActions = mockMvc.perform(
-                get(format("/api/v0.0.1/users/username/%s", username))
-                        .header("Authorization", format("Bearer %s", token))
-        );
-        resultActions.andExpect(status().isOk());
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        User user = parser.java(responseBody, User.class);
-        return user.getUuid();
-    }
-
-    private UUID getUuidOfUser(String token) throws Exception {
-        return getUuid(token, "userUsername");
-    }
-
-    private UUID getUuidOfOperator(String token) throws Exception {
-        return getUuid(token, "operatorUsername");
-    }
-
-    private UUID getUuidOfAdmin(String token) throws Exception {
-        return getUuid(token, "adminUsername");
-    }
-
-    // ACTUAL TESTS
+    @Autowired
+    private TestAuthenticator authenticator;
 
     @Test
     @Transactional
     void itShouldPromoteUserToOperator() throws Exception {
         // given
-        String token = loginAsAdmin();
-        UUID uuid = getUuidOfUser(token);
+        String token = authenticator.loginAsAdmin();
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/promote/%s", uuid))
@@ -119,18 +72,9 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotPromoteUserToOperatorNoAdminPrivileges(String loginUsername, String loginPassword) throws Exception {
         // given
-        LoginRequest loginRequest = new LoginRequest(loginUsername, loginPassword);
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(loginRequest))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String weakToken = loginResponse.token();
-        String adminToken = loginAsAdmin();
-        UUID uuid = getUuidOfUser(adminToken);
+        String weakToken = authenticator.login(loginUsername, loginPassword);
+        String adminToken = authenticator.loginAsAdmin();
+        UUID uuid = authenticator.getUserWithRoleUser(adminToken).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/promote/%s", uuid))
@@ -146,7 +90,7 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotPromoteUserToOperatorImproperUuid() throws Exception {
         // given
-        String token = loginAsAdmin();
+        String token = authenticator.loginAsAdmin();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put("/api/v0.0.1/users/promote/abc")
@@ -165,7 +109,7 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotPromoteUserToOperatorUserDoesNotExist() throws Exception {
         // given
-        String token = loginAsAdmin();
+        String token = authenticator.loginAsAdmin();
         UUID uuid = UUID.randomUUID();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -189,14 +133,8 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotPromoteUserToOperatorUserIsNotARoleUser(String username) throws Exception {
         // given
-        String token = loginAsAdmin();
-        ResultActions getUuidResultActions = mockMvc.perform(
-                get(format("/api/v0.0.1/users/username/%s", username))
-                        .header("Authorization", format("Bearer %s", token))
-        );
-        getUuidResultActions.andExpect(status().isOk());
-        String getUuidResponseBody = getUuidResultActions.andReturn().getResponse().getContentAsString();
-        User user = parser.java(getUuidResponseBody, User.class);
+        String token = authenticator.loginAsAdmin();
+        User user = authenticator.getGenericUser(token, username);
         UUID uuid = user.getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -216,10 +154,10 @@ public class AdminApiIT {
     @Transactional
     void itShouldBanUser() throws Exception {
         // given
-        String token = loginAsAdmin();
+        String token = authenticator.loginAsAdmin();
         // this token is going to become useless once the operator is banned
-        String operatorToken = loginAsOperator();
-        UUID operatorUuid = getUuidOfOperator(token);
+        String operatorToken = authenticator.loginAsOperator();
+        UUID operatorUuid = authenticator.getUserWithRoleOperator(token).getUuid();
         // when
         ResultActions operatorBanResultActions = mockMvc.perform(
                 delete(format("/api/v0.0.1/users/ban/%s", operatorUuid))
@@ -251,16 +189,21 @@ public class AdminApiIT {
         assertThat(response).isEqualTo(format("This account [%s] has been disabled by an Admin.", operatorUuid));
     }
 
-    @Test
+    @ParameterizedTest
+    @CsvSource({
+            "userUsername,userPassword",
+            "operatorUsername,operatorPassword"
+    })
     @Transactional
-    void itShouldNotBanUserNoAdminPrivileges() throws Exception {
+    void itShouldNotBanUserNoAdminPrivileges(String loginUsername, String loginPassword) throws Exception {
         // given
-        String token = loginAsOperator();
-        UUID uuid = getUuidOfUser(token);
+        String adminToken = authenticator.loginAsAdmin();;
+        String weakToken = authenticator.login(loginUsername, loginPassword);
+        UUID uuid = authenticator.getUserWithRoleUser(adminToken).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 delete(format("/api/v0.0.1/users/ban/%s", uuid))
-                        .header("Authorization", format("Bearer %s", token))
+                        .header("Authorization", format("Bearer %s", weakToken))
         );
         // then
         resultActions.andExpect(status().isForbidden());
@@ -272,7 +215,7 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotBanUserDoesNotExist() throws Exception {
         // given
-        String token = loginAsAdmin();
+        String token = authenticator.loginAsAdmin();
         UUID uuid = UUID.randomUUID();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -292,8 +235,8 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotBanUserIsAnAdmin() throws Exception {
         // given
-        String token = loginAsAdmin();
-        UUID uuid = getUuidOfAdmin(token);
+        String token = authenticator.loginAsAdmin();
+        UUID uuid = authenticator.getUserWithRoleAdmin(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 delete(format("/api/v0.0.1/users/ban/%s", uuid))
@@ -312,8 +255,8 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotBanUserTheyAreAlreadyBanned() throws Exception {
         // given
-        String token = loginAsAdmin();
-        UUID uuid = getUuidOfUser(token);
+        String token = authenticator.loginAsAdmin();;
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         ResultActions successResultActions = mockMvc.perform(
                 delete(format("/api/v0.0.1/users/ban/%s", uuid))
                         .header("Authorization", format("Bearer %s", token))
@@ -337,8 +280,8 @@ public class AdminApiIT {
     @Transactional
     void itShouldUnbanUser() throws Exception {
         // given
-        String token = loginAsAdmin();
-        UUID uuid = getUuidOfUser(token);
+        String token = authenticator.loginAsAdmin();;
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         ResultActions given = mockMvc.perform(
                 delete("/api/v0.0.1/users/ban/" + uuid)
                         .header("Authorization", format("Bearer %s", token))
@@ -355,16 +298,21 @@ public class AdminApiIT {
         assertThat(response).isEqualTo(format("The user [%s] has been successfully unbanned", uuid));
     }
 
-    @Test
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "userUsername,userPassword"
+    })
     @Transactional
-    void itShouldNotUnbanUserNoAdminPrivileges() throws Exception {
+    void itShouldNotUnbanUserNoAdminPrivileges(String loginUsername, String loginPassword) throws Exception {
         // given
-        String token = loginAsOperator();
-        UUID uuid = getUuidOfUser(token);
+        String weakToken = authenticator.login(loginUsername, loginPassword);
+        String adminToken = authenticator.loginAsAdmin();
+        UUID uuid = authenticator.getUserWithRoleUser(adminToken).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/unban/%s", uuid))
-                        .header("Authorization", format("Bearer %s", token))
+                        .header("Authorization", format("Bearer %s", weakToken))
         );
         // then
         resultActions.andExpect(status().isForbidden());
@@ -376,7 +324,7 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotUnbanUserDoesNotExist() throws Exception {
         // given
-        String token = loginAsAdmin();
+        String token = authenticator.loginAsAdmin();
         UUID uuid = UUID.randomUUID();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -396,8 +344,8 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotUnbanUserTheyAreNotBannedInTheFirstPlace() throws Exception {
         // given
-        String token = loginAsAdmin();
-        UUID uuid = getUuidOfUser(token);
+        String token = authenticator.loginAsAdmin();
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put("/api/v0.0.1/users/unban/" + uuid)
@@ -416,8 +364,8 @@ public class AdminApiIT {
     @Transactional
     void itShouldDemoteUser() throws Exception {
         // given
-        String token = loginAsAdmin();
-        UUID uuid = getUuidOfOperator(token);
+        String token = authenticator.loginAsAdmin();
+        UUID uuid = authenticator.getUserWithRoleOperator(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/demote/%s", uuid))
@@ -437,19 +385,9 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotDemoteUserNoAdminPrivileges(String loginUsername, String loginPassword) throws Exception {
         // given
-        ResultActions loginResultActions = mockMvc.perform(
-                post("/api/v0.0.1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(parser.json(
-                                new LoginRequest(loginUsername, loginPassword)
-                        ))
-        );
-        loginResultActions.andExpect(status().isOk());
-        String loginResponseBody = loginResultActions.andReturn().getResponse().getContentAsString();
-        AuthenticationResponse loginResponse = parser.java(loginResponseBody, AuthenticationResponse.class);
-        String weakToken = loginResponse.token();
-        String adminToken = loginAsAdmin();
-        UUID uuid = getUuidOfUser(adminToken);
+        String weakToken = authenticator.login(loginUsername, loginPassword);
+        String adminToken = authenticator.loginAsAdmin();
+        UUID uuid = authenticator.getUserWithRoleOperator(adminToken).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
                 put(format("/api/v0.0.1/users/demote/%s", uuid))
@@ -465,7 +403,7 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotDemoteUserDoesNotExist() throws Exception {
         // given
-        String token = loginAsAdmin();
+        String token = authenticator.loginAsAdmin();
         UUID uuid = UUID.randomUUID();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -490,7 +428,7 @@ public class AdminApiIT {
     @Transactional
     void itShouldNotDemoteUserIsNotOperator(String username) throws Exception {
         // given
-        String token = loginAsAdmin();
+        String token = authenticator.loginAsAdmin();
         ResultActions getUuidResultActions = mockMvc.perform(
                 get(format("/api/v0.0.1/users/username/%s", username))
                         .header("Authorization", format("Bearer %s", token))

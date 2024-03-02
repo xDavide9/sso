@@ -14,23 +14,23 @@ public class AppProperties {
     /**
      * It is the name of the application also specified in pom.xml
      */
-    private final String name;
+    private String name;
     /**
      * It is the current version of the application also specified in pom.xml
      */
-    private final String version;
+    private String version;
     /**
      * It is the description of the application also specified on GitHub
      */
-    private final String description;
+    private String description;
     /**
      * It is the domain on which the application is hosted
      */
-    private final String groupId;
+    private String groupId;
     /**
      * It is the java development kit version used to develop this application
      */
-    private final String jdk;
+    private String jdk;
 
     @ConstructorBinding
     public AppProperties(String name,
@@ -42,6 +42,28 @@ public class AppProperties {
         this.version = version;
         this.description = description;
         this.groupId = groupId;
+        this.jdk = jdk;
+    }
+
+    // SETTERS
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
+    public void setJdk(String jdk) {
         this.jdk = jdk;
     }
 

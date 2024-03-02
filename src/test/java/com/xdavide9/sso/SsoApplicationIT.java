@@ -7,7 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 // this test checks if specific environment is loaded correctly
 
 @SpringBootTest
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class SsoApplicationIT {
 
     @Test

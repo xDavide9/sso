@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.authentication.SignupRequest;
-import com.xdavide9.sso.util.JsonParserService;
+import com.xdavide9.sso.common.util.JsonParserService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +33,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 public class AuthenticationApiIT {
 
+    // don't use common.config.TestAuthenticator because this tests functionality it uses
+
     @Autowired
     private MockMvc mockMvc;
 
-    // using parser to help write json even if theoretically only mockMvc should be used
-    // in integration testing
     @Autowired
     private JsonParserService parser;
 
@@ -138,7 +138,7 @@ public class AuthenticationApiIT {
         // try to signup again with same email
         String username2 = "another username";
         String password2 = "Password2!"; // > 8 characters
-        SignupRequest request2 = new SignupRequest(username2, email, password);
+        SignupRequest request2 = new SignupRequest(username2, email, password2);
         ResultActions emailTakenResultActions = mockMvc.perform(
                 post("/api/v0.0.1/auth/signup")
                         .contentType(APPLICATION_JSON)

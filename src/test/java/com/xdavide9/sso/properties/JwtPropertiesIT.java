@@ -2,6 +2,7 @@ package com.xdavide9.sso.properties;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -14,6 +15,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 class JwtPropertiesIT {
 
     @Autowired
+    @Qualifier("jwt-com.xdavide9.sso.properties.JwtProperties")
     private JwtProperties underTest;
 
     @Test
