@@ -1,4 +1,4 @@
-package com.xdavide9.sso.user;
+package com.xdavide9.sso.user.fields.role;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

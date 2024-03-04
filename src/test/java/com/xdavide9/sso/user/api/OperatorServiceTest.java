@@ -5,7 +5,7 @@ import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.api.UserCannotBeModifiedException;
 import com.xdavide9.sso.exception.user.api.UserExceptionReason;
 import com.xdavide9.sso.exception.user.api.UserNotFoundException;
-import com.xdavide9.sso.user.Role;
+import com.xdavide9.sso.user.fields.role.Role;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.util.TimeOutService;

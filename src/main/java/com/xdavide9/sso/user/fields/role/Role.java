@@ -1,12 +1,13 @@
-package com.xdavide9.sso.user;
+package com.xdavide9.sso.user.fields.role;
 
+import com.xdavide9.sso.user.User;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.xdavide9.sso.user.Permission.*;
+import static com.xdavide9.sso.user.fields.role.Permission.*;
 
 /**
  * This enum represents roles to which {@link Permission}s are attached to create

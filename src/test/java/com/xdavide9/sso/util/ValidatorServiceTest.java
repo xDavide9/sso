@@ -6,7 +6,7 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import com.xdavide9.sso.exception.user.validation.InvalidEmailException;
 import com.xdavide9.sso.exception.user.validation.InvalidPhoneNumberException;
 import com.xdavide9.sso.exception.user.validation.InvalidUsernameException;
-import com.xdavide9.sso.user.PasswordDTO;
+import com.xdavide9.sso.user.fields.PasswordDTO;
 import com.xdavide9.sso.user.User;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -101,7 +101,6 @@ class ValidatorServiceTest {
         // given
         String phoneNumber = "123";
         Phonenumber.PhoneNumber parsed = new Phonenumber.PhoneNumber();
-        given(underTest.getPhoneNumberUtil()).willReturn(phoneNumberUtil);
         given(phoneNumberUtil.parse(phoneNumber, null)).willReturn(parsed);
         given(phoneNumberUtil.isValidNumber(parsed)).willReturn(true);
         // when & then
@@ -114,7 +113,6 @@ class ValidatorServiceTest {
         String phoneNumber = "123";
         NumberParseException numberParseException = mock(NumberParseException.class);
         given(numberParseException.getMessage()).willReturn("message");
-        given(underTest.getPhoneNumberUtil()).willReturn(phoneNumberUtil);
         given(phoneNumberUtil.parse(phoneNumber, null)).willThrow(numberParseException);
         // when & then
         assertThatThrownBy(() -> underTest.validatePhoneNumber(phoneNumber))
@@ -128,7 +126,6 @@ class ValidatorServiceTest {
         // given
         String phoneNumber = "123";
         Phonenumber.PhoneNumber parsed = new Phonenumber.PhoneNumber();
-        given(underTest.getPhoneNumberUtil()).willReturn(phoneNumberUtil);
         given(phoneNumberUtil.parse(phoneNumber, null)).willReturn(parsed);
         given(phoneNumberUtil.isValidNumber(parsed)).willReturn(false);
         // when & then

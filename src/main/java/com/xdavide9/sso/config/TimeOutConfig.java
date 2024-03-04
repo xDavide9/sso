@@ -9,17 +9,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
- * This class configures beans related to the user api.
+ * This class configures the timeoutSchedulerExecutorService using a thread pool
  * @since 0.0.1-SNAPSHOT
  * @author xdavide9
  */
 @Configuration
-public class ApiConfig {
+public class TimeOutConfig {
 
     private final TimeOutProperties timeOutProperties;
 
     @Autowired
-    public ApiConfig(TimeOutProperties timeOutProperties) {
+    public TimeOutConfig(TimeOutProperties timeOutProperties) {
         this.timeOutProperties = timeOutProperties;
     }
 

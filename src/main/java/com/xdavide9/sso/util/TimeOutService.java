@@ -1,6 +1,6 @@
 package com.xdavide9.sso.util;
 
-import com.xdavide9.sso.config.ApiConfig;
+import com.xdavide9.sso.config.TimeOutConfig;
 import com.xdavide9.sso.properties.TimeOutProperties;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
@@ -17,10 +17,10 @@ import java.util.concurrent.TimeUnit;
  * This class holds functionality to time out users in the system. This is achieved via the use
  * of concurrent programming. There are 3 methods, each with different parameters depending on specific needs.
  * It should be noted that since the task of timing out a user (persisting a boolean) is relatively short,
- * even with a limited number of threads, see {@link ApiConfig}, the system should manage fine.
+ * even with a limited number of threads, see {@link TimeOutConfig}, the system should manage fine.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
- * @see ApiConfig
+ * @see TimeOutConfig
  */
 @Service
 public class TimeOutService {

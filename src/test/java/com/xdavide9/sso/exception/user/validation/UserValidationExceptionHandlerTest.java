@@ -1,13 +1,16 @@
 package com.xdavide9.sso.exception.user.validation;
 
+import jakarta.persistence.PersistenceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 
 class UserValidationExceptionHandlerTest {
 
@@ -46,5 +49,50 @@ class UserValidationExceptionHandlerTest {
         assertThat(responseBody.get("error")).isEqualTo("Invalid email");
         assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
         assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+    }
+
+    @Test
+    void itShouldHandleInvalidUsernameException() {
+        // given
+        InvalidUsernameException e = new InvalidUsernameException("ab");
+        // when
+        ResponseEntity<?> response = underTest.handleInvalidUsernameException(e);
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.get("error")).isEqualTo("Invalid username");
+        assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+    }
+
+    @Test
+    void itShouldHandlePersistenceException() {
+        // given
+        PersistenceException e = new PersistenceException("ab");
+        // when
+        ResponseEntity<?> response = underTest.handlePersistenceException(e);
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(CONFLICT);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.get("error")).isEqualTo("Persistence error");
+        assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
+        assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
+    }
+
+    @Test
+    void itShouldHandleDataIntegrityViolationException() {
+        // given
+        DataIntegrityViolationException e = new DataIntegrityViolationException("ab");
+        // when
+        ResponseEntity<?> response = underTest.handleDataIntegrityViolationException(e);
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(CONFLICT);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.get("error")).isEqualTo("Data integrity violation error");
+        assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
+        assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
     }
 }

@@ -1,5 +1,6 @@
-package com.xdavide9.sso.user;
+package com.xdavide9.sso.user.fields;
 
+import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.util.ValidatorService;
 import jakarta.validation.constraints.Pattern;
 

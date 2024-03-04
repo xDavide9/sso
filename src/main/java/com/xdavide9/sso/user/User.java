@@ -2,19 +2,27 @@ package com.xdavide9.sso.user;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.xdavide9.sso.user.fields.Gender;
+import com.xdavide9.sso.user.fields.country.Country;
+import com.xdavide9.sso.user.fields.role.Role;
 import jakarta.persistence.*;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
  * This class is a User model, entity and custom implementation of {@link UserDetails} at the same time.
- * Object creation is done using the JavaBeans pattern. There is also a constructor that requires username,
- * email and password because these fields must be provided and cannot be null nor blank (when registering a new account).
- * Every other field has a default value that may be overridden (with valid values).
+ * There is a no args constructor for Jackson and JPA and a constructor with the fields that must be provided when registering an account.
+ * Username, email and password must be provided when registering an account.
+ * {@link UUID} is the primary key, is immutable and auto-generated for each user.
+ * Phone number, country, first name, last name, date of birth and gender can be provided as additional information.
+ * Role, accountNonExpired, accountNonLocked, credentialsNonExpired, enabled have default values and are handled by the system
  * Authorities are defined by the {@link Role} and from it, they cannot be set
  * arbitrarily (no setter).
  * @author xdavide9
@@ -49,54 +57,64 @@ public class User implements UserDetails {
     @Column(nullable = false)
     @JsonIgnore
     private String password;
-
     // TODO implement sending of a confirm sms
-    /**
-     * phoneNumber
-     * @since 0.0.1-SNAPSHOT
-     */
+    @Column(unique = true)
     private String phoneNumber;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_code")
+    private Country country;
+
+    private String firstName;
+
+    private String lastName;
+
+    private LocalDate dateOfBirth;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     /**
      * Defines permissions for the user
      * @see Role
      */
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role = Role.USER;
     /**
      * accountNonExpired always set to true
      */
+    @Column(nullable = false)
     private boolean accountNonExpired = true;
     /**
      * accountNonLocked set to false when there are too many
      * failed login attempts
      */
+    @Column(nullable = false)
     private boolean accountNonLocked = true;    // TODO set to false to prevent spamming login attempts
     /**
      * credentialsNonExpired set to false when too much time has passed
      * since the last password change
      */
+    @Column(nullable = false)
     private boolean credentialsNonExpired = true;   // TODO set to false to require a password change
     /**
-     * enabled set to true unless an Admin or Operator timed the account out
+     * enabled set to true unless the user is banned or timed out
      */
+    @Column(nullable = false)
     private boolean enabled = true;
 
     // Object creation
 
     /**
-     * Public constructor to be used to create user objects (set fields via setters following javaBeans pattern),
+     * Public constructor to be used to create user objects,
      * mostly in tests, and by JPA
      */
     public User() {
     }
 
     /**
-     * constructor used in the signup process because
+     * Constructor used in the signup process with the bare minimum because
      * username, email and password must be provided when trying to register an account
-     * @param username username input by user
-     * @param email email input by user
-     * @param password password input by user
      */
     public User(String username, String email, String password) {
         this.username = username;
@@ -142,6 +160,26 @@ public class User implements UserDetails {
         return role;
     }
 
+    public Country getCountry() {
+        return country;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return accountNonExpired;
@@ -164,45 +202,47 @@ public class User implements UserDetails {
 
     // SETTERS
 
-    /**
-     * It is used by anyone to change their username
-     * @param username new username
-     */
     public void setUsername(String username) {
         this.username = username;
     }
 
     /**
-     * It is used by anyone to change their password
-     * @param password new password (raw)
+     * raw password is encoded after validation to be stored in database
      */
     public void setPassword(String password) {
         this.password = password;
     }
 
-    /**
-     * It is used by anyone to change their email
-     * @param email new email
-     */
     public void setEmail(String email) {
         this.email = email;
     }
 
-    /**
-     * It is used by anyone to change their phone number
-     * @param phoneNumber new phone number
-     */
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
-    /**
-     * It is used by people with high authority to change authorities of someone
-     * @param role new role
-     * @see Role
-     */
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public void setCountry(Country country) {
+        this.country = country;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 
     /**
@@ -227,7 +267,7 @@ public class User implements UserDetails {
     }
 
     /**
-     * It is used by an Operator or Admin to time out an account
+     * It is used to time out or ban a user
      */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
@@ -254,7 +294,13 @@ public class User implements UserDetails {
                 "uuid=" + uuid +
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
                 ", phoneNumber='" + phoneNumber + '\'' +
+                ", country=" + country +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", dateOfBirth=" + dateOfBirth +
+                ", gender=" + gender +
                 ", role=" + role +
                 ", accountNonExpired=" + accountNonExpired +
                 ", accountNonLocked=" + accountNonLocked +

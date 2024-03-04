@@ -6,7 +6,7 @@ import com.google.i18n.phonenumbers.Phonenumber;
 import com.xdavide9.sso.exception.user.validation.InvalidEmailException;
 import com.xdavide9.sso.exception.user.validation.InvalidPhoneNumberException;
 import com.xdavide9.sso.exception.user.validation.InvalidUsernameException;
-import com.xdavide9.sso.user.PasswordDTO;
+import com.xdavide9.sso.user.fields.PasswordDTO;
 import com.xdavide9.sso.user.User;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -34,9 +34,15 @@ public class ValidatorService {
 
     private final Validator jakartaValidator;
 
+    private final PhoneNumberUtil phoneNumberUtil;
+
+
+
     @Autowired
-    public ValidatorService(Validator jakartaValidator) {
+    public ValidatorService(Validator jakartaValidator,
+                            PhoneNumberUtil phoneNumberUtil) {
         this.jakartaValidator = jakartaValidator;
+        this.phoneNumberUtil = phoneNumberUtil;
     }
 
     /**
@@ -69,7 +75,6 @@ public class ValidatorService {
      * Validates input using google's libphonenumber.
      */
     public void validatePhoneNumber(String phoneNumber) {
-        PhoneNumberUtil phoneNumberUtil = getPhoneNumberUtil();
         try {
             Phonenumber.PhoneNumber parsedNumber = phoneNumberUtil.parse(phoneNumber, null);
             if (!phoneNumberUtil.isValidNumber(parsedNumber))
@@ -77,13 +82,6 @@ public class ValidatorService {
         } catch (NumberParseException e) {
             throw new InvalidPhoneNumberException(e.getMessage(), e);
         }
-    }
-
-    /**
-     * Wrapping for testability
-     */
-    public PhoneNumberUtil getPhoneNumberUtil() {
-        return PhoneNumberUtil.getInstance();
     }
 
     /**

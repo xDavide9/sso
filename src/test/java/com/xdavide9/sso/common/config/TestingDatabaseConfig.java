@@ -1,7 +1,7 @@
 package com.xdavide9.sso.common.config;
 
 import com.xdavide9.sso.config.SecurityConfig;
-import com.xdavide9.sso.user.Role;
+import com.xdavide9.sso.user.fields.role.Role;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import org.slf4j.Logger;

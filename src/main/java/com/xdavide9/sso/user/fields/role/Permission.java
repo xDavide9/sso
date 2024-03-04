@@ -1,4 +1,6 @@
-package com.xdavide9.sso.user;
+package com.xdavide9.sso.user.fields.role;
+
+import com.xdavide9.sso.user.User;
 
 /**
  * This enum represents permissions that are attached to {@link Role}s to create
