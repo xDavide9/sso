@@ -48,6 +48,24 @@ public class UserValidationExceptionHandler {
         return new ResponseEntity<>(responseBody, BAD_REQUEST);
     }
 
+    @ExceptionHandler(value = InvalidDateOfBirthException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidDateOfBirthException(InvalidDateOfBirthException e) {
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("error", "Invalid date of birth");
+        responseBody.put("message", e.getMessage());
+        responseBody.put("status", BAD_REQUEST.toString());
+        return new ResponseEntity<>(responseBody, BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = InvalidCountryException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidCountryException(InvalidCountryException e) {
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("error", "Invalid country");
+        responseBody.put("message", e.getMessage());
+        responseBody.put("status", BAD_REQUEST.toString());
+        return new ResponseEntity<>(responseBody, BAD_REQUEST);
+    }
+
     // DB
 
     @ExceptionHandler(value = PersistenceException.class)

@@ -22,8 +22,8 @@ import java.util.UUID;
  * Username, email and password must be provided when registering an account.
  * {@link UUID} is the primary key, is immutable and auto-generated for each user.
  * Phone number, country, first name, last name, date of birth and gender can be provided as additional information.
- * Role, accountNonExpired, accountNonLocked, credentialsNonExpired, enabled have default values and are handled by the system
- * Authorities are defined by the {@link Role} and from it, they cannot be set
+ * Role, accountNonExpired, accountNonLocked, credentialsNonExpired, enabled have default values and are handled by the system.
+ * Authorities are derived by the {@link Role} and therefore cannot be set
  * arbitrarily (no setter).
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT

@@ -12,6 +12,7 @@ import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.user.fields.country.Country;
 import com.xdavide9.sso.util.ValidatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,6 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 
 import static java.lang.String.format;
 
@@ -78,23 +81,31 @@ public class AuthenticationService {
      */
     public ResponseEntity<AuthenticationResponse> signup(SignupRequest request) {
         String username = request.username();
-        if (repository.existsByUsername(username)) {
-            throw new UsernameTakenException(
-                    format("Username [%s] is already taken", username)
-            );
-        }
         String email = request.email();
-        if (repository.existsByEmail(email)) {
-            throw new EmailTakenException(
-                    format("Email [%s] is already taken", email)
-            );
-        }
-        // validate fields
+        String rawPassword = request.password();
         validatorService.validateUsername(username);
         validatorService.validateEmail(email);
-        validatorService.validateRawPassword(request.password());
-        User user = new User(username, email, passwordEncoder.encode(request.password()));
-        validatorService.validateUser(user);    // if not valid throws ConstraintViolationException
+        validatorService.validateRawPassword(rawPassword);
+        User user = new User(username, email, passwordEncoder.encode(rawPassword));
+        // try to set additional fields
+        if (request.firstName() != null) user.setFirstName(request.firstName());
+        if (request.lastName() != null) user.setLastName(request.lastName());
+        if (request.gender() != null) user.setGender(request.gender());
+        if (request.phoneNumber() != null) {
+            String phoneNumber = request.phoneNumber();
+            validatorService.validatePhoneNumber(phoneNumber);
+            user.setPhoneNumber(phoneNumber);
+        }
+        if (request.country() != null) {
+            Country country = request.country();
+            validatorService.validateCountry(country);
+            user.setCountry(country);
+        }
+        if (request.dateOfBirth() != null) {
+            LocalDate dateOfBirth = request.dateOfBirth();
+            validatorService.validateDateOfBirth(dateOfBirth);
+            user.setDateOfBirth(dateOfBirth);
+        }
         repository.save(user);
         String token = jwtService.generateToken(user);
         AuthenticationResponse response = new AuthenticationResponse(token);

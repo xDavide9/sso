@@ -268,23 +268,6 @@ class OperatorServiceTest {
         verify(userModifierService).setUsername(changed, username);
     }
 
-    @Test
-    void itShouldNotChangeUsernameBecauseItIsTaken() {
-        // given
-        String username = "username";
-        User user = new User();
-        UUID uuid = UUID.randomUUID();
-        User operator = new User();
-        operator.setRole(Role.OPERATOR);
-        setPrincipal(operator);
-        given(repository.findById(uuid)).willReturn(Optional.of(user));
-        given(repository.existsByUsername(username)).willReturn(true);
-        // when & then
-        assertThatThrownBy(() -> underTest.changeUsername(uuid, username))
-                .isInstanceOf(UsernameTakenException.class)
-                .hasMessageContaining(format("Cannot change username of user with uuid [%s] because it is taken", uuid));
-    }
-
     @ParameterizedTest
     @CsvSource({
             "OPERATOR,OPERATOR",
@@ -328,23 +311,6 @@ class OperatorServiceTest {
         underTest.changeEmail(uuid, email);
         // then
         verify(userModifierService).setEmail(changed, email);
-    }
-
-    @Test
-    void itShouldNotChangeEmailBecauseItIsTaken() {
-        // given
-        String email = "email@email.com";
-        User user = new User();
-        UUID uuid = UUID.randomUUID();
-        User operator = new User();
-        operator.setRole(Role.OPERATOR);
-        given(repository.findById(uuid)).willReturn(Optional.of(user));
-        given(repository.existsByEmail(email)).willReturn(true);
-        setPrincipal(operator);
-        // when & then
-        assertThatThrownBy(() -> underTest.changeEmail(uuid, email))
-                .isInstanceOf(EmailTakenException.class)
-                .hasMessageContaining(format("Cannot change email of user with uuid [%s] because it is taken", uuid));
     }
 
     @ParameterizedTest

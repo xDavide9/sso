@@ -67,6 +67,36 @@ class UserValidationExceptionHandlerTest {
     }
 
     @Test
+    void itShouldHandleInvalidDateOfBirthException() {
+        // given
+        InvalidDateOfBirthException e = new InvalidDateOfBirthException("ab");
+        // when
+        ResponseEntity<?> response = underTest.handleInvalidDateOfBirthException(e);
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.get("error")).isEqualTo("Invalid date of birth");
+        assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+    }
+
+    @Test
+    void itShouldHandleInvalidCountryException() {
+        // given
+        InvalidCountryException e = new InvalidCountryException("ab");
+        // when
+        ResponseEntity<?> response = underTest.handleInvalidCountryException(e);
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(BAD_REQUEST);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.get("error")).isEqualTo("Invalid country");
+        assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+    }
+
+    @Test
     void itShouldHandlePersistenceException() {
         // given
         PersistenceException e = new PersistenceException("ab");

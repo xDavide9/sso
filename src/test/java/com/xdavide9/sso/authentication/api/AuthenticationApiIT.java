@@ -5,6 +5,9 @@ import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.common.util.JsonParserService;
+import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.user.fields.Gender;
+import com.xdavide9.sso.user.fields.country.Country;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -41,15 +45,54 @@ public class AuthenticationApiIT {
     @Autowired
     private JsonParserService parser;
 
+    // to verify user fields have been set correctly
+    @Autowired
+    private UserRepository repository;
+
     // signup
 
     @Test
-    void itShouldSignupANewAccount() throws Exception {
+    void itShouldSignupANewAccountWithRequiredFields() throws Exception {
         // given
         String username = "username";
         String email = "email@email.com";
         String password = "Password1!";
         SignupRequest request = new SignupRequest(username, email, password);
+        String json = parser.json(request);
+        // when
+        ResultActions signupResultActions = mockMvc.perform(
+                post("/api/v0.0.1/auth/signup")
+                        .contentType(APPLICATION_JSON)
+                        .content(json)
+        );
+        // then
+        signupResultActions.andExpect(status().isOk());
+        String jsonResponse = signupResultActions.andReturn().getResponse().getContentAsString();
+        AuthenticationResponse response = parser.java(jsonResponse, AuthenticationResponse.class);
+        assertThat(response).isNotNull();
+        assertThat(response.token()).isNotNull();
+    }
+
+    // TODO test more here in signup
+    @Test
+    void itShouldSignupANewAccountWithAllFields() throws Exception {
+        // given
+        String username = "username";
+        String email = "email@email.com";
+        String password = "Password1!";
+        String firstName = "John";
+        String lastName = "Smith";
+        String phoneNumber = "+393337799000";
+        Gender gender = Gender.MALE;
+        Country country = new Country("IT", "Italy", 39);
+        LocalDate dateOfBirth = LocalDate.ofYearDay(2000, 50);
+        SignupRequest request = new SignupRequest(username, email, password);
+        request.setFirstName(firstName);
+        request.setLastName(lastName);
+        request.setPhoneNumber(phoneNumber);
+        request.setGender(gender);
+        request.setDateOfBirth(dateOfBirth);
+        request.setCountry(country);
         String json = parser.json(request);
         // when
         ResultActions signupResultActions = mockMvc.perform(

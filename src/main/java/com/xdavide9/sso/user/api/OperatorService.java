@@ -164,8 +164,6 @@ public class OperatorService {
         if (principal.getRole().equals(Role.OPERATOR) && !user.getRole().equals(Role.USER))
             throw new AccessDeniedException(format("Access Denied. You cannot change the username of" +
                     " user with uuid [%s] because they are an operator or admin.", uuid));
-        if (userRepository.existsByUsername(username))
-            throw new UsernameTakenException(format("Cannot change username of user with uuid [%s] because it is taken", uuid));
         userModifierService.setUsername(user, username);
         return ResponseEntity.ok(format("Username of user with uuid [%s] has been changed correctly to [%s]", uuid, username));
     }
@@ -186,8 +184,6 @@ public class OperatorService {
         if (principal.getRole().equals(Role.OPERATOR) && !user.getRole().equals(Role.USER))
             throw new AccessDeniedException(format("Access Denied. You cannot change the email of" +
                     " user with uuid [%s] because they are an operator or admin.", uuid));
-        if (userRepository.existsByEmail(email))
-            throw new EmailTakenException(format("Cannot change email of user with uuid [%s] because it is taken", uuid));
         userModifierService.setEmail(user, email);
         return ResponseEntity.ok(format("Email of user with uuid [%s] has been changed correctly to [%s]", uuid, email));
     }

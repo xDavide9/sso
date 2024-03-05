@@ -426,7 +426,7 @@ public class OperatorApiIT {
         Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
         assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
         assertThat(responseBody.get("error")).isEqualTo("Username already taken");
-        assertThat(responseBody.get("message")).isEqualTo(format("Cannot change username of user with uuid [%s] because it is taken", uuid));
+        assertThat(responseBody.get("message")).isEqualTo(format("Username [operatorUsername] is already taken", uuid));
     }
 
     @Test
@@ -537,7 +537,7 @@ public class OperatorApiIT {
         Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
         assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
         assertThat(responseBody.get("error")).isEqualTo("Email already taken");
-        assertThat(responseBody.get("message")).isEqualTo(format("Cannot change email of user with uuid [%s] because it is taken", uuid));
+        assertThat(responseBody.get("message")).isEqualTo("Email [operator@email.com] is already taken");
     }
 
     @Test

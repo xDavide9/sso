@@ -3,11 +3,13 @@ package com.xdavide9.sso.util;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
-import com.xdavide9.sso.exception.user.validation.InvalidEmailException;
-import com.xdavide9.sso.exception.user.validation.InvalidPhoneNumberException;
-import com.xdavide9.sso.exception.user.validation.InvalidUsernameException;
+import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
+import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
+import com.xdavide9.sso.exception.user.validation.*;
+import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.user.fields.PasswordDTO;
-import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.fields.country.Country;
+import com.xdavide9.sso.user.fields.country.CountryRepository;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,37 +41,16 @@ class ValidatorServiceTest {
     @Mock
     private PhoneNumberUtil phoneNumberUtil;
 
+    @Mock
+    private CountryRepository countryRepository;
+    @Mock
+    private UserRepository userRepository;
+
     @Captor
     private ArgumentCaptor<PasswordDTO> dtoCaptor;
 
     @Mock
     private EmailValidator emailValidator;
-
-    @Test
-    void itShouldValidateUserNoViolations() {
-        // given
-        User user = new User();
-        given(jakartaValidator.validate(user)).willReturn(new HashSet<>());
-        // when
-        underTest.validateUser(user);
-        // then
-        verify(jakartaValidator).validate(user);
-
-    }
-
-    @Test
-    void itShouldValidateUserThrowException() {
-        // given
-        User user = new User();
-        Set<ConstraintViolation<User>> violations = new HashSet<>();
-        ConstraintViolation<User> violation = mock(ConstraintViolation.class);
-        violations.add(violation);
-        given(jakartaValidator.validate(user)).willReturn(violations);
-        // when & then
-        assertThatThrownBy(() -> underTest.validateUser(user))
-                .isInstanceOf(ConstraintViolationException.class)
-                .hasFieldOrPropertyWithValue("constraintViolations", violations);
-    }
 
     @Test
     void itShouldValidatePasswordNoViolations() {
@@ -139,6 +121,7 @@ class ValidatorServiceTest {
         // given
         String email = "validEmail";
         given(underTest.getEmailValidator()).willReturn(emailValidator);
+        given(userRepository.existsByEmail(email)).willReturn(false);
         given(emailValidator.isValid(email)).willReturn(true);
         // when & then
         assertThatCode(() -> underTest.validateEmail(email)).doesNotThrowAnyException();
@@ -157,6 +140,19 @@ class ValidatorServiceTest {
     }
 
     @Test
+    void itShouldValidateTakenEmailAndThrow() {
+        // given
+        String email = "takenEmail";
+        given(underTest.getEmailValidator()).willReturn(emailValidator);
+        given(emailValidator.isValid(email)).willReturn(true);
+        given(userRepository.existsByEmail(email)).willReturn(true);
+        // when & then
+        assertThatThrownBy(() -> underTest.validateEmail(email))
+                .isInstanceOf(EmailTakenException.class)
+                .hasMessageContaining("Email [takenEmail] is already taken");
+    }
+
+    @Test
     void itShouldValidateValidUsername() {
         assertThatCode(() -> underTest.validateUsername("valid")).doesNotThrowAnyException();;
     }
@@ -169,5 +165,58 @@ class ValidatorServiceTest {
         assertThatThrownBy(() ->underTest.validateUsername(username))
                 .isInstanceOf(InvalidUsernameException.class)
                 .hasMessageContaining(format("Username [%s] is not valid, provide a new one", username));
+    }
+
+    @Test
+    void itShouldValidateTakenEmail() {
+        // given
+        String username = "takenUsername";
+        given(userRepository.existsByUsername(username)).willReturn(true);
+        // when & then
+        assertThatThrownBy(() -> underTest.validateUsername(username))
+                .isInstanceOf(UsernameTakenException.class)
+                .hasMessageContaining("Username [takenUsername] is already taken");
+    }
+
+    @Test
+    void itShouldValidateCountryCorrectly() {
+        // given
+        Country country = new Country("IT", "Italy", 39);
+        given(countryRepository.existsByCountryCodeAndDisplayNameAndPhoneNumberCode(
+                country.getCountryCode(), country.getDisplayName(), country.getPhoneNumberCode()
+        )).willReturn(true);
+        // when & then
+        assertThatCode(() -> underTest.validateCountry(country)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void itShouldValidateInvalidCountry() {
+        // given
+        Country country = new Country("I", "Italy", 39);
+        given(countryRepository.existsByCountryCodeAndDisplayNameAndPhoneNumberCode(
+                country.getCountryCode(), country.getDisplayName(), country.getPhoneNumberCode()
+        )).willReturn(false);
+        // when & then
+        assertThatThrownBy(() -> underTest.validateCountry(country))
+                .isInstanceOf(InvalidCountryException.class)
+                .hasMessageContaining(format("Country [%s] is not valid, provide a new one", country));
+    }
+
+    @Test
+    void itShouldValidateDateOfBirthCorrectly() {
+        // given
+        LocalDate dateOfBirth = LocalDate.ofYearDay(2000, 50);
+        // when & then
+        assertThatCode(() -> underTest.validateDateOfBirth(dateOfBirth)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void itShouldValidateInvalidFutureDateOfBirth() {
+        // given
+        LocalDate dateOfBirth = LocalDate.ofYearDay(3000, 50);
+        // when & then
+        assertThatThrownBy(() -> underTest.validateDateOfBirth(dateOfBirth))
+                .isInstanceOf(InvalidDateOfBirthException.class)
+                .hasMessageContaining(format("Date of birth [%s] is not valid, provide a new one", dateOfBirth));
     }
 }

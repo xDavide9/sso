@@ -3,11 +3,14 @@ package com.xdavide9.sso.util;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
-import com.xdavide9.sso.exception.user.validation.InvalidEmailException;
-import com.xdavide9.sso.exception.user.validation.InvalidPhoneNumberException;
-import com.xdavide9.sso.exception.user.validation.InvalidUsernameException;
+import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
+import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
+import com.xdavide9.sso.exception.user.validation.*;
+import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.user.fields.PasswordDTO;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.fields.country.Country;
+import com.xdavide9.sso.user.fields.country.CountryRepository;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
@@ -15,6 +18,7 @@ import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 import static java.lang.String.format;
@@ -36,13 +40,20 @@ public class ValidatorService {
 
     private final PhoneNumberUtil phoneNumberUtil;
 
+    private final CountryRepository countryRepository;
+    private final UserRepository userRepository;
+
 
 
     @Autowired
     public ValidatorService(Validator jakartaValidator,
-                            PhoneNumberUtil phoneNumberUtil) {
+                            PhoneNumberUtil phoneNumberUtil,
+                            CountryRepository countryRepository,
+                            UserRepository userRepository) {
         this.jakartaValidator = jakartaValidator;
         this.phoneNumberUtil = phoneNumberUtil;
+        this.countryRepository = countryRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -56,12 +67,6 @@ public class ValidatorService {
             throw new ConstraintViolationException(violations);
     }
 
-    /**
-     * Validates input user by applying jakarta constraints defined in {@link User} class.
-     */
-    public void validateUser(User user) {
-        validateUsingJakartaConstraints(user);
-    }
 
     /**
      * Validates input password by applying jakarta constraints defined in {@link PasswordDTO} class.
@@ -72,7 +77,7 @@ public class ValidatorService {
     }
 
     /**
-     * Validates input using google's libphonenumber.
+     * Validates input using google's libphonenumber, and that it doesn't already exist
      */
     public void validatePhoneNumber(String phoneNumber) {
         try {
@@ -85,11 +90,16 @@ public class ValidatorService {
     }
 
     /**
-     * Validates using apache commons' email validator
+     * Validates using apache commons' email validator, and that it doesn't already exist
      */
     public void validateEmail(String email) {
         if (!getEmailValidator().isValid(email))
             throw new InvalidEmailException(format("Email [%s] is not valid, provide a new one", email));
+        if (userRepository.existsByEmail(email)) {
+            throw new EmailTakenException(
+                    format("Email [%s] is already taken", email)
+            );
+        }
     }
 
     /**
@@ -99,8 +109,27 @@ public class ValidatorService {
         return EmailValidator.getInstance();
     }
 
+    /**
+     * Validates username by checking that is not null nor blank, and that it doesn't already exist
+     */
     public void validateUsername(String username) {
         if (username == null || username.isBlank())
             throw new InvalidUsernameException(format("Username [%s] is not valid, provide a new one", username));
+        if (userRepository.existsByUsername(username)) {
+            throw new UsernameTakenException(
+                    format("Username [%s] is already taken", username)
+            );
+        }
+    }
+
+    public void validateCountry(Country country) {
+        if (!countryRepository.existsByCountryCodeAndDisplayNameAndPhoneNumberCode(
+                country.getCountryCode(), country.getDisplayName(), country.getPhoneNumberCode()
+        )) throw new InvalidCountryException(format("Country [%s] is not valid, provide a new one", country));
+    }
+
+    public void validateDateOfBirth(LocalDate dateOfBirth) {
+        if (dateOfBirth.isAfter(LocalDate.now()))
+            throw new InvalidDateOfBirthException(format("Date of birth [%s] is not valid, provide a new one", dateOfBirth));
     }
 }

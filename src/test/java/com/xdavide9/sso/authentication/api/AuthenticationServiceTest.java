@@ -12,6 +12,8 @@ import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.user.fields.Gender;
+import com.xdavide9.sso.user.fields.country.Country;
 import com.xdavide9.sso.util.ValidatorService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDate;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -57,25 +60,22 @@ class AuthenticationServiceTest {
     // signup
 
     @Test
-    void itShouldSignUpNewUserCorrectly() {
+    void itShouldSignUpNewUserCorrectlyWithRequiredFields() {
         // given
         String username = "xdavide9";
         String password = "password";
         String email = "email@sso.com";
-        given(repository.existsByEmail(email)).willReturn(false);
-        given(repository.existsByUsername(username)).willReturn(false);
         given(jwtService.generateToken(any(User.class))).willReturn("token123");
         given(passwordEncoder.encode(password)).willReturn("encodedPassword");
         SignupRequest request = new SignupRequest(username, email, password);
         // when
         ResponseEntity<AuthenticationResponse> response = underTest.signup(request);
         // then
-        verify(validatorService).validateUser(userCaptor.capture());
+        verify(repository).save(userCaptor.capture());
         User capturedUser = userCaptor.getValue();
         verify(validatorService).validateRawPassword(password);
         verify(validatorService).validateUsername(username);
         verify(validatorService).validateEmail(email);
-        verify(repository).save(capturedUser);
         assertThat(capturedUser.getUsername()).isEqualTo(username);
         assertThat(capturedUser.getEmail()).isEqualTo(email);
         assertThat(capturedUser.getPassword()).isEqualTo("encodedPassword");
@@ -90,40 +90,46 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    void itShouldNotSignupUsernameTakenAndThrow() {
+    void itShouldSignUpNewUserCorrectlyWithAllFields() {
         // given
         String username = "xdavide9";
         String password = "password";
         String email = "email@sso.com";
-        given(repository.existsByUsername(username)).willReturn(true);
+        String firstName = "John";
+        String lastName = "Smith";
+        String phoneNumber = "+393337799000";
+        Gender gender = Gender.MALE;
+        LocalDate dateOfBirth = LocalDate.ofYearDay(2000, 50);
+        Country country = new Country("IT", "Italy", 39);
+        given(jwtService.generateToken(any(User.class))).willReturn("token123");
+        given(passwordEncoder.encode(password)).willReturn("encodedPassword");
         SignupRequest request = new SignupRequest(username, email, password);
-        // when & then
-        assertThatThrownBy(() -> underTest.signup(request))
-                .isInstanceOf(UsernameTakenException.class)
-                .hasMessageContaining(format("Username [%s] is already taken", username));
-        verifyNoMoreInteractions(repository);
-        verifyNoInteractions(jwtService);
-        verifyNoInteractions(validatorService);
-        verifyNoInteractions(passwordEncoder);
-    }
-
-    @Test
-    void itShouldNotSignupEmailTakenAndThrow() {
-        // given
-        String username = "xdavide9";
-        String password = "password";
-        String email = "email@sso.com";
-        given(repository.existsByUsername(username)).willReturn(false);
-        given(repository.existsByEmail(email)).willReturn(true);
-        SignupRequest request = new SignupRequest(username, email, password);
-        // when & then
-        assertThatThrownBy(() -> underTest.signup(request))
-                .isInstanceOf(EmailTakenException.class)
-                .hasMessageContaining(format("Email [%s] is already taken", email));
-        verifyNoMoreInteractions(repository);
-        verifyNoInteractions(jwtService);
-        verifyNoInteractions(validatorService);
-        verifyNoInteractions(passwordEncoder);
+        request.setFirstName(firstName);
+        request.setLastName(lastName);
+        request.setPhoneNumber(phoneNumber);
+        request.setGender(gender);
+        request.setDateOfBirth(dateOfBirth);
+        request.setCountry(country);
+        // when
+        ResponseEntity<AuthenticationResponse> response = underTest.signup(request);
+        // then
+        verify(repository).save(userCaptor.capture());
+        User capturedUser = userCaptor.getValue();
+        verify(validatorService).validateRawPassword(password);
+        verify(validatorService).validateUsername(username);
+        verify(validatorService).validateEmail(email);
+        assertThat(capturedUser.getUsername()).isEqualTo(username);
+        assertThat(capturedUser.getEmail()).isEqualTo(email);
+        assertThat(capturedUser.getPassword()).isEqualTo("encodedPassword");
+        assertThat(capturedUser.getFirstName()).isEqualTo(firstName);
+        assertThat(capturedUser.getLastName()).isEqualTo(lastName);
+        assertThat(capturedUser.getPhoneNumber()).isEqualTo(phoneNumber);
+        assertThat(capturedUser.getGender()).isEqualTo(gender);
+        assertThat(capturedUser.getCountry()).isEqualTo(country);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(Objects.requireNonNull(response.getBody()).token())
+                .isEqualTo("token123");
     }
 
     // login
