@@ -2,6 +2,7 @@ package com.xdavide9.sso.exception.authentication;
 
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
+import com.xdavide9.sso.exception.authentication.api.PhoneNumberTakenException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -35,6 +36,15 @@ public class AuthenticationExceptionsHandler {
     public ResponseEntity<Map<String, Object>> handleUsernameTakenException(UsernameTakenException e) {
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("error", "Username already taken");
+        responseBody.put("message", e.getMessage());
+        responseBody.put("status", CONFLICT.toString());
+        return new ResponseEntity<>(responseBody, CONFLICT);
+    }
+
+    @ExceptionHandler(value = PhoneNumberTakenException.class)
+    public ResponseEntity<Map<String, Object>> handlePhoneNumberTakenException(PhoneNumberTakenException e) {
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("error", "Phone number already taken");
         responseBody.put("message", e.getMessage());
         responseBody.put("status", CONFLICT.toString());
         return new ResponseEntity<>(responseBody, CONFLICT);

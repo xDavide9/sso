@@ -2,6 +2,7 @@ package com.xdavide9.sso.exception.authentication;
 
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
+import com.xdavide9.sso.exception.authentication.api.PhoneNumberTakenException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,21 @@ class AuthenticationExceptionsHandlerTest {
         Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
         assertThat(responseBody).isNotNull();
         assertThat(responseBody.get("error")).isEqualTo("Username already taken");
+        assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
+        assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
+    }
+
+    @Test
+    void itShouldHandlePhoneNumberTakenException() {
+        // given
+        PhoneNumberTakenException e = new PhoneNumberTakenException("This phone number is already taken");
+        // when
+        ResponseEntity<?> response = underTest.handlePhoneNumberTakenException(e);
+        // then
+        assertThat(response.getStatusCode()).isEqualTo(CONFLICT);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        assertThat(responseBody).isNotNull();
+        assertThat(responseBody.get("error")).isEqualTo("Phone number already taken");
         assertThat(responseBody.get("message")).isEqualTo(e.getMessage());
         assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
     }

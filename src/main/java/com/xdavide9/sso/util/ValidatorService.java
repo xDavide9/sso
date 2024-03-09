@@ -4,6 +4,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
+import com.xdavide9.sso.exception.authentication.api.PhoneNumberTakenException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.validation.*;
 import com.xdavide9.sso.user.UserRepository;
@@ -87,6 +88,8 @@ public class ValidatorService {
         } catch (NumberParseException e) {
             throw new InvalidPhoneNumberException(e.getMessage(), e);
         }
+        if (userRepository.existsByPhoneNumber(phoneNumber))
+            throw new PhoneNumberTakenException(format("The phone number [%s] is already taken", phoneNumber));
     }
 
     /**

@@ -4,6 +4,7 @@ import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
+import com.xdavide9.sso.exception.authentication.api.PhoneNumberTakenException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.validation.*;
 import com.xdavide9.sso.user.UserRepository;
@@ -114,6 +115,20 @@ class ValidatorServiceTest {
         assertThatThrownBy(() -> underTest.validatePhoneNumber(phoneNumber))
                 .isInstanceOf(InvalidPhoneNumberException.class)
                 .hasMessageContaining(format("Parsed phone number [%s] is invalid", parsed));
+    }
+
+    @Test
+    void itShouldNotValidatePhoneNumberAlreadyTaken() throws Exception {
+        // given
+        String phoneNumber = "123";
+        Phonenumber.PhoneNumber parsed = new Phonenumber.PhoneNumber();
+        given(phoneNumberUtil.parse(phoneNumber, null)).willReturn(parsed);
+        given(phoneNumberUtil.isValidNumber(parsed)).willReturn(true);
+        given(userRepository.existsByPhoneNumber(phoneNumber)).willReturn(true);
+        // when & then
+        assertThatThrownBy(() -> underTest.validatePhoneNumber(phoneNumber))
+                .isInstanceOf(PhoneNumberTakenException.class)
+                .hasMessageContaining("The phone number [123] is already taken");
     }
 
     @Test

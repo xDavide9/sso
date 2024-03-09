@@ -5,6 +5,7 @@ package com.xdavide9.sso.exception.authentication.api;
  * 1) a new user tries to register a new account
  * 2) an operator or admin changes the username field of a user
  * but the input username they provide is already taken
+ * 3) a user tries to change their username
  * @since 0.0.1-SNAPSHOT
  * @author xdavide9
  */
