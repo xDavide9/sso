@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.lang.String.format;
@@ -197,6 +198,7 @@ class ValidatorServiceTest {
     void itShouldValidateCountryCorrectly() {
         // given
         Country country = new Country("IT", "Italy", 39);
+        given(countryRepository.findById(country.getCountryCode())).willReturn(Optional.of(country));
         given(countryRepository.existsByCountryCodeAndDisplayNameAndPhoneNumberCode(
                 country.getCountryCode(), country.getDisplayName(), country.getPhoneNumberCode()
         )).willReturn(true);

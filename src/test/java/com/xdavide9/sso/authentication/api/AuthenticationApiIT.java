@@ -5,9 +5,10 @@ import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.common.util.JsonParserService;
-import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.user.fields.country.Country;
+import com.xdavide9.sso.user.fields.country.CountryRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +46,9 @@ public class AuthenticationApiIT {
     @Autowired
     private JsonParserService parser;
 
-    // to verify user fields have been set correctly
+    // made the exception of using repository here to check if country is set correctly
     @Autowired
-    private UserRepository repository;
+    private CountryRepository countryRepository;
 
     // signup
 
@@ -72,8 +73,6 @@ public class AuthenticationApiIT {
         assertThat(response).isNotNull();
         assertThat(response.token()).isNotNull();
     }
-
-    // TODO test more here in signup
     @Test
     void itShouldSignupANewAccountWithAllFields() throws Exception {
         // given
@@ -106,6 +105,20 @@ public class AuthenticationApiIT {
         AuthenticationResponse response = parser.java(jsonResponse, AuthenticationResponse.class);
         assertThat(response).isNotNull();
         assertThat(response.token()).isNotNull();
+        // now check users for that country is updated correctly
+        Country returnedCountry = countryRepository.findById("IT").get();
+        assertThat(returnedCountry.getUsers().isEmpty()).isFalse();
+        User returnedUser = returnedCountry.getUsers().iterator().next();
+        assertThat(returnedUser.getUsername()).isEqualTo(username);
+        assertThat(returnedUser.getEmail()).isEqualTo(email);
+        assertThat(returnedUser.getPassword()).isNotNull();
+        assertThat(returnedUser.getFirstName()).isEqualTo(firstName);
+        assertThat(returnedUser.getLastName()).isEqualTo(lastName);
+        assertThat(returnedUser.getPhoneNumber()).isEqualTo(phoneNumber);
+        assertThat(returnedUser.getCountry()).isEqualTo(country);
+        assertThat(returnedUser.getGender()).isEqualTo(gender);
+        assertThat(returnedUser.getDateOfBirth()).isEqualTo(dateOfBirth);
+
     }
 
     @Test

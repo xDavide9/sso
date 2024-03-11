@@ -7,9 +7,9 @@ import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.PhoneNumberTakenException;
 import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.validation.*;
+import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.user.fields.PasswordDTO;
-import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.fields.country.Country;
 import com.xdavide9.sso.user.fields.country.CountryRepository;
 import jakarta.validation.ConstraintViolation;
@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.lang.String.format;
@@ -125,12 +126,23 @@ public class ValidatorService {
         }
     }
 
-    public void validateCountry(Country country) {
+    /**
+     * Validates countries by checking that it matches a record in the database with countryCode, displayName
+     * and phoneNumberCode. If this is the case the country stored in the database is returned
+     * @param country country to be validated
+     * @return country record in the database matching the validated country
+     */
+    public Country validateCountry(Country country) {
+        Optional<Country> countryOptional = countryRepository.findById(country.getCountryCode());
         if (!countryRepository.existsByCountryCodeAndDisplayNameAndPhoneNumberCode(
                 country.getCountryCode(), country.getDisplayName(), country.getPhoneNumberCode()
-        )) throw new InvalidCountryException(format("Country [%s] is not valid, provide a new one", country));
+        ) || countryOptional.isEmpty()) throw new InvalidCountryException(format("Country [%s] is not valid, provide a new one", country));
+        return countryOptional.get();
     }
 
+    /**
+     * Validates dateOfBirth by checking it's not in the future
+     */
     public void validateDateOfBirth(LocalDate dateOfBirth) {
         if (dateOfBirth.isAfter(LocalDate.now()))
             throw new InvalidDateOfBirthException(format("Date of birth [%s] is not valid, provide a new one", dateOfBirth));

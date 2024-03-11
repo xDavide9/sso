@@ -5,9 +5,7 @@ import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
 import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.config.SecurityConfig;
-import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
-import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
@@ -22,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 import static java.lang.String.format;
 
@@ -38,9 +37,9 @@ public class AuthenticationService {
      */
     private final JwtService jwtService;
     /**
-     * Jpa repository to interact with the database.
+     * Jpa repository to interact with the {@link User} table.
      */
-    private final UserRepository repository;
+    private final UserRepository userRepository;
 
     /**
      * It is the default bcrypt implementation defined in {@link SecurityConfig}.
@@ -59,12 +58,12 @@ public class AuthenticationService {
 
     @Autowired
     public AuthenticationService(JwtService jwtService,
-                                 UserRepository repository,
+                                 UserRepository userRepository,
                                  PasswordEncoder passwordEncoder,
                                  ValidatorService validatorService,
                                  @Qualifier(value = "repositoryUserDetailsService") UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
-        this.repository = repository;
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.validatorService = validatorService;
         this.userDetailsService = userDetailsService;
@@ -96,17 +95,19 @@ public class AuthenticationService {
             validatorService.validatePhoneNumber(phoneNumber);
             user.setPhoneNumber(phoneNumber);
         }
-        if (request.country() != null) {
-            Country country = request.country();
-            validatorService.validateCountry(country);
-            user.setCountry(country);
-        }
         if (request.dateOfBirth() != null) {
             LocalDate dateOfBirth = request.dateOfBirth();
             validatorService.validateDateOfBirth(dateOfBirth);
             user.setDateOfBirth(dateOfBirth);
         }
-        repository.save(user);
+        if (request.country() != null) {
+            Country country = validatorService.validateCountry(request.country());
+            Set<User> users = country.getUsers();
+            users.add(user);
+            country.setUsers(users);
+            user.setCountry(country);
+        }
+        userRepository.save(user);
         String token = jwtService.generateToken(user);
         AuthenticationResponse response = new AuthenticationResponse(token);
         return ResponseEntity.ok(response);

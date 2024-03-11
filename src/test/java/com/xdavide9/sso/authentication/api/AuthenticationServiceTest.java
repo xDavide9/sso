@@ -5,9 +5,7 @@ package com.xdavide9.sso.authentication.api;
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.authentication.SignupRequest;
-import com.xdavide9.sso.exception.authentication.api.EmailTakenException;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
-import com.xdavide9.sso.exception.authentication.api.UsernameTakenException;
 import com.xdavide9.sso.exception.user.api.UserBannedException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
@@ -103,6 +101,7 @@ class AuthenticationServiceTest {
         Country country = new Country("IT", "Italy", 39);
         given(jwtService.generateToken(any(User.class))).willReturn("token123");
         given(passwordEncoder.encode(password)).willReturn("encodedPassword");
+        given(validatorService.validateCountry(country)).willReturn(country);
         SignupRequest request = new SignupRequest(username, email, password);
         request.setFirstName(firstName);
         request.setLastName(lastName);

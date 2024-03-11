@@ -6,13 +6,11 @@ import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.user.fields.country.Country;
 import com.xdavide9.sso.user.fields.role.Role;
 import jakarta.persistence.*;
-import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -61,7 +59,7 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String phoneNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "country_code")
     private Country country;
 
