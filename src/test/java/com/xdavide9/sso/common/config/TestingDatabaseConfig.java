@@ -1,9 +1,9 @@
 package com.xdavide9.sso.common.config;
 
 import com.xdavide9.sso.config.SecurityConfig;
-import com.xdavide9.sso.user.fields.role.Role;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.user.fields.role.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

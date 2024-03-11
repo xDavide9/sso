@@ -21,6 +21,10 @@ import java.util.function.BiConsumer;
 @Service
 public class UserModifierService {
 
+    // TODO update this class to persist the changes made to the user
+    // remember to ensure consistency across entities
+    // (e.g. country when a user changes its country remove them from the list of user associated with that country)
+
     private final UserRepository repository;
     private final ValidatorService validatorService;
 

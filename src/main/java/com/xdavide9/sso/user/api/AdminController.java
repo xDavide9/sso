@@ -1,7 +1,7 @@
 package com.xdavide9.sso.user.api;
 
-import com.xdavide9.sso.user.fields.role.Role;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.fields.role.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
