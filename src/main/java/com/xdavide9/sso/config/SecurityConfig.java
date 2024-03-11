@@ -84,7 +84,9 @@ public class SecurityConfig {
                                         "/api/v0.0.1/users",
                                         "/api/v0.0.1/users/uuid/*",
                                         "/api/v0.0.1/users/username/*",
-                                        "/api/v0.0.1/users/email/*"
+                                        "/api/v0.0.1/users/email/*",
+                                        "/api/v0.0.1/countries",
+                                        "/api/v0.0.1/countries/*"
                                 )
                                 .hasAnyAuthority("OPERATOR_GET", "ADMIN_GET")
                                 .requestMatchers(
