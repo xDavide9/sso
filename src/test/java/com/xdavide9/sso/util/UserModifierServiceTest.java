@@ -2,6 +2,7 @@ package com.xdavide9.sso.util;
 
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.user.change.UserChangeRepository;
 import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.user.fields.country.Country;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,8 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class UserModifierServiceTest {
 
+    // TODO update this class with new changes
+
     @InjectMocks
     private UserModifierService underTest;
 
@@ -33,6 +36,9 @@ class UserModifierServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private UserChangeRepository userChangeRepository;
 
     @Captor
     private ArgumentCaptor<User> userCaptor;

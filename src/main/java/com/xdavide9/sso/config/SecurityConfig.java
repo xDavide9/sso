@@ -1,5 +1,6 @@
 package com.xdavide9.sso.config;
 
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.xdavide9.sso.authentication.RepositoryUserDetailsService;
 import com.xdavide9.sso.jwt.JwtAuthenticationFilter;
 import com.xdavide9.sso.jwt.JwtService;
@@ -150,5 +151,13 @@ public class SecurityConfig {
             response.setStatus(403); // Forbidden
             response.getWriter().write("Access Denied. You do not have enough authorization to access the request resource.");
         };
+    }
+
+    /**
+     * PhoneNumberUtil by google lib phone number
+     */
+    @Bean
+    PhoneNumberUtil phoneNumberUtil() {
+        return PhoneNumberUtil.getInstance();
     }
 }

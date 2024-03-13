@@ -35,6 +35,9 @@ class TimeOutServiceTest {
     @Mock
     private UserRepository repository;
 
+    @Mock
+    private UserModifierService userModifierService;
+
     @Captor
     private ArgumentCaptor<Runnable> captor;
 

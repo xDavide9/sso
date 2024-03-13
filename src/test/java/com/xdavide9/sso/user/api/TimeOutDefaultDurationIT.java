@@ -1,8 +1,8 @@
 package com.xdavide9.sso.user.api;
 
 import com.xdavide9.sso.common.config.OverrideTimeOutPropertiesConfig;
-import com.xdavide9.sso.common.config.TestAuthenticator;
 import com.xdavide9.sso.common.config.TestingDatabaseConfig;
+import com.xdavide9.sso.common.util.TestAuthenticator;
 import com.xdavide9.sso.user.User;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;

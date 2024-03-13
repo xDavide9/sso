@@ -6,10 +6,9 @@ import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.user.fields.role.Role;
+import com.xdavide9.sso.util.UserModifierService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,7 +23,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 // unit test for AdminService
 @ExtendWith(MockitoExtension.class)
@@ -34,8 +32,8 @@ class AdminServiceTest {
     private AdminService underTest;
     @Mock
     private UserRepository userRepository;
-    @Captor
-    private ArgumentCaptor<User> captor;
+    @Mock
+    private UserModifierService userModifierService;
     @Test
     void itShouldPromoteUserToOperator() {
         // given
@@ -45,11 +43,9 @@ class AdminServiceTest {
         // when
         ResponseEntity<String> response = underTest.promoteUserToOperator(uuid);
         // then
-        verify(userRepository).save(captor.capture());
-        assertThat(captor.getValue().getRole()).isEqualTo(Role.OPERATOR);
+        verify(userModifierService).setRole(user, Role.OPERATOR);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(format("The user [%s] has been successfully promoted to operator", uuid));
-        verifyNoMoreInteractions(userRepository);
     }
 
     @Test
@@ -87,12 +83,9 @@ class AdminServiceTest {
         // when
         ResponseEntity<String> response = underTest.banUser(uuid);
         // then
-        verify(userRepository).save(captor.capture());
-        User capturedUser = captor.getValue();
-        assertThat(capturedUser.isEnabled()).isFalse();
+        verify(userModifierService).setEnabled(user, false);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(format("The user [%s] has been successfully banned from the system", uuid));
-        verifyNoMoreInteractions(userRepository);
     }
 
     @Test
@@ -145,12 +138,9 @@ class AdminServiceTest {
         // when
         ResponseEntity<String> response = underTest.unbanUser(uuid);
         // then
-        verify(userRepository).save(captor.capture());
-        User capturedUser = captor.getValue();
-        assertThat(capturedUser.isEnabled()).isTrue();
+        verify(userModifierService).setEnabled(user, true);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(format("The user [%s] has been successfully unbanned", uuid));
-        verifyNoMoreInteractions(userRepository);
     }
 
     @Test
@@ -187,12 +177,9 @@ class AdminServiceTest {
         // when
         ResponseEntity<String> response = underTest.demoteUser(uuid);
         // then
-        verify(userRepository).save(captor.capture());
-        User capturedUser = captor.getValue();
-        assertThat(capturedUser.getRole()).isEqualTo(Role.USER);
+        verify(userModifierService).setRole(user, Role.USER);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(format("The user [%s] has been demoted to a plain user", uuid));
-        verifyNoMoreInteractions(userRepository);
     }
 
     @Test

@@ -25,12 +25,12 @@ public class Country {
     /**
      * The actual country name
      */
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private String displayName;
     /**
      * phone number prefix for given country
      */
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private int phoneNumberCode;
 
     @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)

@@ -1,8 +1,8 @@
 package com.xdavide9.sso.user.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.xdavide9.sso.common.config.TestAuthenticator;
 import com.xdavide9.sso.common.util.JsonParserService;
+import com.xdavide9.sso.common.util.TestAuthenticator;
 import com.xdavide9.sso.user.User;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -40,12 +40,60 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestAuthenticator.class)
 public class OperatorApiIT {
 
+    // TODO update this class check persisting changes
+
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private JsonParserService parser;
     @Autowired
     private TestAuthenticator authenticator;
+
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    void itShouldGetAllUsers(String loginUsername, String loginPassword) throws Exception {
+        // given
+        String token = authenticator.login(loginUsername, loginPassword);
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get("/api/v0.0.1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isOk());
+    }
+
+    @Test
+    void itShouldNotGetAllUsersTokenIsMissing() throws Exception {
+        // given
+        ResultActions resultActions = mockMvc.perform(
+                get("/api/v0.0.1/users")
+        );
+        // then
+        resultActions.andExpect(status().isUnauthorized());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(responseBody).isEqualTo("Missing jwt Token. Every request should include a valid jwt token to authenticate to the server.");
+    }
+
+    @Test
+    void itShouldNotGetAllUsersNotEnoughAuthorization() throws Exception {
+        // given
+        String token = authenticator.login("userUsername", "userPassword");
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                get("/api/v0.0.1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isForbidden());
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(responseBody).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
+    }
 
     @ParameterizedTest
     @CsvSource({

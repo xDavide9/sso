@@ -1,8 +1,8 @@
-package com.xdavide9.sso.common.config;
+package com.xdavide9.sso.common.util;
 
 import com.xdavide9.sso.authentication.AuthenticationResponse;
 import com.xdavide9.sso.authentication.LoginRequest;
-import com.xdavide9.sso.common.util.JsonParserService;
+import com.xdavide9.sso.common.config.TestingDatabaseConfig;
 import com.xdavide9.sso.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestComponent;

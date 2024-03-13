@@ -25,6 +25,8 @@ import java.util.List;
 @TestConfiguration
 public class TestingDatabaseConfig {
 
+    // TODO update this to save users with more details for more in depth teseting
+
     /**
      * Jpa repository to interact with the database.
      */

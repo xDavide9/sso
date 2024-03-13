@@ -6,6 +6,7 @@ import com.xdavide9.sso.exception.user.api.UserNotFoundException;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.user.fields.role.Role;
+import com.xdavide9.sso.util.UserModifierService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +28,12 @@ import static java.lang.String.format;
 @Service
 public class AdminService {
     private final UserRepository userRepository;
+    private final UserModifierService userModifierService;
     @Autowired
-    public AdminService(UserRepository userRepository) {
+    public AdminService(UserRepository userRepository,
+                        UserModifierService userModifierService) {
         this.userRepository = userRepository;
+        this.userModifierService = userModifierService;
     }
 
     /**
@@ -54,9 +58,7 @@ public class AdminService {
                     format("Could not promote user [%s] because they do not have USER role", uuid),
                     UserExceptionReason.PROMOTION
                     );
-        user.getAuthorities().clear();
-        user.setRole(Role.OPERATOR);
-        userRepository.save(user);
+        userModifierService.setRole(user, Role.OPERATOR);
         return ResponseEntity.ok(format("The user [%s] has been successfully promoted to operator", uuid));
     }
 
@@ -87,8 +89,7 @@ public class AdminService {
                     format("Could not ban user [%s] because they are already banned", uuid),
                     UserExceptionReason.BAN
             );
-        user.setEnabled(false);
-        userRepository.save(user);
+        userModifierService.setEnabled(user, false);
         return ResponseEntity.ok(format("The user [%s] has been successfully banned from the system", uuid));
     }
 
@@ -114,8 +115,7 @@ public class AdminService {
                     format("Could not unban user [%s] because they are not banned", uuid),
                     UserExceptionReason.UNBAN
             );
-        user.setEnabled(true);
-        userRepository.save(user);
+        userModifierService.setEnabled(user, true);
         return ResponseEntity.ok(format("The user [%s] has been successfully unbanned", uuid));
     }
 
@@ -141,9 +141,7 @@ public class AdminService {
               format("Could not demote user [%s] because they are not an operator", uuid),
               UserExceptionReason.DEMOTION
             );
-        user.getAuthorities().clear();
-        user.setRole(Role.USER);
-        userRepository.save(user);
+        userModifierService.setRole(user, Role.USER);
         return ResponseEntity.ok(format("The user [%s] has been demoted to a plain user", uuid));
     }
 }

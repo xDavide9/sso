@@ -23,4 +23,5 @@ public class SsoApplication {
     }
 
     // todo aggiungere logging
+    // todo aggiungere ai doc delle exception dove si handle
 }
