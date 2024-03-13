@@ -46,10 +46,6 @@ public class AuthenticationApiIT {
     @Autowired
     private JsonParserService parser;
 
-    // made the exception of using repository here to check if country is set correctly
-    @Autowired
-    private CountryRepository countryRepository;
-
     // signup
 
     @Test
@@ -105,19 +101,6 @@ public class AuthenticationApiIT {
         AuthenticationResponse response = parser.java(jsonResponse, AuthenticationResponse.class);
         assertThat(response).isNotNull();
         assertThat(response.token()).isNotNull();
-        // now check users for that country is updated correctly
-        Country returnedCountry = countryRepository.findById("IT").get();
-        assertThat(returnedCountry.getUsers().isEmpty()).isFalse();
-        User returnedUser = returnedCountry.getUsers().iterator().next();
-        assertThat(returnedUser.getUsername()).isEqualTo(username);
-        assertThat(returnedUser.getEmail()).isEqualTo(email);
-        assertThat(returnedUser.getPassword()).isNotNull();
-        assertThat(returnedUser.getFirstName()).isEqualTo(firstName);
-        assertThat(returnedUser.getLastName()).isEqualTo(lastName);
-        assertThat(returnedUser.getPhoneNumber()).isEqualTo(phoneNumber);
-        assertThat(returnedUser.getCountry()).isEqualTo(country);
-        assertThat(returnedUser.getGender()).isEqualTo(gender);
-        assertThat(returnedUser.getDateOfBirth()).isEqualTo(dateOfBirth);
 
     }
 

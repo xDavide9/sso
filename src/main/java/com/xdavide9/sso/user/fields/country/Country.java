@@ -1,11 +1,12 @@
 package com.xdavide9.sso.user.fields.country;
 
 import com.xdavide9.sso.user.User;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * This class models countries to be associated to instances of {@link User} via a
@@ -33,9 +34,6 @@ public class Country {
     @Column(nullable = false, updatable = false)
     private int phoneNumberCode;
 
-    @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
-    private Set<User> users = new HashSet<>();
-
     public Country() {
     }
 
@@ -61,10 +59,6 @@ public class Country {
         return phoneNumberCode;
     }
 
-    public Set<User> getUsers() {
-        return users;
-    }
-
     // SETTER
 
 
@@ -78,10 +72,6 @@ public class Country {
 
     public void setPhoneNumberCode(int phoneNumberCode) {
         this.phoneNumberCode = phoneNumberCode;
-    }
-
-    public void setUsers(Set<User> users) {
-        this.users = users;
     }
 
     // EQUALS, HASHCODE, TOSTRING

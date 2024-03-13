@@ -102,9 +102,6 @@ public class AuthenticationService {
         }
         if (request.country() != null) {
             Country country = validatorService.validateCountry(request.country());
-            Set<User> users = country.getUsers();
-            users.add(user);
-            country.setUsers(users);
             user.setCountry(country);
         }
         userRepository.save(user);

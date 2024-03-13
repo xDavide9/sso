@@ -29,7 +29,6 @@ import java.util.function.BiConsumer;
 public class UserModifierService {
     private final UserRepository userRepository;
     private final UserChangeRepository userChangeRepository;
-    private final CountryRepository countryRepository;
     private final ValidatorService validatorService;
     private final PasswordEncoder passwordEncoder;
 
@@ -38,13 +37,11 @@ public class UserModifierService {
     public UserModifierService(UserRepository userRepository,
                                ValidatorService validatorService,
                                PasswordEncoder passwordEncoder,
-                               UserChangeRepository userChangeRepository,
-                               CountryRepository countryRepository) {
+                               UserChangeRepository userChangeRepository) {
         this.userRepository = userRepository;
         this.validatorService = validatorService;
         this.passwordEncoder = passwordEncoder;
         this.userChangeRepository = userChangeRepository;
-        this.countryRepository = countryRepository;
     }
 
     private <T> void setAttribute(User user, T value, BiConsumer<User, T> setter) {
@@ -104,20 +101,13 @@ public class UserModifierService {
     public void setCountry(User user, Country country) {
         validatorService.validateCountry(country);
         String previous = null;
-        if (user.getCountry() != null) {
-            previous = user.getCountry().getCountryCode();
-            Country previousCountry = user.getCountry();
-            Set<User> users = previousCountry.getUsers();
-            if (users.remove(user)) {
-                previousCountry.setUsers(users);
-                countryRepository.save(previousCountry);
-            }
-        }
+        if (user.getCountry() != null)
+            previous = user.getCountry().toString();
         userChangeRepository.save(new UserChange(
                 user,
                 UserField.COUNTRY,
                 previous,
-                country.getCountryCode()
+                country.toString()
         ));
         setAttribute(user, country, User::setCountry);
     }

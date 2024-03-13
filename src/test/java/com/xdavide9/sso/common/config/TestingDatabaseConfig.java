@@ -3,6 +3,8 @@ package com.xdavide9.sso.common.config;
 import com.xdavide9.sso.config.SecurityConfig;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.user.fields.Gender;
+import com.xdavide9.sso.user.fields.country.Country;
 import com.xdavide9.sso.user.fields.role.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +26,6 @@ import java.util.List;
  */
 @TestConfiguration
 public class TestingDatabaseConfig {
-
-    // TODO update this to save users with more details for more in depth teseting
 
     /**
      * Jpa repository to interact with the database.
@@ -55,21 +55,27 @@ public class TestingDatabaseConfig {
     @Profile({"test"})
     CommandLineRunner setUpTestingDatabase() {
         return args -> {
+            Country italy = new Country("IT", "Italy", 39);
             User user = new User(
                     "userUsername",
                     "user@email.com",
                     passwordEncoder.encode("userPassword")
             );
+            user.setCountry(italy);
             User operator = new User(
                     "operatorUsername",
                     "operator@email.com",
                     passwordEncoder.encode("operatorPassword")
             );
+            operator.setGender(Gender.MALE);
             User admin = new User(
                     "adminUsername",
                     "admin@email.com",
                     passwordEncoder.encode("adminPassword")
             );
+            admin.setFirstName("Davide");
+            admin.setGender(Gender.MALE);
+            admin.setCountry(italy);
             operator.setRole(Role.OPERATOR);
             admin.setRole(Role.ADMIN);
             userRepository.saveAll(List.of(user, operator, admin));

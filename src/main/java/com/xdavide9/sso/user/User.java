@@ -59,7 +59,7 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String phoneNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne
     @JoinColumn(name = "country_code")
     private Country country;
 

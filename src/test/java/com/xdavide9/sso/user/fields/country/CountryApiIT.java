@@ -24,8 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestAuthenticator.class)
 public class CountryApiIT {
 
-    // TODO update when user with countries are set correctly
-
     @Autowired
     private MockMvc mockMvc;
     @Autowired
