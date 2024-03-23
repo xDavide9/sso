@@ -6,6 +6,8 @@ import com.xdavide9.sso.common.config.TestingDatabaseConfig;
 import com.xdavide9.sso.common.util.JsonParserService;
 import com.xdavide9.sso.common.util.TestAuthenticator;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.change.UserChange;
+import com.xdavide9.sso.user.fields.UserField;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,8 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Import({TestAuthenticator.class, TestingDatabaseConfig.class})
 public class AdminApiIT {
-
-    // TODO update this class checking persisting the changes
 
     @Autowired
     private MockMvc mockMvc;
@@ -65,6 +66,18 @@ public class AdminApiIT {
         resultActions.andExpect(status().isOk());
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         assertThat(responseBody).isEqualTo(format("The user [%s] has been successfully promoted to operator", uuid));
+        // change should be recorded
+        // change should be recorded
+        ResultActions getChanges = mockMvc.perform(
+                get("/api/v0.0.1/users/changes")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        String json = getChanges.andReturn().getResponse().getContentAsString();
+        List<UserChange> changes = parser.java(json, new TypeReference<>(){});
+        UserChange userChange = changes.get(0);
+        assertThat(userChange.getField()).isEqualTo(UserField.ROLE);
+        assertThat(userChange.getPreviousValue()).isEqualTo("USER");
+        assertThat(userChange.getUpdatedValue()).isEqualTo("OPERATOR");
     }
 
     @ParameterizedTest
@@ -190,6 +203,18 @@ public class AdminApiIT {
         resultActions.andExpect(status().isForbidden());
         String response = resultActions.andReturn().getResponse().getContentAsString();
         assertThat(response).isEqualTo(format("This account [%s] has been disabled by an Admin.", operatorUuid));
+        // banned operator change should be recorded in db
+        ResultActions getChanges = mockMvc.perform(
+                get("/api/v0.0.1/users/changes")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        getChanges.andExpect(status().isOk());
+        String changesString = getChanges.andReturn().getResponse().getContentAsString();
+        List<UserChange> userChanges = parser.java(changesString, new TypeReference<>() {});
+        UserChange change = userChanges.get(0);
+        assertThat(change.getField()).isEqualTo(UserField.ENABLED);
+        assertThat(change.getPreviousValue()).isEqualTo("true");
+        assertThat(change.getUpdatedValue()).isEqualTo("false");
     }
 
     @ParameterizedTest
@@ -283,8 +308,9 @@ public class AdminApiIT {
     @Transactional
     void itShouldUnbanUser() throws Exception {
         // given
-        String token = authenticator.loginAsAdmin();;
-        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
+        String token = authenticator.loginAsAdmin();
+        String operatorToken = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleOperator(token).getUuid();
         ResultActions given = mockMvc.perform(
                 delete("/api/v0.0.1/users/ban/" + uuid)
                         .header("Authorization", format("Bearer %s", token))
@@ -299,6 +325,24 @@ public class AdminApiIT {
         resultActions.andExpect(status().isOk());
         String response = resultActions.andReturn().getResponse().getContentAsString();
         assertThat(response).isEqualTo(format("The user [%s] has been successfully unbanned", uuid));
+        // unbanned operator can perform requests again
+        ResultActions unbannedRequest = mockMvc.perform(
+                get("/api/v0.0.1/users/username/userUsername")
+                        .header("Authorization", format("Bearer %s", operatorToken))
+        );
+        unbannedRequest.andExpect(status().isOk());
+        // unbanned operator change should be recorded in db
+        ResultActions getChanges = mockMvc.perform(
+                get("/api/v0.0.1/users/changes")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        getChanges.andExpect(status().isOk());
+        String changesString = getChanges.andReturn().getResponse().getContentAsString();
+        List<UserChange> userChanges = parser.java(changesString, new TypeReference<>(){});
+        UserChange change = userChanges.get(1);
+        assertThat(change.getField()).isEqualTo(UserField.ENABLED);
+        assertThat(change.getPreviousValue()).isEqualTo("false");
+        assertThat(change.getUpdatedValue()).isEqualTo("true");
     }
 
     @ParameterizedTest
@@ -368,6 +412,7 @@ public class AdminApiIT {
     void itShouldDemoteUser() throws Exception {
         // given
         String token = authenticator.loginAsAdmin();
+        String operatorToken = authenticator.loginAsOperator();
         UUID uuid = authenticator.getUserWithRoleOperator(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -378,6 +423,24 @@ public class AdminApiIT {
         resultActions.andExpect(status().isOk());
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         assertThat(responseBody).isEqualTo(format("The user [%s] has been demoted to a plain user", uuid));
+        // user should now be forbidden from operator requests
+        ResultActions getUsers = mockMvc.perform(
+                get("/api/v0.0.1/users")
+                        .header("Authorization", format("Bearer %s", operatorToken))
+        );
+        getUsers.andExpect(status().isForbidden());
+        // change should be recorded
+        ResultActions getChanges = mockMvc.perform(
+                get("/api/v0.0.1/users/changes")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        String json = getChanges.andReturn().getResponse().getContentAsString();
+        List<UserChange> changes = parser.java(json, new TypeReference<>(){});
+        UserChange userChange = changes.get(0);
+        assertThat(userChange.getField()).isEqualTo(UserField.ROLE);
+        assertThat(userChange.getPreviousValue()).isEqualTo("OPERATOR");
+        assertThat(userChange.getUpdatedValue()).isEqualTo("USER");
+
     }
 
     @ParameterizedTest

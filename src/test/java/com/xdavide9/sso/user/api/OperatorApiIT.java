@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.xdavide9.sso.common.util.JsonParserService;
 import com.xdavide9.sso.common.util.TestAuthenticator;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.change.UserChange;
+import com.xdavide9.sso.user.fields.UserField;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,8 +42,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Import(TestAuthenticator.class)
 public class OperatorApiIT {
-
-    // TODO update this class check persisting changes
 
     @Autowired
     private MockMvc mockMvc;
@@ -405,6 +406,17 @@ public class OperatorApiIT {
         resultActions.andExpect(status().isOk());
         String response = resultActions.andReturn().getResponse().getContentAsString();
         assertThat(response).isEqualTo(format("Username of user with uuid [%s] has been changed correctly to [%s]", uuid, username));
+        // change should be recorded
+        ResultActions getChanges = mockMvc.perform(
+                get("/api/v0.0.1/users/changes")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        String json = getChanges.andReturn().getResponse().getContentAsString();
+        List<UserChange> changes = parser.java(json, new TypeReference<>(){});
+        UserChange userChange = changes.get(0);
+        assertThat(userChange.getField()).isEqualTo(UserField.USERNAME);
+        assertThat(userChange.getPreviousValue()).isEqualTo("userUsername");
+        assertThat(userChange.getUpdatedValue()).isEqualTo("username");
     }
 
     @Test
@@ -516,6 +528,17 @@ public class OperatorApiIT {
         resultActions.andExpect(status().isOk());
         String response = resultActions.andReturn().getResponse().getContentAsString();
         assertThat(response).isEqualTo(format("Email of user with uuid [%s] has been changed correctly to [%s]", uuid, email));
+        // change should be recorded
+        ResultActions getChanges = mockMvc.perform(
+                get("/api/v0.0.1/users/changes")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        String json = getChanges.andReturn().getResponse().getContentAsString();
+        List<UserChange> changes = parser.java(json, new TypeReference<>(){});
+        UserChange userChange = changes.get(0);
+        assertThat(userChange.getField()).isEqualTo(UserField.EMAIL);
+        assertThat(userChange.getPreviousValue()).isEqualTo("user@email.com");
+        assertThat(userChange.getUpdatedValue()).isEqualTo("email@email.com");
     }
 
     @Test
