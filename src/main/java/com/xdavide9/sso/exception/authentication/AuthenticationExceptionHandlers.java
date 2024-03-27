@@ -21,7 +21,7 @@ import static org.springframework.http.HttpStatus.*;
  * @since 0.0.1-SNAPSHOT
  */
 @ControllerAdvice
-public class AuthenticationExceptionsHandler {
+public class AuthenticationExceptionHandlers {
 
     @ExceptionHandler(value = EmailTakenException.class)
     public ResponseEntity<Map<String, Object>> handleEmailTakenException(EmailTakenException e) {

@@ -125,7 +125,6 @@
             </plugin>
             <plugin>
 <!--                ./mvnw failsafe:integration-test -Ptest to run integration tests in classes that follow convention **/*IT.java-->
-<!--                test classes ending with IT2 use "test2" profile, therefore they are run separately -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.1.2</version>

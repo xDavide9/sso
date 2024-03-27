@@ -15,7 +15,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
  * They handle exceptions related to {@link UserChange}
  */
 @ControllerAdvice
-public class UserChangeExceptionsHandler {
+public class UserChangeExceptionHandlers {
 
     @ExceptionHandler(value = UserChangeNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleUserChangeNotFoundException(UserChangeNotFoundException e) {

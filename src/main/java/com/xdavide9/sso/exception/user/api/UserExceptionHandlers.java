@@ -24,7 +24,7 @@ import static org.springframework.http.HttpStatus.*;
  * @since 0.0.1-SNAPSHOT
  */
 @ControllerAdvice
-public class UserExceptionsHandler {
+public class UserExceptionHandlers {
 
     // DEFINED BY ME
 

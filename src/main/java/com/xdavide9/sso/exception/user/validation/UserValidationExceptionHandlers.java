@@ -19,7 +19,7 @@ import static org.springframework.http.HttpStatus.CONFLICT;
  * It does so by catching appropriate exceptions and returning responses to clients
  */
 @ControllerAdvice
-public class UserValidationExceptionHandler {
+public class UserValidationExceptionHandlers {
 
     @ExceptionHandler(value = InvalidPhoneNumberException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidPhoneNumberException(InvalidPhoneNumberException e) {

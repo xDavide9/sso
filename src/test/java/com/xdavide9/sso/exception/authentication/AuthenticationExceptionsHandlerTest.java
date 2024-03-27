@@ -13,14 +13,14 @@ import java.util.Map;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.*;
 
-// unit tests  AuthenticationExceptionHandler
+// unit tests  AuthenticationExceptionHandlers
 class AuthenticationExceptionsHandlerTest {
 
-    private AuthenticationExceptionsHandler underTest;
+    private AuthenticationExceptionHandlers underTest;
 
     @BeforeEach
     void setUp() {
-        underTest = new AuthenticationExceptionsHandler();
+        underTest = new AuthenticationExceptionHandlers();
     }
 
     @SuppressWarnings("unchecked")

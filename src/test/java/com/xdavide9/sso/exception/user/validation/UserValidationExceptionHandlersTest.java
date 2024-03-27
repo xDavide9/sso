@@ -12,13 +12,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CONFLICT;
 
-class UserValidationExceptionHandlerTest {
+class UserValidationExceptionHandlersTest {
 
-    private UserValidationExceptionHandler underTest;
+    private UserValidationExceptionHandlers underTest;
 
     @BeforeEach
     void setUp() {
-        underTest = new UserValidationExceptionHandler();
+        underTest = new UserValidationExceptionHandlers();
     }
 
     @Test

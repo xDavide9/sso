@@ -9,13 +9,13 @@ import java.util.Map;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-class UserChangeExceptionsHandlerTest {
+class UserChangeExceptionHandlersTest {
 
-    private UserChangeExceptionsHandler underTest;
+    private UserChangeExceptionHandlers underTest;
 
     @BeforeEach
     void setUp() {
-        underTest = new UserChangeExceptionsHandler();
+        underTest = new UserChangeExceptionHandlers();
     }
 
     @Test

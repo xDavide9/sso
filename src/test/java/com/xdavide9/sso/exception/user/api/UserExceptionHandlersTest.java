@@ -11,14 +11,14 @@ import java.util.Map;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.http.HttpStatus.*;
 
-// unit test UserExceptionsHandler
-class UserExceptionsHandlerTest {
+// unit test UserExceptionHandlers
+class UserExceptionHandlersTest {
 
-    private UserExceptionsHandler underTest;
+    private UserExceptionHandlers underTest;
 
     @BeforeEach
     void setUp() {
-        underTest = new UserExceptionsHandler();
+        underTest = new UserExceptionHandlers();
     }
 
     @ParameterizedTest

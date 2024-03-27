@@ -16,7 +16,7 @@ import static org.springframework.http.HttpStatus.NOT_FOUND;
  * @author xDavide9
  */
 @ControllerAdvice
-public class CountryExceptionsHandler {
+public class CountryExceptionHandlers {
 
     @ExceptionHandler(value = CountryNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleCountryNotFoundException(CountryNotFoundException e) {
