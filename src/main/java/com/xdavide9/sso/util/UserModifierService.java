@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
@@ -183,6 +184,30 @@ public class UserModifierService {
                 enabled.toString()
         ));
         setAttribute(user, enabled, User::setEnabled);
+    }
+
+    @Transactional
+    public void setDisabledUntil(User user, LocalDateTime disabledUntil) {
+        String previous = null;
+        if (user.getDisabledUntil() != null)
+            previous = user.getDisabledUntil().toString();
+        if (disabledUntil == null) {
+            userChangeRepository.save(new UserChange(
+                    user,
+                    UserField.DISABLED_UNTIL,
+                    previous,
+                    null
+            ));
+        } else {
+            userChangeRepository.save(new UserChange(
+                    user,
+                    UserField.DISABLED_UNTIL,
+                    previous,
+                    disabledUntil.toString()
+            ));
+        }
+
+        setAttribute(user, disabledUntil, User::setDisabledUntil);
     }
 
     @Transactional

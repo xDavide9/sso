@@ -2,6 +2,7 @@ package com.xdavide9.sso.jwt;
 
 import com.xdavide9.sso.config.SecurityConfig;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.time.LocalDateTime;
 
 import static java.lang.String.format;
 
@@ -34,11 +37,18 @@ import static java.lang.String.format;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
+    private final Clock clock;
+    private final UserRepository repository;
 
     @Autowired
-    public JwtAuthenticationFilter(UserDetailsService userDetailsService, JwtService jwtService) {
+    public JwtAuthenticationFilter(UserDetailsService userDetailsService,
+                                   JwtService jwtService,
+                                   Clock clock,
+                                   UserRepository repository) {
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
+        this.clock = clock;
+        this.repository = repository;
     }
 
     /**
@@ -68,9 +78,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
             // check enabled, accountNonLocked, accountExpired, credentialsNonExpired
             if (!user.isEnabled()) {
-                response.setStatus(403);
-                response.getWriter().write(format("This account [%s] has been disabled by an Admin.", user.getUuid()));
-                return;
+                if (user.getDisabledUntil() != null && LocalDateTime.now(clock).isBefore(user.getDisabledUntil())) {
+                    response.setStatus(403);
+                    response.getWriter().write(format("This account [%s] has been disabled by an Admin.", user.getUuid()));
+                    return;
+                } else {
+                    user.setEnabled(true);
+                    repository.save(user);
+                }
             }
             // ...
             // now register to security context

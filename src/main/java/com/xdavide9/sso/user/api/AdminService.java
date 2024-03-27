@@ -13,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static java.lang.String.format;
@@ -90,6 +93,7 @@ public class AdminService {
                     UserExceptionReason.BAN
             );
         userModifierService.setEnabled(user, false);
+        userModifierService.setDisabledUntil(user, LocalDateTime.of(3000, 1, 1, 1, 1));
         return ResponseEntity.ok(format("The user [%s] has been successfully banned from the system", uuid));
     }
 
@@ -116,6 +120,7 @@ public class AdminService {
                     UserExceptionReason.UNBAN
             );
         userModifierService.setEnabled(user, true);
+        userModifierService.setDisabledUntil(user, null);
         return ResponseEntity.ok(format("The user [%s] has been successfully unbanned", uuid));
     }
 

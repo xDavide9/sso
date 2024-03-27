@@ -173,12 +173,12 @@ class OperatorServiceTest {
         setPrincipal(operator);
         UUID uuid = UUID.randomUUID();
         given(repository.findById(uuid)).willReturn(Optional.of(user));
-        long duration = 1000*60*60; // 1 hour
+        long duration = 60L; // minutes
         // when
         ResponseEntity<String> response = underTest.timeOut(uuid, duration);
         // then
         verify(timeOutService).timeOut(user, duration);
-        assertThat(response.getBody()).isEqualTo(format("User with uuid [%s] has been timed out for [%d] milliseconds", uuid, duration));
+        assertThat(response.getBody()).isEqualTo(format("User with uuid [%s] has been timed out for [%d] minutes.", uuid, duration));
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 

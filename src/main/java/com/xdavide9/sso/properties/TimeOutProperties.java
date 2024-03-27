@@ -3,6 +3,8 @@ package com.xdavide9.sso.properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
+import java.time.temporal.ChronoUnit;
+
 /**
  * This class models properties with prefix "api.timeout" in properties files
  * to be used across the application. They are set via constructor with default configuration
@@ -13,38 +15,41 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 @ConfigurationProperties(prefix = "api.timeout")
 public class TimeOutProperties {
     /**
-     * the amount of threads allocated
+     * temporal unit to timeout in (hours, minutes, seconds...);
+     * should be the string representation of an enum constant of {@link ChronoUnit}
      */
-    private int threads;
+    private String defaultTemporalUnit;
     /**
-     * default timeout duration in milliseconds
+     * default timeout duration expressed in temporal units
      */
-    private long defaultDuration;
+    private long defaultTimeOutDuration;
 
     @ConstructorBinding
-    public TimeOutProperties(int threads,
-                             long defaultDuration) {
-        this.threads = threads;
-        this.defaultDuration = defaultDuration;
+    public TimeOutProperties(String defaultTemporalUnit,
+                             long defaultTimeOutDuration) {
+        this.defaultTemporalUnit = defaultTemporalUnit;
+        this.defaultTimeOutDuration = defaultTimeOutDuration;
     }
 
     // GETTERS
 
-    public int getNumberOfThreads() {
-        return threads;
+
+    public String getDefaultTemporalUnit() {
+        return defaultTemporalUnit;
     }
 
     public long getDefaultTimeOutDuration() {
-        return defaultDuration;
+        return defaultTimeOutDuration;
     }
 
     // SETTERS
 
-    public void setThreads(int threads) {
-        this.threads = threads;
+
+    public void setDefaultTemporalUnit(String defaultTemporalUnit) {
+        this.defaultTemporalUnit = defaultTemporalUnit;
     }
 
-    public void setDefaultDuration(long defaultDuration) {
-        this.defaultDuration = defaultDuration;
+    public void setDefaultTimeOutDuration(long defaultDuration) {
+        this.defaultTimeOutDuration = defaultDuration;
     }
 }

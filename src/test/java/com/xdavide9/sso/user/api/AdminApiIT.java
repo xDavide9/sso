@@ -339,10 +339,24 @@ public class AdminApiIT {
         getChanges.andExpect(status().isOk());
         String changesString = getChanges.andReturn().getResponse().getContentAsString();
         List<UserChange> userChanges = parser.java(changesString, new TypeReference<>(){});
-        UserChange change = userChanges.get(1);
+        for (UserChange u : userChanges)
+            System.out.println(u);
+        UserChange change = userChanges.get(0);
         assertThat(change.getField()).isEqualTo(UserField.ENABLED);
-        assertThat(change.getPreviousValue()).isEqualTo("false");
-        assertThat(change.getUpdatedValue()).isEqualTo("true");
+        assertThat(change.getPreviousValue()).isEqualTo("true");
+        assertThat(change.getUpdatedValue()).isEqualTo("false");
+        UserChange change2 = userChanges.get(1);
+        assertThat(change2.getField()).isEqualTo(UserField.DISABLED_UNTIL);
+        assertThat(change2.getPreviousValue()).isEqualTo(null);
+        assertThat(change2.getUpdatedValue()).isEqualTo("3000-01-01T01:01");
+        UserChange change3 = userChanges.get(2);
+        assertThat(change3.getField()).isEqualTo(UserField.ENABLED);
+        assertThat(change3.getPreviousValue()).isEqualTo("false");
+        assertThat(change3.getUpdatedValue()).isEqualTo("true");
+        UserChange change4 = userChanges.get(3);
+        assertThat(change4.getField()).isEqualTo(UserField.DISABLED_UNTIL);
+        assertThat(change4.getPreviousValue()).isEqualTo("3000-01-01T01:01");
+        assertThat(change4.getUpdatedValue()).isEqualTo(null);
     }
 
     @ParameterizedTest

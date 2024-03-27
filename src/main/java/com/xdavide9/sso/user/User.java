@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
@@ -22,7 +23,7 @@ import java.util.UUID;
  * Phone number, country, first name, last name, date of birth and gender can be provided as additional information.
  * Role, accountNonExpired, accountNonLocked, credentialsNonExpired, enabled have default values and are handled by the system.
  * Authorities are derived by the {@link Role} and therefore cannot be set
- * arbitrarily (no setter).
+ * arbitrarily (no setter). DisabledUntil is used in conjunction with enabled to handle timeouts and bans.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */
@@ -100,6 +101,12 @@ public class User implements UserDetails {
      */
     @Column(nullable = false)
     private boolean enabled = true;
+
+    /**
+     * if it is not null or in the past, the user is not disabled (banned or timeout);
+     * if it is the first minute of the first our of January 1st 3000 user is banned
+     */
+    private LocalDateTime disabledUntil;
 
     // Object creation
 
@@ -198,6 +205,10 @@ public class User implements UserDetails {
         return enabled;
     }
 
+    public LocalDateTime getDisabledUntil() {
+        return disabledUntil;
+    }
+
     // SETTERS
 
     public void setUsername(String username) {
@@ -271,6 +282,13 @@ public class User implements UserDetails {
         this.enabled = enabled;
     }
 
+    /**
+     * it is used to time out or ban a user
+     */
+    public void setDisabledUntil(LocalDateTime disabledUntil) {
+        this.disabledUntil = disabledUntil;
+    }
+
     // EQUALS, HASHCODE, TOSTRING
 
     @Override
@@ -304,6 +322,7 @@ public class User implements UserDetails {
                 ", accountNonLocked=" + accountNonLocked +
                 ", credentialsNonExpired=" + credentialsNonExpired +
                 ", enabled=" + enabled +
+                ", disabledUntil=" + disabledUntil +
                 '}';
     }
 }

@@ -2,6 +2,7 @@ package com.xdavide9.sso.util;
 
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.user.change.UserChange;
 import com.xdavide9.sso.user.change.UserChangeRepository;
 import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.user.fields.country.Country;
@@ -15,15 +16,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class UserModifierServiceTest {
-
-    // TODO update this class with new changes
 
     @InjectMocks
     private UserModifierService underTest;
@@ -55,6 +56,7 @@ class UserModifierServiceTest {
         User captured = userCaptor.getValue();
         verify(validatorService).validateUsername(username);
         assertThat(captured.getUsername()).isEqualTo(username);
+        verify(userChangeRepository).save(any(UserChange.class));
     }
 
     @Test
@@ -69,6 +71,7 @@ class UserModifierServiceTest {
         User captured = userCaptor.getValue();
         verify(validatorService).validateEmail(email);
         assertThat(captured.getEmail()).isEqualTo(email);
+        verify(userChangeRepository).save(any(UserChange.class));
     }
 
     @Test
@@ -84,6 +87,7 @@ class UserModifierServiceTest {
         User captured = userCaptor.getValue();
         verify(validatorService).validateRawPassword(password);
         assertThat(captured.getPassword()).isEqualTo("encoded");
+        verify(userChangeRepository).save(any(UserChange.class));
     }
 
     @Test
@@ -98,6 +102,7 @@ class UserModifierServiceTest {
         User captured = userCaptor.getValue();
         verify(validatorService).validatePhoneNumber(phoneNumber);
         assertThat(captured.getPhoneNumber()).isEqualTo(phoneNumber);
+        verify(userChangeRepository).save(any(UserChange.class));
     }
 
     @Test
@@ -111,6 +116,7 @@ class UserModifierServiceTest {
         verify(userRepository).save(userCaptor.capture());
         User captured = userCaptor.getValue();
         assertThat(captured.getFirstName()).isEqualTo(firstName);
+        verify(userChangeRepository).save(any(UserChange.class));
     }
 
     @Test
@@ -124,6 +130,7 @@ class UserModifierServiceTest {
         verify(userRepository).save(userCaptor.capture());
         User captured = userCaptor.getValue();
         assertThat(captured.getLastName()).isEqualTo(lastName);
+        verify(userChangeRepository).save(any(UserChange.class));
     }
 
     @Test
@@ -138,6 +145,7 @@ class UserModifierServiceTest {
         User captured = userCaptor.getValue();
         verify(validatorService).validateCountry(country);
         assertThat(captured.getCountry()).isEqualTo(country);
+        verify(userChangeRepository).save(any(UserChange.class));
     }
 
     @Test
@@ -152,6 +160,7 @@ class UserModifierServiceTest {
         User captured = userCaptor.getValue();
         verify(validatorService).validateDateOfBirth(dateOfBirth);
         assertThat(captured.getDateOfBirth()).isEqualTo(dateOfBirth);
+        verify(userChangeRepository).save(any(UserChange.class));
     }
 
     @Test
@@ -165,5 +174,34 @@ class UserModifierServiceTest {
         verify(userRepository).save(userCaptor.capture());
         User captured = userCaptor.getValue();
         assertThat(captured.getGender()).isEqualTo(gender);
+        verify(userChangeRepository).save(any(UserChange.class));
+    }
+
+    @Test
+    void itShouldSetEnabledCorrectly() {
+        // given
+        User user = new User();
+        Boolean enabled = false;
+        // when
+        underTest.setEnabled(user, enabled);
+        // then
+        verify(userRepository).save(userCaptor.capture());
+        User captured = userCaptor.getValue();
+        assertThat(captured.isEnabled()).isEqualTo(enabled);
+        verify(userChangeRepository).save(any(UserChange.class));
+    }
+
+    @Test
+    void itShouldSetDisabledUntilCorrectly() {
+        // given
+        User user = new User();
+        LocalDateTime disabledUntil = LocalDateTime.of(3000, 1, 1, 1, 1);
+        // when
+        underTest.setDisabledUntil(user, disabledUntil);
+        // then
+        verify(userRepository).save(userCaptor.capture());
+        User captured = userCaptor.getValue();
+        assertThat(captured.getDisabledUntil()).isEqualTo(disabledUntil);
+        verify(userChangeRepository).save(any(UserChange.class));
     }
 }

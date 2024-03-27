@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -84,6 +85,7 @@ class AdminServiceTest {
         ResponseEntity<String> response = underTest.banUser(uuid);
         // then
         verify(userModifierService).setEnabled(user, false);
+        verify(userModifierService).setDisabledUntil(user, LocalDateTime.of(3000, 1, 1, 1,1));
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(format("The user [%s] has been successfully banned from the system", uuid));
     }
@@ -139,6 +141,7 @@ class AdminServiceTest {
         ResponseEntity<String> response = underTest.unbanUser(uuid);
         // then
         verify(userModifierService).setEnabled(user, true);
+        verify(userModifierService).setDisabledUntil(user, null);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(format("The user [%s] has been successfully unbanned", uuid));
     }

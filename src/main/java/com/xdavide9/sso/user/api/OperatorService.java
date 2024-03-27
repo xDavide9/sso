@@ -140,10 +140,10 @@ public class OperatorService {
             throw new UserCannotBeModifiedException(format("User with uuid [%s] is already banned or timed out", uuid), UserExceptionReason.TIMEOUT);
         if (duration == null) {
             timeOutService.timeOut(user);
-            return ResponseEntity.ok(format("User with uuid [%s] has been timed out for the default duration", uuid));
+            return ResponseEntity.ok(format("User with uuid [%s] has been timed out for 30 minutes.", uuid));
         }
         timeOutService.timeOut(user, duration);
-        return ResponseEntity.ok(format("User with uuid [%s] has been timed out for [%d] milliseconds", uuid, duration));
+        return ResponseEntity.ok(format("User with uuid [%s] has been timed out for [%d] minutes.", uuid, duration));
     }
 
     /**

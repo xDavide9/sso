@@ -1,6 +1,7 @@
 package com.xdavide9.sso.jwt;
 
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.UserRepository;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -23,8 +29,6 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
 
-    @InjectMocks
-    @Spy
     private JwtAuthenticationFilter underTest;
     @Mock
     private JwtService jwtService;
@@ -34,6 +38,9 @@ class JwtAuthenticationFilterTest {
     private SecurityContext securityContext;
     @Mock
     private FilterChain filterChain;
+    @Mock
+    private UserRepository repository;
+    private Clock clock;
     @Captor
     private ArgumentCaptor<Authentication> captor;
     private MockHttpServletRequest request;
@@ -41,6 +48,9 @@ class JwtAuthenticationFilterTest {
     private MockHttpServletResponse response;
     @BeforeEach
     void setUp() {
+        clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
+        JwtAuthenticationFilter originalFilter = new JwtAuthenticationFilter(userDetailsService, jwtService, clock, repository);
+        underTest = Mockito.spy(originalFilter);
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
     }
@@ -95,6 +105,7 @@ class JwtAuthenticationFilterTest {
         User user = new User();
         user.setUsername(username);
         user.setEnabled(false);
+        user.setDisabledUntil(LocalDateTime.now(clock).plusHours(1));
         given(userDetailsService.loadUserByUsername(username)).willReturn(user);
         String token = "validToken";
         request.setAttribute("token", token);
@@ -107,5 +118,33 @@ class JwtAuthenticationFilterTest {
         assertThat(response.getStatus()).isEqualTo(403);
         assertThat(response.getContentAsString()).isEqualTo(format("This account [%s] has been disabled by an Admin.", user.getUuid()));
         verify(filterChain, times(0)).doFilter(request, response);
+    }
+
+    @Test
+    void itShouldReEnableUserAndRegisterToSecurityContext() throws Exception {
+        // given
+        String username = "xdavide9";
+        User user = new User();
+        user.setUsername(username);
+        user.setEnabled(false);
+        user.setDisabledUntil(LocalDateTime.now(clock).minusHours(1));
+        given(userDetailsService.loadUserByUsername(username)).willReturn(user);
+        String token = "validToken";
+        request.setAttribute("token", token);
+        request.setAttribute("username", username);
+        given(jwtService.isTokenValid(token, user)).willReturn(true);
+        given(underTest.securityContext()).willReturn(securityContext);
+        // when
+        underTest.doFilterInternal(request, response, filterChain);
+        // then
+        verify(repository).save(user);
+        verify(securityContext).setAuthentication(captor.capture());
+        Authentication capturedAuthentication = captor.getValue();
+        assertThat(capturedAuthentication).isInstanceOf(UsernamePasswordAuthenticationToken.class);
+        User capturedUser = (User) capturedAuthentication.getPrincipal();
+        assertThat(capturedUser.isEnabled()).isTrue();
+        assertThat(capturedAuthentication.getCredentials()).isNull();
+        assertThat(capturedAuthentication.getAuthorities()).isEqualTo(user.getAuthorities());
+        verify(filterChain).doFilter(request, response);
     }
 }

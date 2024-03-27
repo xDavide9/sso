@@ -327,12 +327,7 @@ public class OperatorApiIT {
         // then
         resultActions.andExpect(status().isOk());
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        assertThat(responseBody).isEqualTo(format("User with uuid [%s] has been timed out for [1000] milliseconds", uuid));
-        User timedOutUser = authenticator.getUserWithRoleUser(token);
-        assertThat(timedOutUser.isEnabled()).isFalse();
-        Thread.sleep(1000);
-        User enabledUser = authenticator.getUserWithRoleUser(token);
-        assertThat(enabledUser.isEnabled()).isTrue();
+        assertThat(responseBody).isEqualTo(format("User with uuid [%s] has been timed out for [1000] minutes.", uuid));
     }
 
     // test with the default duration is in TimeOutDefaultDurationIT.java

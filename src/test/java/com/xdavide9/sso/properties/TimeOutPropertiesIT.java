@@ -20,7 +20,7 @@ public class TimeOutPropertiesIT {
 
     @Test
     void itShouldInjectJwtProperties() {
-        assertThat(underTest.getDefaultTimeOutDuration()).isEqualTo(3600000);
-        assertThat(underTest.getNumberOfThreads()).isEqualTo(1);
+        assertThat(underTest.getDefaultTimeOutDuration()).isEqualTo(30);
+        assertThat(underTest.getDefaultTemporalUnit()).isEqualTo("MINUTES");
     }
 }

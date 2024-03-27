@@ -6,7 +6,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
-// Modifies the default duration of a timeout in a testing environment where is imported
+import java.time.temporal.ChronoUnit;
+
+// Modifies the default duration and temporal unit of a timeout in a testing environment where is imported
 
 @TestConfiguration
 public class OverrideTimeOutPropertiesConfig {
@@ -15,7 +17,10 @@ public class OverrideTimeOutPropertiesConfig {
     private TimeOutProperties timeOutProperties;
 
     @Bean
-    public CommandLineRunner overriddenTimeOutProperties() {
-        return args -> timeOutProperties.setDefaultDuration(1000);
+    public CommandLineRunner overrideTimeOutProperties() {
+        return args ->  {
+            timeOutProperties.setDefaultTimeOutDuration(1000);
+            timeOutProperties.setDefaultTemporalUnit("MILLIS");
+        };
     }
 }
