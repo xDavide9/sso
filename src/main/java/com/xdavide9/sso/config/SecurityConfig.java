@@ -81,6 +81,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                                 .requestMatchers("/api/v0.0.1/auth/*")
                                 .permitAll()
+                                .requestMatchers("/api/v0.0.1/principal")
+                                .hasAnyAuthority("USER_GET", "OPERATOR_GET", "ADMIN_GET")
+                                .requestMatchers("/api/v0.0.1/principal/change/**")
+                                .hasAnyAuthority("USER_PUT", "OPERATOR_PUT", "ADMIN_PUT")
                                 .requestMatchers(
                                         "/api/v0.0.1/users",
                                         "/api/v0.0.1/users/uuid/*",

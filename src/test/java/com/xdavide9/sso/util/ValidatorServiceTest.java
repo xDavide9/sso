@@ -195,31 +195,6 @@ class ValidatorServiceTest {
     }
 
     @Test
-    void itShouldValidateCountryCorrectly() {
-        // given
-        Country country = new Country("IT", "Italy", 39);
-        given(countryRepository.findById(country.getCountryCode())).willReturn(Optional.of(country));
-        given(countryRepository.existsByCountryCodeAndDisplayNameAndPhoneNumberCode(
-                country.getCountryCode(), country.getDisplayName(), country.getPhoneNumberCode()
-        )).willReturn(true);
-        // when & then
-        assertThatCode(() -> underTest.validateCountry(country)).doesNotThrowAnyException();
-    }
-
-    @Test
-    void itShouldValidateInvalidCountry() {
-        // given
-        Country country = new Country("I", "Italy", 39);
-        given(countryRepository.existsByCountryCodeAndDisplayNameAndPhoneNumberCode(
-                country.getCountryCode(), country.getDisplayName(), country.getPhoneNumberCode()
-        )).willReturn(false);
-        // when & then
-        assertThatThrownBy(() -> underTest.validateCountry(country))
-                .isInstanceOf(InvalidCountryException.class)
-                .hasMessageContaining(format("Country [%s] is not valid, provide a new one", country));
-    }
-
-    @Test
     void itShouldValidateDateOfBirthCorrectly() {
         // given
         LocalDate dateOfBirth = LocalDate.ofYearDay(2000, 50);

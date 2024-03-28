@@ -50,7 +50,7 @@ public class CountryService {
         return countryRepository.findAll();
     }
 
-    @PreAuthorize("hasAnyAuthority('OPERATOR_GET', 'ADMIN_GET')")
+    @PreAuthorize("hasAnyAuthority('USER_GET', 'OPERATOR_GET', 'ADMIN_GET')")
     public Country getCountry(String countryCode) {
         Optional<Country> countryOption = countryRepository.findById(countryCode);
         if (countryOption.isEmpty())

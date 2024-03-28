@@ -6,6 +6,7 @@ import com.xdavide9.sso.user.change.UserChange;
 import com.xdavide9.sso.user.change.UserChangeRepository;
 import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.user.fields.country.Country;
+import com.xdavide9.sso.user.fields.country.CountryService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +41,9 @@ class UserModifierServiceTest {
 
     @Mock
     private UserChangeRepository userChangeRepository;
+
+    @Mock
+    private CountryService countryService;
 
     @Captor
     private ArgumentCaptor<User> userCaptor;
@@ -138,12 +142,12 @@ class UserModifierServiceTest {
         // given
         User user = new User();
         Country country = new Country("IT", "Italy", 39);
+        given(countryService.getCountry("IT")).willReturn(country);
         // when
-        underTest.setCountry(user, country);
+        underTest.setCountry(user, "IT");
         // then
         verify(userRepository).save(userCaptor.capture());
         User captured = userCaptor.getValue();
-        verify(validatorService).validateCountry(country);
         assertThat(captured.getCountry()).isEqualTo(country);
         verify(userChangeRepository).save(any(UserChange.class));
     }

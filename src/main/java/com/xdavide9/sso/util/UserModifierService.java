@@ -7,7 +7,7 @@ import com.xdavide9.sso.user.change.UserChangeRepository;
 import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.user.fields.UserField;
 import com.xdavide9.sso.user.fields.country.Country;
-import com.xdavide9.sso.user.fields.country.CountryRepository;
+import com.xdavide9.sso.user.fields.country.CountryService;
 import com.xdavide9.sso.user.fields.role.Role;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.function.BiConsumer;
 
 /**
@@ -30,6 +29,7 @@ import java.util.function.BiConsumer;
 public class UserModifierService {
     private final UserRepository userRepository;
     private final UserChangeRepository userChangeRepository;
+    private final CountryService countryService;
     private final ValidatorService validatorService;
     private final PasswordEncoder passwordEncoder;
 
@@ -38,11 +38,12 @@ public class UserModifierService {
     public UserModifierService(UserRepository userRepository,
                                ValidatorService validatorService,
                                PasswordEncoder passwordEncoder,
-                               UserChangeRepository userChangeRepository) {
+                               UserChangeRepository userChangeRepository, CountryService countryService) {
         this.userRepository = userRepository;
         this.validatorService = validatorService;
         this.passwordEncoder = passwordEncoder;
         this.userChangeRepository = userChangeRepository;
+        this.countryService = countryService;
     }
 
     private <T> void setAttribute(User user, T value, BiConsumer<User, T> setter) {
@@ -99,8 +100,8 @@ public class UserModifierService {
     }
 
     @Transactional
-    public void setCountry(User user, Country country) {
-        validatorService.validateCountry(country);
+    public void setCountry(User user, String countryCode) {
+        Country country = countryService.getCountry(countryCode);
         String previous = null;
         if (user.getCountry() != null)
             previous = user.getCountry().toString();

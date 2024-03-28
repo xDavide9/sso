@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -38,6 +39,7 @@ public class TimeOutDefaultDurationIT {
         // given
         // log in
         String token = authenticator.loginAsOperator();
+        String userToken = authenticator.loginAsUser();
         UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
         // when
         ResultActions resultActions = mockMvc.perform(
@@ -48,14 +50,19 @@ public class TimeOutDefaultDurationIT {
         resultActions.andExpect(status().isOk());
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
         // not 30 minutes in this case but 1000 millis because of OverrideTimeOutPropertiesConfig
+        // but that is still the message returned in the real situation
         assertThat(responseBody).isEqualTo(format("User with uuid [%s] has been timed out for 30 minutes.", uuid));
         User timedOutUser = authenticator.getUserWithRoleUser(token);
         assertThat(timedOutUser.isEnabled()).isFalse();
         // now check he is enabled again wait for 1000 millis
         Thread.sleep(1000);
         // user should perform a request so that filter can enable him
-        // TODO add a request so that user is enabled again
-        User enabledUser = authenticator.getUserWithRoleUser(token);
-        assertThat(enabledUser.isEnabled()).isTrue();
+        ResultActions reEnable = mockMvc.perform(
+                get("/api/v0.0.1/principal")
+                        .header("Authorization", "Bearer " + userToken)
+        );
+        reEnable.andExpect(status().isOk());
+        User reEnabledUser = authenticator.getUserWithRoleUser(token);
+        assertThat(reEnabledUser.isEnabled()).isTrue();
     }
 }

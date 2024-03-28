@@ -12,6 +12,8 @@ import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.user.fields.country.Country;
+import com.xdavide9.sso.user.fields.country.CountryRepository;
+import com.xdavide9.sso.user.fields.country.CountryService;
 import com.xdavide9.sso.util.ValidatorService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -51,6 +54,8 @@ class AuthenticationServiceTest {
     private ValidatorService validatorService;
     @Mock
     private UserDetailsService userDetailsService;
+    @Mock
+    private CountryRepository countryRepository;
     @Captor
     private ArgumentCaptor<User> userCaptor;
 
@@ -101,14 +106,14 @@ class AuthenticationServiceTest {
         Country country = new Country("IT", "Italy", 39);
         given(jwtService.generateToken(any(User.class))).willReturn("token123");
         given(passwordEncoder.encode(password)).willReturn("encodedPassword");
-        given(validatorService.validateCountry(country)).willReturn(country);
+        given(countryRepository.findById("IT")).willReturn(Optional.of(country));
         SignupRequest request = new SignupRequest(username, email, password);
         request.setFirstName(firstName);
         request.setLastName(lastName);
         request.setPhoneNumber(phoneNumber);
         request.setGender(gender);
         request.setDateOfBirth(dateOfBirth);
-        request.setCountry(country);
+        request.setCountry("IT");
         // when
         ResponseEntity<AuthenticationResponse> response = underTest.signup(request);
         // then

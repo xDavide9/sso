@@ -7,10 +7,13 @@ import com.xdavide9.sso.authentication.SignupRequest;
 import com.xdavide9.sso.config.SecurityConfig;
 import com.xdavide9.sso.exception.authentication.api.IncorrectPasswordException;
 import com.xdavide9.sso.exception.user.api.UserBannedException;
+import com.xdavide9.sso.exception.user.fields.country.CountryNotFoundException;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import com.xdavide9.sso.user.fields.country.Country;
+import com.xdavide9.sso.user.fields.country.CountryRepository;
+import com.xdavide9.sso.user.fields.country.CountryService;
 import com.xdavide9.sso.util.ValidatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.Optional;
 
 import static java.lang.String.format;
 
@@ -55,18 +58,24 @@ public class AuthenticationService {
      * It is the {@link RepositoryUserDetailsService} implementation of {@link UserDetailsService}.
      */
     private final UserDetailsService userDetailsService;
+    /**
+     * It is used to interact with countries stored in the system
+     */
+    private final CountryRepository countryRepository;
 
     @Autowired
     public AuthenticationService(JwtService jwtService,
                                  UserRepository userRepository,
                                  PasswordEncoder passwordEncoder,
                                  ValidatorService validatorService,
-                                 @Qualifier(value = "repositoryUserDetailsService") UserDetailsService userDetailsService) {
+                                 @Qualifier(value = "repositoryUserDetailsService") UserDetailsService userDetailsService,
+                                 CountryRepository countryRepository) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.validatorService = validatorService;
         this.userDetailsService = userDetailsService;
+        this.countryRepository = countryRepository;
     }
 
     /**
@@ -101,7 +110,10 @@ public class AuthenticationService {
             user.setDateOfBirth(dateOfBirth);
         }
         if (request.country() != null) {
-            Country country = validatorService.validateCountry(request.country());
+            Optional<Country> countryOption = countryRepository.findById(request.country());
+            if (countryOption.isEmpty())
+                throw new CountryNotFoundException(format("Country with code [%s] not found", request.country()));
+            Country country = countryOption.get();
             user.setCountry(country);
         }
         userRepository.save(user);

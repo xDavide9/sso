@@ -79,7 +79,6 @@ public class AuthenticationApiIT {
         String lastName = "Smith";
         String phoneNumber = "+393337799000";
         Gender gender = Gender.MALE;
-        Country country = new Country("IT", "Italy", 39);
         LocalDate dateOfBirth = LocalDate.ofYearDay(2000, 50);
         SignupRequest request = new SignupRequest(username, email, password);
         request.setFirstName(firstName);
@@ -87,7 +86,7 @@ public class AuthenticationApiIT {
         request.setPhoneNumber(phoneNumber);
         request.setGender(gender);
         request.setDateOfBirth(dateOfBirth);
-        request.setCountry(country);
+        request.setCountry("IT");
         String json = parser.json(request);
         // when
         ResultActions signupResultActions = mockMvc.perform(

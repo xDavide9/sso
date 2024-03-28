@@ -42,7 +42,6 @@ public class ValidatorService {
 
     private final PhoneNumberUtil phoneNumberUtil;
 
-    private final CountryRepository countryRepository;
     private final UserRepository userRepository;
 
 
@@ -54,7 +53,6 @@ public class ValidatorService {
                             UserRepository userRepository) {
         this.jakartaValidator = jakartaValidator;
         this.phoneNumberUtil = phoneNumberUtil;
-        this.countryRepository = countryRepository;
         this.userRepository = userRepository;
     }
 
@@ -124,20 +122,6 @@ public class ValidatorService {
                     format("Username [%s] is already taken", username)
             );
         }
-    }
-
-    /**
-     * Validates countries by checking that it matches a record in the database with countryCode, displayName
-     * and phoneNumberCode. If this is the case the country stored in the database is returned
-     * @param country country to be validated
-     * @return country record in the database matching the validated country
-     */
-    public Country validateCountry(Country country) {
-        Optional<Country> countryOptional = countryRepository.findById(country.getCountryCode());
-        if (!countryRepository.existsByCountryCodeAndDisplayNameAndPhoneNumberCode(
-                country.getCountryCode(), country.getDisplayName(), country.getPhoneNumberCode()
-        ) || countryOptional.isEmpty()) throw new InvalidCountryException(format("Country [%s] is not valid, provide a new one", country));
-        return countryOptional.get();
     }
 
     /**

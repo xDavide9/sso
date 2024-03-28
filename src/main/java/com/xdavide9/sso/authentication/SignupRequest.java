@@ -19,7 +19,7 @@ public class SignupRequest {
     private final String username, email, password;
     private String firstName, lastName, phoneNumber;
     private Gender gender;
-    private Country country;
+    private String countryCode;
     private LocalDate dateOfBirth;
 
     @JsonCreator
@@ -67,8 +67,8 @@ public class SignupRequest {
     }
 
     @JsonProperty
-    public Country country() {
-        return country;
+    public String country() {
+        return countryCode;
     }
 
     @JsonProperty
@@ -92,8 +92,8 @@ public class SignupRequest {
         this.gender = gender;
     }
 
-    public void setCountry(Country country) {
-        this.country = country;
+    public void setCountry(String countryCode) {
+        this.countryCode = countryCode;
     }
 
     public void setDateOfBirth(LocalDate dateOfBirth) {
