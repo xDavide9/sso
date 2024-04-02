@@ -190,6 +190,24 @@ public class OperatorService {
     }
 
     /**
+     * Changes the phoneNumber of {@link User} with specified {@link UUID}.
+     * An admin can change every user's phoneNumber.
+     * An operator can change the phoneNumber of users with {@link Role} USER.
+     * @param uuid - of the user change the email of
+     * @param phoneNumber - to be changed
+     * @return {@link ResponseEntity}
+     */
+    public ResponseEntity<String> changePhoneNumber(UUID uuid, String phoneNumber) {
+        User principal = (User) securityContext().getAuthentication().getPrincipal();
+        User user = getUserByUuid(uuid);
+        if (principal.getRole().equals(Role.OPERATOR) && !user.getRole().equals(Role.USER))
+            throw new AccessDeniedException(format("Access Denied. You cannot change the phoneNumber of" +
+                    " user with uuid [%s] because they are an operator or admin.", uuid));
+        userModifierService.setPhoneNumber(user, phoneNumber);
+        return ResponseEntity.ok(format("PhoneNumber of user with uuid [%s] has been changed correctly to [%s]", uuid, phoneNumber));
+    }
+
+    /**
      * Wrapping security context holder for testability (a static utility cannot be mocked).
      * @return {@link SecurityContext} object that is not static
      */

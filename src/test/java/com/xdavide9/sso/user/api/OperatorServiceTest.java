@@ -318,7 +318,6 @@ class OperatorServiceTest {
     })
     void itShouldNotChangeEmailAccessDenied(String changerRole, String changedRole) {
         // given
-        // operator2 tries to change username of operator1
         String username = "username";
         UUID uuid = UUID.randomUUID();
         User changer = new User();
@@ -331,5 +330,49 @@ class OperatorServiceTest {
         assertThatThrownBy(() -> underTest.changeEmail(uuid, username))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining(format("Access Denied. You cannot change the email of user with uuid [%s] because they are an operator or admin", uuid));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "OPERATOR,USER",
+            "ADMIN,USER",
+            "ADMIN,OPERATOR",
+            "ADMIN,ADMIN",
+    })
+    void itShouldChangePhoneNumber(String changerRole, String changedRole) {
+        // given
+        String phoneNumber = "+393337799000";
+        UUID uuid = UUID.randomUUID();
+        User changer = new User();
+        User changed = new User();
+        changer.setRole(Role.valueOf(changerRole));
+        changed.setRole(Role.valueOf(changedRole));
+        setPrincipal(changer);
+        given(repository.findById(uuid)).willReturn(Optional.of(changed));
+        // when
+        underTest.changePhoneNumber(uuid, phoneNumber);
+        // then
+        verify(userModifierService).setPhoneNumber(changed, phoneNumber);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "OPERATOR,OPERATOR",
+            "OPERATOR,ADMIN"
+    })
+    void itShouldNotChangePhoneNumberAccessDenied(String changerRole, String changedRole) {
+        // given
+        String phoneNumber = "+393337799000";
+        UUID uuid = UUID.randomUUID();
+        User changer = new User();
+        User changed = new User();
+        changer.setRole(Role.valueOf(changerRole));
+        changed.setRole(Role.valueOf(changedRole));
+        setPrincipal(changer);
+        given(repository.findById(uuid)).willReturn(Optional.of(changed));
+        // when & then
+        assertThatThrownBy(() -> underTest.changePhoneNumber(uuid, phoneNumber))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessageContaining(format("Access Denied. You cannot change the phoneNumber of user with uuid [%s] because they are an operator or admin", uuid));
     }
 }

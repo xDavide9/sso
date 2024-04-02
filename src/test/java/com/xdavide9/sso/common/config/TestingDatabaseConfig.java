@@ -62,6 +62,7 @@ public class TestingDatabaseConfig {
                     passwordEncoder.encode("userPassword")
             );
             user.setCountry(italy);
+            user.setPhoneNumber("+393337799000");
             User operator = new User(
                     "operatorUsername",
                     "operator@email.com",

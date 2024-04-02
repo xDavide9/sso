@@ -624,4 +624,127 @@ public class OperatorApiIT {
         assertThat(responseBody.get("error")).isEqualTo("Invalid email");
         assertThat(responseBody.get("message")).isEqualTo("Email [email] is not valid, provide a new one");
     }
+
+    @ParameterizedTest
+    @CsvSource({
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    @Transactional
+    void itShouldChangePhoneNumberCorrectly(String loginUsername, String loginPassword) throws Exception {
+        // given
+        String token = authenticator.login(loginUsername, loginPassword);
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
+        String phoneNumber = "+393337799001";
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/phoneNumber/%s?phoneNumber=%s", uuid, phoneNumber))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isOk());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo(format("PhoneNumber of user with uuid [%s] has been changed correctly to [%s]", uuid, phoneNumber));
+        // change should be recorded
+        ResultActions getChanges = mockMvc.perform(
+                get("/api/v0.0.1/users/changes")
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        String json = getChanges.andReturn().getResponse().getContentAsString();
+        List<UserChange> changes = parser.java(json, new TypeReference<>(){});
+        UserChange userChange = changes.get(0);
+        assertThat(userChange.getField()).isEqualTo(UserField.PHONE_NUMBER);
+        assertThat(userChange.getPreviousValue()).isEqualTo("+393337799000");
+        assertThat(userChange.getUpdatedValue()).isEqualTo(phoneNumber);
+    }
+
+    @Test
+    void itShouldNotChangePhoneNumberTokenIsMissing() throws Exception {
+        // given
+        String token = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleOperator(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/phoneNumber/%s?phoneNumber=any", uuid))
+        );
+        // then
+        resultActions.andExpect(status().isUnauthorized());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("Missing jwt Token. Every request should include a valid jwt token to authenticate to the server.");
+    }
+
+    @Test
+    void itShouldNotChangePhoneNumberNotEnoughAuthorization() throws Exception {
+        // given
+        String strongToken = authenticator.loginAsOperator();
+        String weakToken = authenticator.loginAsUser();
+        UUID uuid = authenticator.getUserWithRoleUser(strongToken).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/phoneNumber/%s?phoneNumber=any", uuid))
+                        .header("Authorization", format("Bearer %s", weakToken))
+        );
+        // then
+        resultActions.andExpect(status().isForbidden());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        assertThat(response).isEqualTo("Access Denied. You do not have enough authorization to access the request resource.");
+    }
+
+    @Test
+    void itShouldNotChangePhoneNumberUserNotFound() throws Exception {
+        // given
+        String token = authenticator.loginAsOperator();
+        UUID uuid = UUID.randomUUID();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/phoneNumber/%s?phoneNumber=any", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isNotFound());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
+        assertThat(responseBody.get("error")).isEqualTo("Cannot get information about user");
+        assertThat(responseBody.get("status")).isEqualTo(HttpStatus.NOT_FOUND.toString());
+        assertThat(responseBody.get("message")).isEqualTo(format("User with uuid [%s] not found.", uuid));
+    }
+
+    @Test
+    void itShouldNotChangePhoneNumberAlreadyTaken() throws Exception {
+        // given
+        String phoneNumber = "+393337799000";
+        String token = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/phoneNumber/%s?phoneNumber=%s", uuid, phoneNumber))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isConflict());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
+        assertThat(responseBody.get("status")).isEqualTo(CONFLICT.toString());
+        assertThat(responseBody.get("error")).isEqualTo("Phone number already taken");
+        assertThat(responseBody.get("message")).isEqualTo(format("The phone number [%s] is already taken", phoneNumber));
+    }
+
+    @Test
+    void itShouldNotChangePhoneNumberInvalidInput() throws Exception {
+        // given
+        String token = authenticator.loginAsOperator();
+        UUID uuid = authenticator.getUserWithRoleUser(token).getUuid();
+        // when
+        ResultActions resultActions = mockMvc.perform(
+                put(format("/api/v0.0.1/users/change/phoneNumber/%s?phoneNumber=", uuid))
+                        .header("Authorization", format("Bearer %s", token))
+        );
+        // then
+        resultActions.andExpect(status().isBadRequest());
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        Map<String, Object> responseBody = parser.java(response, new TypeReference<>() {});
+        assertThat(responseBody.get("status")).isEqualTo(BAD_REQUEST.toString());
+        assertThat(responseBody.get("error")).isEqualTo("Invalid phone number");
+        assertThat(responseBody.get("message")).isEqualTo("The string supplied did not seem to be a phone number.");
+    }
 }

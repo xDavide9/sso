@@ -115,4 +115,17 @@ public class OperatorController {
         return operatorService.changeEmail(uuid, email);
     }
 
+    /**
+     * Changes phoneNumber of {@link User} with specified uuid
+     * @param uuid - of the user to be changed
+     * @param phoneNumber - new phoneNumber
+     * @return {@link ResponseEntity}
+     */
+    @PutMapping("/change/phoneNumber/{uuid}")
+    @PreAuthorize("hasAnyAuthority('OPERATOR_PUT', 'ADMIN_PUT')")
+    public ResponseEntity<String> changePhoneNumber(@PathVariable UUID uuid,
+                                              @RequestParam(value = "phoneNumber") String phoneNumber) {
+        return operatorService.changePhoneNumber(uuid, phoneNumber);
+    }
+
 }
