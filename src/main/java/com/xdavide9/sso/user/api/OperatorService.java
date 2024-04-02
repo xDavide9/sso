@@ -25,6 +25,9 @@ import static java.lang.String.format;
 /**
  * This service holds business logic for {@link OperatorController}.
  * It interacts with {@link UserRepository} for database operations.
+ * These methods can be used by an operator or people with higher role and include
+ * getting information about users, or a specific user with different input parameters,
+ * timing users out and changing their username or email (used to authenticate)
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
  */

@@ -11,7 +11,7 @@ import java.util.UUID;
 
 /**
  * This controller exposes endpoints to let admins manage {@link User}s and Operators.
- * Requires the ADMIN {@link Role} within the system.
+ * Requires the admin permissions.
  * Delegates business logic to {@link AdminService}.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT

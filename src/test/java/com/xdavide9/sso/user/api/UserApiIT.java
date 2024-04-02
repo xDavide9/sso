@@ -4,6 +4,7 @@ import com.xdavide9.sso.authentication.LoginRequest;
 import com.xdavide9.sso.common.util.JsonParserService;
 import com.xdavide9.sso.common.util.TestAuthenticator;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.fields.Gender;
 import jakarta.transaction.Transactional;
 import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Test;
@@ -185,4 +186,35 @@ public class UserApiIT {
         User user = parser.java(json, User.class);
         assertThat(user.getCountry().getCountryCode()).isEqualTo("IT");
     }
+
+    @ParameterizedTest
+    @CsvSource({
+            "userUsername,userPassword",
+            "operatorUsername,operatorPassword",
+            "adminUsername,adminPassword"
+    })
+    void itShouldChangeRegistry(String loginUsername, String loginPassword) throws Exception {
+        // given
+        String token = authenticator.login(loginUsername, loginPassword);
+        // when
+        ResultActions changeRegistry = mockMvc.perform(
+                put("/api/v0.0.1/principal/change/registry?firstName=John&lastName=Black&gender=MALE&dateOfBirth=2000-01-01")
+                        .header("Authorization", "Bearer " + token)
+        );
+        // then
+        changeRegistry.andExpect(status().isOk());
+        String newToken = changeRegistry.andReturn().getResponse().getContentAsString();
+        ResultActions getDetails = mockMvc.perform(
+                get("/api/v0.0.1/principal")
+                        .header("Authorization", "Bearer " + newToken)
+        );
+        String json = getDetails.andReturn().getResponse().getContentAsString();
+        User user = parser.java(json, User.class);
+        assertThat(user.getFirstName()).isEqualTo("John");
+        assertThat(user.getLastName()).isEqualTo("Black");
+        assertThat(user.getGender()).isEqualTo(Gender.MALE);
+        assertThat(user.getDateOfBirth()).isEqualTo("2000-01-01");
+    }
+
+
 }

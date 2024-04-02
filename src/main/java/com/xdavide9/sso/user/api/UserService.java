@@ -3,6 +3,7 @@ package com.xdavide9.sso.user.api;
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
+import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.util.UserModifierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 import static java.lang.String.format;
 
@@ -82,6 +86,29 @@ public class UserService {
     public ResponseEntity<String> changeCountry(String countryCode) {
         User principal = getPrincipal();
         userModifierService.setCountry(principal, countryCode);
+        String token = jwtService.generateToken(principal);
+        return ResponseEntity.ok(token);
+    }
+
+    @PreAuthorize("hasAnyAuthority('USER_PUT', 'OPERATOR_PUT', 'ADMIN_PUT')")
+    public ResponseEntity<String> changeRegistry(String firstName, String lastName, String gender, String dateOfBirth) {
+        User principal = getPrincipal();
+        if (firstName != null)
+            userModifierService.setFirstName(principal, firstName);
+        if (lastName != null)
+            userModifierService.setLastName(principal, lastName);
+        if (gender != null)
+            try {
+                userModifierService.setGender(principal, Gender.valueOf(gender.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body("Invalid gender provided");
+            }
+        if (dateOfBirth != null)
+            try {
+                userModifierService.setDateOfBirth(principal, LocalDate.parse(dateOfBirth));
+            } catch (DateTimeParseException e) {
+                return ResponseEntity.badRequest().body("Invalid date of birth provided");
+            }
         String token = jwtService.generateToken(principal);
         return ResponseEntity.ok(token);
     }

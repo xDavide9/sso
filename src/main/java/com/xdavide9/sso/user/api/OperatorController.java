@@ -12,7 +12,7 @@ import java.util.UUID;
 
 /**
  * This controller exposes endpoints to let operators manage {@link User}s.
- * Requires the OPERATOR {@link Role} within the system.
+ * Requires operator permissions or higher.
  * Delegates business logic to {@link OperatorService}.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT

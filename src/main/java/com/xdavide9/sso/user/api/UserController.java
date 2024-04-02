@@ -1,15 +1,18 @@
 package com.xdavide9.sso.user.api;
 
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.user.fields.role.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 /**
  * This controller exposes endpoints for {@link User}s to manage their personal information.
- * Requires the USER {@link Role} within the system.
+ * Requires user permissions or higher.
  * Delegates business logic to {@link UserService}.
  * @author xdavide9
  * @since 0.0.1-SNAPSHOT
@@ -62,5 +65,15 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('USER_PUT', 'OPERATOR_PUT', 'ADMIN_PUT')")
     public ResponseEntity<String> changeCountry(@RequestParam(name = "value") String countryCode) {
         return userService.changeCountry(countryCode);
+    }
+
+    @PutMapping("/change/registry")
+    @PreAuthorize("hasAnyAuthority('USER_PUT', 'OPERATOR_PUT', 'ADMIN_PUT')")
+    public ResponseEntity<String> changeRegistry(
+            @RequestParam(name = "firstName", required = false) String firstName,
+            @RequestParam(name = "lastName", required = false) String lastName,
+            @RequestParam(name = "gender", required = false) String gender,
+            @RequestParam(name = "dateOfBirth", required = false) String dateOfBirth) {
+        return userService.changeRegistry(firstName, lastName, gender, dateOfBirth);
     }
 }

@@ -4,6 +4,7 @@ package com.xdavide9.sso.user.api;
 
 import com.xdavide9.sso.jwt.JwtService;
 import com.xdavide9.sso.user.User;
+import com.xdavide9.sso.user.fields.Gender;
 import com.xdavide9.sso.util.UserModifierService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.time.LocalDate;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
@@ -113,6 +116,24 @@ class UserServiceTest {
         ResponseEntity<String> response = underTest.changeCountry(countryCode);
         // then
         verify(userModifierService).setCountry(principal, countryCode);
+        assertThat(response.getBody()).isEqualTo(token);
+    }
+
+    @Test
+    void itShouldChangeRegistry() {
+        // given
+        String firstName = "John";
+        String lastName = "Black";
+        String gender = "MALE";
+        String dateOfBirth = "2000-01-01";
+        // when
+        when(jwtService.generateToken(principal)).thenReturn(token);
+        ResponseEntity<String> response = underTest.changeRegistry(firstName, lastName, gender, dateOfBirth);
+        // then
+        verify(userModifierService).setFirstName(principal, firstName);
+        verify(userModifierService).setLastName(principal, lastName);
+        verify(userModifierService).setGender(principal, Gender.valueOf(gender));
+        verify(userModifierService).setDateOfBirth(principal, LocalDate.parse(dateOfBirth));
         assertThat(response.getBody()).isEqualTo(token);
     }
 }
