@@ -1,5 +1,6 @@
 package com.xdavide9.sso.jwt;
 
+import com.xdavide9.sso.authentication.twofactor.EmailVerifier;
 import com.xdavide9.sso.config.SecurityConfig;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
@@ -39,16 +40,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final Clock clock;
     private final UserRepository repository;
+    private final EmailVerifier emailVerifier;
 
     @Autowired
     public JwtAuthenticationFilter(UserDetailsService userDetailsService,
                                    JwtService jwtService,
                                    Clock clock,
-                                   UserRepository repository) {
+                                   UserRepository repository,
+                                   EmailVerifier emailVerifier) {
         this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
         this.clock = clock;
         this.repository = repository;
+        this.emailVerifier = emailVerifier;
     }
 
     /**
@@ -86,6 +90,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     user.setEnabled(true);
                     repository.save(user);
                 }
+            }
+            if (!emailVerifier.isEmailVerified(user)) {
+                response.setStatus(403);
+                response.getWriter()
+                        .write("You need to verify your email before proceeding, check your inbox or request a new verification email");
+                return;
             }
             // ...
             // now register to security context

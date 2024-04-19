@@ -1,5 +1,6 @@
 package com.xdavide9.sso.jwt;
 
+import com.xdavide9.sso.authentication.twofactor.EmailVerifier;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -40,6 +41,8 @@ class JwtAuthenticationFilterTest {
     private FilterChain filterChain;
     @Mock
     private UserRepository repository;
+    @Mock
+    private EmailVerifier emailVerifier;
     private Clock clock;
     @Captor
     private ArgumentCaptor<Authentication> captor;
@@ -49,7 +52,7 @@ class JwtAuthenticationFilterTest {
     @BeforeEach
     void setUp() {
         clock = Clock.fixed(Instant.now(), ZoneId.systemDefault());
-        JwtAuthenticationFilter originalFilter = new JwtAuthenticationFilter(userDetailsService, jwtService, clock, repository);
+        JwtAuthenticationFilter originalFilter = new JwtAuthenticationFilter(userDetailsService, jwtService, clock, repository, emailVerifier);
         underTest = Mockito.spy(originalFilter);
         request = new MockHttpServletRequest();
         response = new MockHttpServletResponse();
@@ -60,6 +63,7 @@ class JwtAuthenticationFilterTest {
         String username = "xdavide9";
         User user = new User();
         user.setUsername(username);
+        given(emailVerifier.isEmailVerified(user)).willReturn(true);
         given(userDetailsService.loadUserByUsername(username)).willReturn(user);
         String token = "validToken";
         request.setAttribute("token", token);
@@ -125,6 +129,7 @@ class JwtAuthenticationFilterTest {
         // given
         String username = "xdavide9";
         User user = new User();
+        given(emailVerifier.isEmailVerified(user)).willReturn(true);
         user.setUsername(username);
         user.setEnabled(false);
         user.setDisabledUntil(LocalDateTime.now(clock).minusHours(1));
