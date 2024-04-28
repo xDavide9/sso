@@ -1,6 +1,6 @@
 package com.xdavide9.sso.jwt;
 
-import com.xdavide9.sso.authentication.twofactor.EmailVerifier;
+import com.xdavide9.sso.authentication.verification.EmailVerifier;
 import com.xdavide9.sso.config.SecurityConfig;
 import com.xdavide9.sso.user.User;
 import com.xdavide9.sso.user.UserRepository;

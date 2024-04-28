@@ -1,8 +1,13 @@
-package com.xdavide9.sso.authentication.twofactor;
+package com.xdavide9.sso.authentication.verification;
 
 import com.xdavide9.sso.user.User;
 import org.springframework.stereotype.Service;
 
+/**
+ * Mock service, everybody's email is always verified
+ * @since 0.0.1-SNAPSHOT
+ * @author xdavide9
+ */
 @Service
 public class MockEmailVerifierService implements EmailVerifier {
     @Override
